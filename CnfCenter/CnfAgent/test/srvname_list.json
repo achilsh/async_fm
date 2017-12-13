@@ -1,0 +1,11 @@
+{
+	"down_stream":	[{
+			"ip":	"192.0.0.1",
+			"port":	60101,
+			"node_type":	"test_2"
+		}, {
+			"ip":	"192.0.0.1",
+			"port":	60100,
+			"node_type":	"test_1"
+		}]
+}

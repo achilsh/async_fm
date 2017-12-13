@@ -1,0 +1,9 @@
+src/yajl/libyajl_la-yajl_version.lo: src/yajl/yajl_version.c \
+ src/yajl/yajl_version.h src/yajl/yajl_common.h \
+ /usr/local/lib/gcc/x86_64-unknown-linux-gnu/4.8.2/include/stddef.h
+
+src/yajl/yajl_version.h:
+
+src/yajl/yajl_common.h:
+
+/usr/local/lib/gcc/x86_64-unknown-linux-gnu/4.8.2/include/stddef.h:

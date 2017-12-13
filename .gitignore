@@ -1,0 +1,9 @@
+*.[oa]
+._*
+tags
+*.o
+**/*.o
+Interface/src/**.o
+loss/lib/*.so
+loss/lib/*.a
+Starship/src/*

@@ -1,0 +1,35 @@
+{
+        "node_type":"CnfSrv",
+        "access_host":"192.168.1.106",
+        "access_port":35000,
+        "access_codec":3,
+        "inner_host":"192.168.1.106",
+        "inner_port":35001,
+        "center":[
+        {"host":"192.168.18.80","port":"15000"}],
+        "server_name":"CnfSrv_huws",
+        "process_num":1,
+        "worker_capacity":1000000,
+        "config_path":"conf/",
+        "log_path":"log/",
+        "max_log_file_num":5,
+        "max_log_file_size":20480000,
+
+        "permission":{
+            "addr_permit":{"stat_interval":600.0, "permit_num":10000000},
+            "uin_permit":{"stat_interval":60.0, "permit_num":60}
+        },
+        "io_timeout":300.0,
+        "step_timeout":3.0,
+        "log_levels":{"FATAL":50000, "ERROR":40000, "WARN":30000, "INFO":20000, "DEBUG":10000, "TRACE":0},
+        "log_level":0,
+        "refresh_interval":1,
+        "custom": {"conf_type": ["host_conf", "srv_name"],
+                   "redis": {"ip":"127.0.0.1", "port": 6379, "pwd": "", "db": 0}
+        },
+        "module":[
+          {"url_path":"/cnfsrv/query","so_path":"plugins/CnfSrv/ModuleQueryCnf.so","entrance_symbol":"create", "load":true, "version":1},
+          {"url_path":"/cnfsrv/modify","so_path":"plugins/CnfSrv/ModuleModifyCnf.so","entrance_symbol":"create", "load":true, "version":1}
+        ]
+}
+

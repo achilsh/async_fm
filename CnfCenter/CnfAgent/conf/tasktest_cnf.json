@@ -1,0 +1,19 @@
+{
+  "server_name": "cnf_agent_daemon",
+  "process_num": 3,
+  "log_levels": {
+    "FATAL": 50000,
+    "ERROR": 40000,
+    "WARN": 30000,
+    "INFO": 20000,
+    "DEBUG": 10000,
+    "TRACE": 0
+  },
+  "log_level": 0,
+  "max_log_file_size": 500000,
+  "max_log_file_num": 5,
+  "log_path": "./log/",
+  "redis":{"host":"127.0.0.1","port":6379,"pwd":"","db":0},
+  "srvname_filename": "/home/achilsh/hzy/frame_works/CnfCenter/CnfAgent/test/srvname_list.json",
+  "channel": ["host_conf","srv_name"]
+}

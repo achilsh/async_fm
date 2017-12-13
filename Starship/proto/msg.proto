@@ -1,0 +1,38 @@
+syntax = "proto2";
+
+/**
+ * @brief 消息头
+ */
+message MsgHead
+{
+    required fixed32 cmd = 1 ;               	///< 命令字（压缩加密算法占高位1字节）
+    required fixed32 msgbody_len = 2;        	///< 消息体长度（单个消息体长度不能超过65535即8KB）
+    required fixed32 seq = 3;                	///< 序列号
+}
+
+/**
+ * @brief 消息体
+ * @note 消息体主体是body，所有业务逻辑内容均放在body里。session_id和session用于接入层路由，
+ * 两者只需要填充一个即可，首选session_id，当session_id用整型无法表达时才使用session。
+ */
+message MsgBody
+{
+    required bytes body         = 1;			///< 消息体主体
+    optional uint32 session_id  = 2;			///< 会话ID（单聊消息为接收者uid，个人信息修改为uid，群聊消息为groupid，群管理为groupid）
+    optional string session     = 3;			///< 会话ID（当session_id用整型无法表达时使用）
+    optional bytes additional   = 4;			///< 接入层附加的数据（客户端无须理会）
+}
+
+
+/**
+ * @brief 请求响应
+ * @note 普通（简单、一般）响应，用于只返回错误码和错误信息的场景，错误码为0表示成功，其他错误码各自定义
+ */
+message OrdinaryResponse
+{
+    required int32 err_no           = 1;    	///< 错误码
+    optional bytes err_msg          = 2;    	///< 错误信息
+}
+
+
+

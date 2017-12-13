@@ -1,0 +1,32 @@
+syntax = "proto2";
+
+message HttpMsg
+{
+	required int32 type						= 1;		///< http_parser_type 请求或响应
+	required int32 http_major				= 2;		///< http大版本号
+	required int32 http_minor				= 3;		///< http小版本号
+	optional int32 content_length			= 4;		///< 内容长度
+	optional int32 method					= 5;		///< 请求方法
+	optional int32 status_code				= 6;		///< 响应状态码
+	optional int32 encoding					= 7;		///< 传输编码
+	optional string url						= 8;		///< 地址
+	repeated Header headers					= 9;		///< http头域
+	optional bytes body						= 10;		///< 消息体
+//	repeated Param get_params				= 11;		///< GET方法参数，POST方法不需要
+//	optional string host					= 12;		///< Http Decode时从url中解析出来，不需要人为填充（encode时不需要填）
+//	optional int32 port						= 13;		///< Http Decode时从url中解析出来，不需要人为填充（encode时不需要填）
+	optional string path				    = 14;		///< Http Decode时从url中解析出来，不需要人为填充（encode时不需要填）
+	optional bool is_decoding				= 15;		///< 是否正在解码（true 正在解码， false 未解码或已完成解码）
+
+	message Header
+	{
+		required string header_name			= 1;		///< 名
+		required string header_value		= 2;		///< 值
+	}
+
+//	message Param
+//	{
+//		required string name				= 1;
+//		required string value				= 2;
+//	}
+}

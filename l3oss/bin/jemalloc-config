@@ -1,0 +1,79 @@
+#!/bin/sh
+
+usage() {
+	cat <<EOF
+Usage:
+  /work/imdev/IM3.0/l3oss/bin/jemalloc-config <option>
+Options:
+  --help | -h  : Print usage.
+  --version    : Print jemalloc version.
+  --revision   : Print shared library revision number.
+  --config     : Print configure options used to build jemalloc.
+  --prefix     : Print installation directory prefix.
+  --bindir     : Print binary installation directory.
+  --datadir    : Print data installation directory.
+  --includedir : Print include installation directory.
+  --libdir     : Print library installation directory.
+  --mandir     : Print manual page installation directory.
+  --cc         : Print compiler used to build jemalloc.
+  --cflags     : Print compiler flags used to build jemalloc.
+  --cppflags   : Print preprocessor flags used to build jemalloc.
+  --ldflags    : Print library flags used to build jemalloc.
+  --libs       : Print libraries jemalloc was linked against.
+EOF
+}
+
+prefix="/work/imdev/IM3.0/l3oss"
+exec_prefix="/work/imdev/IM3.0/l3oss"
+
+case "$1" in
+--help | -h)
+	usage
+	exit 0
+	;;
+--version)
+	echo "4.1.0-0-gdf900dbfaf4835d3efc06d771535f3e781544913"
+	;;
+--revision)
+	echo "2"
+	;;
+--config)
+	echo "--prefix=/work/imdev/IM3.0/l3oss"
+	;;
+--prefix)
+	echo "/work/imdev/IM3.0/l3oss"
+	;;
+--bindir)
+	echo "/work/imdev/IM3.0/l3oss/bin"
+	;;
+--datadir)
+	echo "/work/imdev/IM3.0/l3oss/share"
+	;;
+--includedir)
+	echo "/work/imdev/IM3.0/l3oss/include"
+	;;
+--libdir)
+	echo "/work/imdev/IM3.0/l3oss/lib"
+	;;
+--mandir)
+	echo "/work/imdev/IM3.0/l3oss/share/man"
+	;;
+--cc)
+	echo "gcc"
+	;;
+--cflags)
+	echo "-std=gnu99 -Wall -Werror=declaration-after-statement -pipe -g3 -fvisibility=hidden -O3 -funroll-loops"
+	;;
+--cppflags)
+	echo " -D_GNU_SOURCE -D_REENTRANT"
+	;;
+--ldflags)
+	echo " "
+	;;
+--libs)
+	echo " -lpthread"
+	;;
+*)
+	usage
+	exit 1
+esac

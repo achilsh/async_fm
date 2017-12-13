@@ -1,0 +1,69 @@
+test unit: 
+==========================================================
+host cnf test
+1. query 
+  url: http://192.168.1.100:35000/cnfsrv/query
+  body:
+{
+  "conf_type":"host_conf",
+  "host_conf": {"ip": "192.168.1.100", "port": 60100, "srvname": "test_1"}
+}
+//empty response :
+{"code":0,"data":{"cnf_path":"","cnf_content":{}}}
+
+2.modify
+  url: http://192.168.1.100:35000/cnfsrv/modify
+  body: 
+{
+  "conf_type":"host_conf",
+  "host_conf": {"ip":"192.168.1.100","port": 60100, "srvname": "test_1"},
+  "cnf_path": "/home/achilsh/tests/cnf_test/test_1.json",
+  "cnf_content": {
+        "access_host":"192.168.1.100",
+        "access_port":35000,
+        "access_codec":3,
+        "inner_host":"192.168.1.100",
+        "inner_port":35001,
+        "server_name":"Interface_huws",
+        "process_num":1,
+        "worker_capacity":1000000,
+        "config_path":"conf/",
+        "log_path":"log/",
+        "max_log_file_num":5,
+        "max_log_file_size":20480000,
+
+        "permission":{
+            "addr_permit":{"stat_interval":600.0, "permit_num":10000000},
+            "uin_permit":{"stat_interval":60.0, "permit_num":60}
+        }
+  }
+}
+
+=================================================================
+srv name test
+1. query
+ url: http://192.168.1.100:35000/cnfsrv/query
+ body: 
+{
+  "conf_type":"srv_name",
+  "srv_name":"test_1"
+}
+//empty return:
+{"code":0,"data":{"test_1":[]}}
+//succ return:
+{"code":0,"data":{"test_1":[{"ip":"127.0.0.1","port":60100},{"ip":"127.0.0.1","port":60101},{"ip":"127.0.0.1","port":60102}]}}
+
+2. modify
+  url: http://192.168.1.100:35000/cnfsrv/modify
+  body: 
+{
+  "conf_type":"srv_name",
+    "srv_name": "test_1",
+    "test_1": [{"ip":"127.0.0.1","port":60100},
+    {"ip":"127.0.0.1","port":60101},
+    {"ip":"127.0.0.1","port":60102}
+    ]
+}
+//succ: 
+{"code":0,"msg":"succ"}
+
