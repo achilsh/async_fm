@@ -6,6 +6,8 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace SubCnfTask {
 
@@ -139,7 +141,7 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
                             const std::string& sSubRet) {
   //TODO: parse json and write host conf json file to file
   //
-  //pub ret format: {"ip":"", "cnf_path":"", "cnf_dat":""} 
+  //pub ret format: {"ip":"", "port": 0, "cnf_path":"", "cnf_dat":""} 
   TLOG4_INFO("ch: %s, sub info: %s", sCh.c_str(), 
              sSubRet.c_str());
   loss::CJsonObject jsHostCnf;
@@ -154,14 +156,15 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
   }
   std::string sIp, sCnfPath;
   loss::CJsonObject sCnfData;
-
-  if (GetSubRetItem(HOSTCNF_IP,jsHostCnf,sIp) == false 
-      || GetSubRetItem(HOSTCNF_PATH,jsHostCnf,sCnfPath) == false
-      || GetSubRetItem(HOSTCNF_DATA,jsHostCnf,sCnfData) ==  false) {
-
+  uint32_t uiPort = 0;
+  if ( (!GetSubRetItem(HOSTCNF_IP,jsHostCnf,sIp) || sIp.empty())
+      || (!GetSubRetItem(HOSTCNF_PATH,jsHostCnf,sCnfPath) || sCnfPath.empty())
+      || (!GetSubRetItem(HOSTCNF_DATA,jsHostCnf,sCnfData) || sCnfData.IsEmpty())
+      || (!GetSubRetItem(HOSTCNF_PORT,jsHostCnf,uiPort) || uiPort <= 0) ) {
+    TLOG4_ERROR("get sub ret item failed");
     return false;
   }
-
+                         
   if (m_pCnfAgent->GetEth0Ip() != sIp) {
     TLOG4_TRACE("receive host cnf pub not local host");
     return true;
@@ -195,42 +198,13 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
     return false;
   }
   ::close(iFd);
-  
+
+  m_pCnfAgent->SendKillSignToListenProcess(sIp, uiPort); 
   //
   TLOG4_INFO("sub host conf file path: %s", sCnfPath.c_str()); 
   return true;
 }
 
-bool HostCnfRetProc::GetSubRetItem(const std::string& sItemName,
-                                   const loss::CJsonObject& jsSubRet,
-                                   std::string& sRet) {
-  if (sItemName.empty() || jsSubRet.IsEmpty()) {
-    return false;
-  }
-  if (false == jsSubRet.Get(sItemName, sRet) || sRet.empty()) {
-    TLOG4_ERROR("host cnf pub ret item: [%s] content empty", sItemName.c_str());
-    return false;
-  }
-  return true;
-}
-
-bool HostCnfRetProc::GetSubRetItem(const std::string& sItemName,
-                                   const loss::CJsonObject& jsSubRet,
-                                   loss::CJsonObject& sRet) {
-  if (sItemName.empty() || jsSubRet.IsEmpty()) {
-    return false;
-  }
-  if (false == jsSubRet.Get(sItemName, sRet)) {
-    TLOG4_ERROR("host cnf pub ret item: [%s] content empty", sItemName.c_str());
-    return false;
-  }
-  //
-  if (sRet.IsEmpty()) {
-    TLOG4_ERROR("host cnf pub ret item: [%s] content empty", sItemName.c_str());
-    return false;
-  }
-  return true;
-}
 //////
 bool SrvNameRetProc::operator() (const std::string& sCh,
                  const std::string& sSubRet) {
@@ -466,7 +440,8 @@ bool SrvNameRetProc::WriteSrvNameCnfToEmptyFile(std::string& srvNameContent,
 
   TLOG4_TRACE("srv name first new content: %s",srvNameContent.c_str());
   return true;
-} 
+}
+
 
 //////////////////
 }

@@ -109,7 +109,7 @@ extern cJSON *cJSON_CreateStringArray(const char **strings, int count);
 
 /* Append item to the specified array/object. */
 extern void cJSON_AddItemToArray(cJSON *array, cJSON *item);
-extern void cJSON_AddItemToArrayHead(cJSON *array, cJSON *item);    /* add by Bwar on 2015-01-28 */
+extern void cJSON_AddItemToArrayHead(cJSON *array, cJSON *item);    /* add by on 2015-01-28 */
 extern void cJSON_AddItemToObject(cJSON *object, const char *string,
                 cJSON *item);
 /* Append reference to item to the specified array/object. Use this when you want to add an existing cJSON to a new cJSON, but don't want to corrupt your existing cJSON. */
@@ -141,7 +141,7 @@ extern void cJSON_ReplaceItemInObject(cJSON *object, const char *string,
  * @param[in] pDestKeyString 褰撳墠json鐩爣瀵硅薄鐨勫瓙瀵硅薄key
  * @param[in] beingCombinedChild 琚悎骞剁殑json瀛愬璞�
  * @param[in] pCombinedKeyString 琚悎骞剁殑json瀛愬璞ey
- * @author Bwar
+ * @author 
  * @date 2014-07-08
  */
 extern void MergeCJsonChild(cJSON* destObject, const char* pDestKeyString, cJSON* beingCombinedChild, const char* pCombinedKeyString);
@@ -151,7 +151,7 @@ extern void MergeCJsonChild(cJSON* destObject, const char* pDestKeyString, cJSON
  * @param[in,out] destObject 鍚堝苟鍚庣殑json瀵硅薄锛堢洰鏍囧璞★級
  * @param[in] beingCombinedObject 琚悎骞剁殑json瀵硅薄
  * @param[in] pCombinedKeyString 琚悎骞剁殑json瀵硅薄key
- * @author Bwar
+ * @author 
  * @date 2014-07-08
  */
 extern void MergeCJson(cJSON* destObject, cJSON* beingCombinedObject, const char* pCombinedKeyString);

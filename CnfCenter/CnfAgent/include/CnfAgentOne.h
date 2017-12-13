@@ -14,6 +14,7 @@
 #define HOSTCNF_IP          "ip"
 #define HOSTCNF_PATH        "cnf_path"
 #define HOSTCNF_DATA        "cnf_dat"
+#define HOSTCNF_PORT        "port"
 
 using namespace LIB_REDIS;
 //define sub ret proc for host conf sub
@@ -30,12 +31,18 @@ class HostCnfRetProc: public SubRetProcBase {
    bool operator()(const std::string& sCh,
                    const std::string& sSubRet);
   private:
+   template<class T>
    bool GetSubRetItem(const std::string& sItemName,
-                      const loss::CJsonObject& jsSubRet,
-                      std::string& sRet);
-   bool GetSubRetItem(const std::string& sItemName,
-                      const loss::CJsonObject& jsSubRet,
-                      loss::CJsonObject& sRet);
+                           const loss::CJsonObject& jsSubRet,
+                           T& tData) {
+     if (sItemName.empty() || jsSubRet.IsEmpty()) {
+       return false;
+     }
+     if (false == jsSubRet.Get(sItemName, tData)) {
+       return false;
+     }
+     return true;
+   }
   private:
    SubCnfTask::CnfAgentOne *m_pCnfAgent;
 };
@@ -60,15 +67,18 @@ class SrvNameRetProc : public SubRetProcBase {
 
 //define cnf center agent instance.
 //just do work: add some sub response process instance.
-  class CnfAgentOne :public SubCnfAgent {
-   public:
-    CnfAgentOne();
-    ~CnfAgentOne ();
-    virtual bool AddSubProcMethod();
-   public:
-    bool GetSrvNameData(std::string& sSrvName);
-    bool WriteNewSrvNameDatFile(const std::string& sSrvNameCnf);
-  };
+class CnfAgentOne :public SubCnfAgent {
+ public:
+  CnfAgentOne();
+  ~CnfAgentOne ();
+  virtual bool AddSubProcMethod();
+ public:
+  bool GetSrvNameData(std::string& sSrvName);
+  bool WriteNewSrvNameDatFile(const std::string& sSrvNameCnf);
+};
+
+//////////////
 }
+
 
 #endif

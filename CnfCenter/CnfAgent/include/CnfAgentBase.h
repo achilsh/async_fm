@@ -47,6 +47,8 @@ namespace SubCnfTask {
       std::string GetEth0Ip();
       int32_t CheckChTypeForWork(const std::string& sChType);
 
+      void SendKillSignToListenProcess(const std::string& sIp,
+                                       uint32_t uiPort); 
     protected:
       struct event_base*  m_pEvent;
       bool                m_IsConnected;

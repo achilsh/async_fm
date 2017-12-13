@@ -117,7 +117,7 @@ namespace CNF_SRV {
      virtual bool CnfSrvModify(const loss::CJsonObject& cnfData);
     private:
      bool ParseCnfHostConf(const loss::CJsonObject& cnfData,
-                           std::string& sIp,uint32_t uiPort,
+                           std::string& sIp,uint32_t& uiPort,
                            std::string& sSrvName);
   };
   //

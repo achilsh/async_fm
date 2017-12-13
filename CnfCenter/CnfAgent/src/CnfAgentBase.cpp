@@ -1,4 +1,5 @@
 #include "CnfAgentBase.h"
+#include "LibComm/include/lib_string.h"
 
 #include <fstream>      // std::ofstream
 #include <iostream>
@@ -280,7 +281,7 @@ namespace SubCnfTask {
 
     for (std::vector<std::string>::iterator it = vKeyRet.begin();
          it != vKeyRet.end(); ++it) {
-
+      //*it format: prex:ip:port:srvname
       RedisHash rHashOp(m_syncRedisCli);
       std::map<std::string, std::string> mHVals;  
       if (false == rHashOp.hMGet(*it,vField, mHVals)) {
@@ -304,6 +305,14 @@ namespace SubCnfTask {
       }
       TLOG4_TRACE("sync host conf, path: %s\nhost conf content: %s", 
                   mHVals[FieldNameFilePath].c_str(),sCnfContent.c_str());
+      std::string sKeyData = *it;
+      std::vector<std::string> vIpPortSrvName;
+      LIB_COMM::LibString::str2vec(sKeyData, vIpPortSrvName, ":");
+      if (vIpPortSrvName.size() < 4) {
+        continue;
+      }
+      uint32_t uiPort = ::atoi(vIpPortSrvName[2].c_str());
+      SendKillSignToListenProcess(sHostIp, uiPort);
     }
     return true;
   }
@@ -484,6 +493,48 @@ namespace SubCnfTask {
     }
     ::close(iFd);
     return true;
+  }
+
+  void SubCnfAgent::SendKillSignToListenProcess(
+      const std::string& sIp, uint32_t uiPort) {
+    if (sIp.empty() || uiPort <= 0) {
+      return ;
+    }
+
+    std::stringstream ios;
+    ios << "lsof -i:" << uiPort << "|grep LISTEN|awk '{print $2}'";
+    std::string sPort2PidCmd = ios.str();
+    TLOG4_TRACE("get pid cmd: %s", sPort2PidCmd.c_str());
+    ios.str("");
+
+    FILE *fOpen = NULL;
+    char buff[1024];
+    fOpen = ::popen(sPort2PidCmd.c_str(),"r");
+    if (fOpen == NULL) {
+      TLOG4_ERROR("cmd: %s run failed, err: %s",
+                  sPort2PidCmd.c_str(), strerror(errno));
+      return ;
+    }
+
+    if (NULL == fgets(buff,sizeof(buff), fOpen)) {
+      TLOG4_ERROR("get cmd: %s ret failed, err: %s",
+                  sPort2PidCmd.c_str(), strerror(errno));
+      ::pclose(fOpen);
+      return ;
+    }
+    ::pclose(fOpen); fOpen = NULL;
+
+    int32_t uiListenPid = ::atoi(buff);
+    TLOG4_TRACE("get listen port: %u, pid: %u",uiPort, uiListenPid);
+
+    ios << "kill -s USR1 " << uiListenPid;
+    std::string sKillUSR1Cmd = ios.str();
+    TLOG4_TRACE("signal cmd: %s", sKillUSR1Cmd.c_str());
+    if( -1 == ::system(sKillUSR1Cmd.c_str())) {
+      TLOG4_ERROR("run cmd: %s failed", sKillUSR1Cmd.c_str());
+      return ;
+    }
+    TLOG4_INFO("send proc signal cmd: %s succ", sKillUSR1Cmd.c_str());
   }
   ////////
 }

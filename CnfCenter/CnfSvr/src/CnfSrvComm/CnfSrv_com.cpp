@@ -117,7 +117,7 @@ CnfSrvHostCnf::~CnfSrvHostCnf() {
 }
 
 bool CnfSrvHostCnf::ParseCnfHostConf(const loss::CJsonObject& jsCondition,
-                                     std::string& sIp,uint32_t uiPort,
+                                     std::string& sIp,uint32_t& uiPort,
                                      std::string& sSrvName) {
   loss::CJsonObject hostConfQuery;
   //foramt: {"host_conf": {"ip": "", "port": 0, "srvname": ""} }
@@ -241,6 +241,7 @@ bool CnfSrvHostCnf::CnfSrvCreate(const loss::CJsonObject& cnfData) {
   loss::CJsonObject jsPushData;
   //format: {"ip":"", "cnf_path": "", "cnf_dat": {} }
   jsPushData.Add("ip", sCnfHost);
+  jsPushData.Add("port", uiCnfPort);
   jsPushData.Add("cnf_path", sCnfPath);
   jsPushData.Add("cnf_dat", jsCnfContent);
   m_PushData.append(jsPushData.ToString());
@@ -294,8 +295,9 @@ bool CnfSrvHostCnf::CnfSrvModify(const loss::CJsonObject& cnfData) {
   }
   m_PushData.clear();
   loss::CJsonObject jsPushData;
-  //format: {"ip":"", "cnf_path": "", "cnf_dat": {} }
+  //format: {"ip":"", "cnf_path": "","port":0, "cnf_dat": {} }
   jsPushData.Add("ip", sCnfHost);
+  jsPushData.Add("port", uiCnfPort);
   jsPushData.Add("cnf_path", sCnfPath);
   jsPushData.Add("cnf_dat", jsCnfContent);
   m_PushData.append(jsPushData.ToString());

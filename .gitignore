@@ -4,6 +4,12 @@ tags
 *.o
 **/*.o
 Interface/src/**.o
+Starship/bin/
+./
+.gitignore
+Starship/src/InterfaceServer
+Starship/src/LogicServer
 loss/lib/*.so
 loss/lib/*.a
 Starship/src/*
+.gitignore

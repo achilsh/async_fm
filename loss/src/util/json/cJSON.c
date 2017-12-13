@@ -1085,7 +1085,7 @@ cJSON *cJSON_CreateStringArray(const char **strings, int count)
     return a;
 }
 
-/* add by Bwar on 2014-07-08 */
+/* add by on 2014-07-08 */
 void MergeCJsonChild(cJSON* destObject, const char* pDestKeyString,
                 cJSON* beingCombinedChild, const char* pCombinedKeyString)
 {
@@ -1107,7 +1107,7 @@ void MergeCJsonChild(cJSON* destObject, const char* pDestKeyString,
     }
 }
 
-/* add by Bwar on 2014-07-08 */
+/* add by on 2014-07-08 */
 void MergeCJson(cJSON* destObject, cJSON* beingCombinedObject, const char* pCombinedKeyString)
 {
     cJSON *c = beingCombinedObject->child;
