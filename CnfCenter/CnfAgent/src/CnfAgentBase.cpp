@@ -22,7 +22,7 @@
 namespace SubCnfTask {
   
   ////////////////////////////////
-  SubCnfAgent::SubCnfAgent (): m_pEvent (NULL), m_IsConnected(false) {
+  SubCnfAgent::SubCnfAgent (): m_pEvent (NULL), m_IsConnected(false),m_pSyncTimer (NULL) {
   }
 
   SubCnfAgent::~SubCnfAgent() {
@@ -69,6 +69,13 @@ namespace SubCnfTask {
       TLOG4_ERROR("init sync redis failed");
       return -4;
     }
+
+    double tm_timer= 1.0;
+    oJsonConf.Get("timerchecktm", tm_timer);
+    m_TimerTm.tv_sec = ::floor(tm_timer);
+    long tvUsec = ::floor(tm_timer*1000000);
+    tvUsec %= 1000000;
+    m_TimerTm.tv_usec = tvUsec;
     return 0;
   }
 
@@ -170,7 +177,8 @@ namespace SubCnfTask {
     }
 
     if (m_pSyncTimer == NULL) {
-     // SetSynTimer();
+      TLOG4_TRACE("SetSynTimer()");
+      SetSynTimer();
     }
     static int ii = 0;
     RedisSubscriber subReq(m_asyncRedisCli);
@@ -186,15 +194,14 @@ namespace SubCnfTask {
   }
 
   void SubCnfAgent::SetSynTimer() {
-    m_TimerTm.tv_sec  = 2;
-    m_TimerTm.tv_usec = 0;
     m_pSyncTimer = (struct event *)malloc(sizeof(struct event));
 
     evtimer_set(m_pSyncTimer, SubCnfAgent::StartSyncTimerWork, this);
     event_base_set(m_pEvent,m_pSyncTimer);
     evtimer_add(m_pSyncTimer,&m_TimerTm);
 
-    TLOG4_TRACE("set timer tm dur: %ld", m_TimerTm.tv_sec);
+    TLOG4_TRACE("set timer tm dur: %lu, us: %lu", 
+                m_TimerTm.tv_sec, m_TimerTm.tv_usec);
   }
 
   void SubCnfAgent::StartSyncTimerWork(int fd, short event, void * arg) {
@@ -203,6 +210,7 @@ namespace SubCnfTask {
       std::cout << "timer check cb arg is empty" << std::endl;
       return ;
     }
+
     evtimer_set(pAgent->m_pSyncTimer, SubCnfAgent::StartSyncTimerWork, arg);
     event_base_set(pAgent->m_pEvent, pAgent->m_pSyncTimer);
     evtimer_add(pAgent->m_pSyncTimer, &(pAgent->m_TimerTm));

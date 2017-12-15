@@ -14,6 +14,7 @@
   "max_log_file_num": 5,
   "log_path": "./log/",
   "redis":{"host":"127.0.0.1","port":6379,"pwd":"","db":0},
+  "timerchecktm": 10.0,
   "srvname_filename": "/home/achilsh/hzy/frame_works/CnfCenter/CnfAgent/test/srvname_list.json",
   "channel": ["host_conf","srv_name"]
 }
