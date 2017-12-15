@@ -26,7 +26,13 @@ namespace SubCnfTask {
   }
 
   SubCnfAgent::~SubCnfAgent() {
-
+    if(m_pSyncTimer) { delete m_pSyncTimer; m_pSyncTimer = NULL; }
+    event_base_free(m_pEvent); m_pEvent = NULL;
+    for (std::map<std::string, SubRetProcBase*>::iterator it = m_mpSubRetProc.begin();
+         it != m_mpSubRetProc.end(); ++it) {
+      if (it->second) { delete  it->second; it->second = NULL; }
+    }
+    m_mpSubRetProc.clear();
   }
 
   int SubCnfAgent::TaskInit(loss::CJsonObject& oJsonConf, uint32_t uiWorkid) {
