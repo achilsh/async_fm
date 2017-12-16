@@ -32,10 +32,12 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/MySqlDb/include \
        -I $(LOSS_PATH)/src/RedisClient/include \
        -I $(LOSS_PATH)/src/CnfComm/include \
+       -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
+           -lqlibc \
            -llog4cplus \
            -levent \
            -lev \
@@ -51,7 +53,7 @@ C_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
 S_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.s))
 OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubst %.s,%.o,$(S_SRCS)) 
 
-all: Ts LIBRARYS
+all:  LIBRARYS Ts
 TESTSPATH = $(shell find $(LOSS_PATH) -name 'test*' -type d)
 Ts:
 	@for dir in $(TESTSPATH); do echo "making in $$dir"; ( cd $$dir && make -f makefile -e CC='$(CXX)' CFLAG='$(CFLAG)'); done  
