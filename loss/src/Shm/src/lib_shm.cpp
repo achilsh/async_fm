@@ -146,5 +146,13 @@ bool LibShm::DelKey(const std::string& sKey) {
   }
   return true;
 }
+
+bool LibShm::ShmRm() {
+  if (m_shmId > 0 && m_shmMode == OP_W) {
+    ::shmctl(m_shmId, IPC_RMID, 0);
+    return true;
+  }
+  return true;
+}
 //
 }

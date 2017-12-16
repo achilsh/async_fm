@@ -72,6 +72,7 @@ namespace LIB_SHM {
      bool GetValue(const std::string& sKey, T& tData);
 
      bool DelKey(const std::string& sKey);
+     bool ShmRm();
 
      std::string GetErrMsg() const { return m_sErrMsg; }
      int GetErrNo() const { return m_iErrCode; }
