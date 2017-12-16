@@ -23,7 +23,8 @@
 #include <sstream>
 #include "qlibc/qlibc.h"
 
-#define SHM_VALUE_MD5LEN   (16)
+#define SHM_VALUE_MD5LEN    (16)
+#define SHM_WOP_FLOCK_PATH  "/tmp/shm_wflock_"
 
 namespace LIB_SHM {
   //shm mode:
@@ -50,14 +51,14 @@ namespace LIB_SHM {
     public:
      ShmFLock(const std::string& sShmKey);
      virtual ~ShmFLock();
-     static const std::string m_fLockPrefix;
+     //static const std::string m_fLockPrefix;
      bool m_Init;
      std::string GetErrMsg() { return sErrMsg; }
     private:
      std::string sErrMsg;
      int32_t m_openFd;
   };
-  const std::string ShmFLock::m_fLockPrefix = "/tmp/shm_wflock_";
+  //const std::string ShmFLock::m_fLockPrefix = "/tmp/shm_wflock_";
   
   class LibShm {
     public:
@@ -68,8 +69,13 @@ namespace LIB_SHM {
      template<class T>
      bool SetValue(const std::string& sKey, const T& tData);
      
-     template<class T>
-     bool GetValue(const std::string& sKey, T& tData);
+     bool GetValue(const std::string& sKey, std::string& sData);
+     bool GetValue(const std::string& sKey, int32_t&  tData);
+     bool GetValue(const std::string& sKey, uint32_t&  tData);
+     bool GetValue(const std::string& sKey, int64_t&  tData);
+     bool GetValue(const std::string& sKey, uint64_t&  tData);
+     bool GetValue(const std::string& sKey, double&  tData);
+     bool GetValue(const std::string& sKey, bool&  tData);
 
      bool DelKey(const std::string& sKey);
      bool ShmRm();
@@ -126,95 +132,6 @@ namespace LIB_SHM {
       SetErrMsg("set key value to hash failed");
       return false;
     }
-    return true;
-  }
-
-  template<class T>
-  bool LibShm::GetValue(const std::string& sKey, T& tData) {
-    if (sKey.empty() || m_TbHash == NULL) {
-      SetErrNo(ERR_SHMPARAM);
-      SetErrMsg("get key empty or hash addr empty");
-      return false;
-    }
-
-    size_t  stLen = 0;
-    char *cRetValBuf = NULL;
-    cRetValBuf =  (char*)qhasharr_get(m_TbHash, sKey.c_str(), &stLen); 
-    if (NULL == cRetValBuf) {
-      if (errno == ENOENT) {
-        SetErrNo(ERR_SHMGETNOEXIST);
-        SetErrMsg("key not exist");
-        return false;
-      }
-      return false;
-    }
-    std::string sData;
-    sData.assign(cRetValBuf, stLen);
-    if (cRetValBuf != NULL) {
-      free(cRetValBuf); cRetValBuf = NULL;
-    }
-
-    if (stLen < SHM_VALUE_MD5LEN) {
-      SetErrNo(ERR_SHMPARAM);
-      SetErrMsg("get data len less than md5 len");
-      return false;
-    }
-
-    char cValMd5[SHM_VALUE_MD5LEN] = {0};
-    qhashmd5(sData.c_str(), sData.size() - SHM_VALUE_MD5LEN, cValMd5);
-    if (0 != ::memcmp(cValMd5, sData.c_str() + sData.size() - SHM_VALUE_MD5LEN, SHM_VALUE_MD5LEN)) {
-      SetErrNo(ERR_SHMMD5CHECKSUM);
-      SetErrMsg("md5 checksum not eq");
-      return false;
-    }
-
-    std::stringstream ios;
-    sData.resize(sData.size() - SHM_VALUE_MD5LEN);
-    ios << sData;
-    ios >> tData;
-    return true;
-  }
-
-  template< >
-  bool LibShm::GetValue<std::string>(const std::string& sKey, std::string& sData) {
-    if (sKey.empty() || m_TbHash == NULL) {
-      SetErrNo(ERR_SHMPARAM);
-      SetErrMsg("get key empty or hash addr empty");
-      return false;
-    }
-
-    size_t  stLen = 0;
-    char *cRetValBuf = NULL;
-    cRetValBuf =  (char*)qhasharr_get(m_TbHash, sKey.c_str(), &stLen); 
-    if (NULL == cRetValBuf) {
-      if (errno == ENOENT) {
-        SetErrNo(ERR_SHMGETNOEXIST);
-        SetErrMsg("key not exist");
-        return false;
-      }
-      return false;
-    }
-
-    sData.assign(cRetValBuf, stLen);
-    if (cRetValBuf != NULL) {
-      free(cRetValBuf); cRetValBuf = NULL;
-    }
-
-    if (stLen < SHM_VALUE_MD5LEN) {
-      SetErrNo(ERR_SHMPARAM);
-      SetErrMsg("get data len less than md5 len");
-      return false;
-    }
-
-    char cValMd5[SHM_VALUE_MD5LEN] = {0};
-    qhashmd5(sData.c_str(), sData.size() - SHM_VALUE_MD5LEN, cValMd5);
-    if (0 != ::memcmp(cValMd5, sData.c_str() + sData.size() - SHM_VALUE_MD5LEN, SHM_VALUE_MD5LEN)) {
-      SetErrNo(ERR_SHMMD5CHECKSUM);
-      SetErrMsg("md5 checksum not eq");
-      return false;
-    }
-    sData.resize(sData.size() - SHM_VALUE_MD5LEN);
-
     return true;
   }
 

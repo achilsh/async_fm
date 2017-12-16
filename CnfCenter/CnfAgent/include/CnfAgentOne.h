@@ -2,6 +2,8 @@
 #define  _ONE_CNF_AGENT_H_
 
 #include "CnfAgentBase.h"
+#include "lib_shm.h"
+#include "OssDefine.hpp"
 
 #define HOST_CNF_CHANNEL   "host_conf"
 #define SRV_NAME_CHANNEL   "srv_name"
@@ -17,6 +19,7 @@
 #define HOSTCNF_PORT        "port"
 
 using namespace LIB_REDIS;
+using namespace LIB_SHM;
 //define sub ret proc for host conf sub
 
 namespace  SubCnfTask {
@@ -75,6 +78,13 @@ class CnfAgentOne :public SubCnfAgent {
  public:
   bool GetSrvNameData(std::string& sSrvName);
   bool WriteNewSrvNameDatFile(const std::string& sSrvNameCnf);
+  void GetNewestSrvNameVer();
+ protected:
+  virtual void DoWorkAfterSync();
+ private: 
+  //
+  LIB_SHM::LibShm m_srvNameVerShm;
+  bool m_srvNameShmInit; 
 };
 
 //////////////

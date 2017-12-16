@@ -21,7 +21,13 @@
 #define LOG4_INFO(args...) LOG4CPLUS_INFO_FMT(GetLogger(), ##args)
 #define LOG4_DEBUG(args...) LOG4CPLUS_DEBUG_FMT(GetLogger(), ##args)
 #define LOG4_TRACE(args...) LOG4CPLUS_TRACE_FMT(GetLogger(), ##args)
+
 #define PROC_NUM_WORKER_DEF   (2)
+
+#define  SRV_NAME_VER_SHM_KEY  (0X20171216)
+#define  SRV_NAME_VER_SHM_SZ   (10*256)
+#define  SRV_NAME_VER_KEY     "cnf_agent:srv_name_ver"
+
 namespace oss
 {
 

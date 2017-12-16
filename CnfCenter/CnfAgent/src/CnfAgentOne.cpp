@@ -12,7 +12,10 @@
 namespace SubCnfTask {
 
 //-----------------------------------------//
-CnfAgentOne::CnfAgentOne () {
+CnfAgentOne::CnfAgentOne ():m_srvNameVerShm(LIB_SHM::OP_W), m_srvNameShmInit(false) {
+  if (m_srvNameVerShm.Init(SRV_NAME_VER_SHM_KEY, SRV_NAME_VER_SHM_SZ) == true) {
+    m_srvNameShmInit = true;
+  }
 }
 
 CnfAgentOne::~CnfAgentOne () {
@@ -116,6 +119,36 @@ bool CnfAgentOne::GetSrvNameData(std::string& sSrvNameContent) {
   TLOG4_TRACE("read srv cnf content: %s", sSrvNameContent.c_str());
   return true;
 }
+
+void CnfAgentOne::GetNewestSrvNameVer() {
+  if (m_srvNameShmInit == false) {
+    TLOG4_ERROR("srv name shm init failed");
+    return ;
+  }
+
+  RedisKey  rKey(m_syncRedisCli);
+  int64_t iLVerNo = 0;
+  std::string  sKey = SRV_NAME_VER_KEY;
+
+  bool bRet = rKey.Incr(sKey, iLVerNo);  
+  if (bRet == false) {
+    TLOG4_ERROR("incr version for srv name fail");
+    return ;
+  }
+  TLOG4_TRACE("srv name ver no: %ld", iLVerNo);
+  
+  if (false == m_srvNameVerShm.SetValue(sKey,iLVerNo)) {
+    TLOG4_ERROR("set srv name shm value fail, errmsg: %s",
+               m_srvNameVerShm.GetErrMsg().c_str());
+    return ;
+  }
+  //
+}
+
+void CnfAgentOne::DoWorkAfterSync() {
+  this->GetNewestSrvNameVer();
+}
+
 //-------------------------------------//
 
 
@@ -248,6 +281,8 @@ bool SrvNameRetProc::operator() (const std::string& sCh,
     TLOG4_ERROR("write newest srv name list to file failed");
     return false;
   }
+  //TODO: add cur version in shm memory.
+  m_pCnfAgent->GetNewestSrvNameVer();
   return true;
 }
 

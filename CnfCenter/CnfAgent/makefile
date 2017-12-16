@@ -17,7 +17,7 @@ SYSTEM_LIB_PATH:=/usr/lib
 endif
 LIB3RD_PATH = ../../l3oss
 LOSS_PATH = ../../loss
-
+STARSHIP_PATH=../../Starship
 CNFAGENT_PATH = .
 
 VPATH = $(CNFAGENT_PATH)/src
@@ -27,6 +27,7 @@ DIRS := $(SUB_DIRS)
 
 INC := $(INC) \
        -I /usr/include \
+			 -I $(STARSHIP_PATH)/include \
        -I $(CNFAGENT_PATH)/include  \
        -I $(LIB3RD_PATH)/include/libevent \
        -I $(LIB3RD_PATH)/include/mysql \
@@ -35,12 +36,14 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/LibComm/include \
        -I $(LOSS_PATH)/src/CnfComm/include \
        -I $(LOSS_PATH)/src/RedisClient/include \
+       -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/lib -lloss \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
            -llog4cplus \
+           -lqlibc \
            -levent \
            -lev \
            -ljsoncpp \
@@ -64,7 +67,7 @@ cnf_agent_daemon: $(OBJS)
 	mv -f $@ $(CNFAGENT_PATH)/bin/
 
 %.o:%.cpp
-	$(CXX) $(INC) $(CPPFLAGS) $(CFLAGS) $(DEFINE_SERVER) $(UNITTEST) -c -o $@ $< $(LDFLAGS)
+	$(CXX) $(INC) $(CPPFLAGS) $(CFLAGS) $(DEFINE_SERVER) -c  -o $@ $< $(LDFLAGS)
 %.o:%.cc
 	$(CXX) $(INC) $(CPPFLAGS) $(UNITTEST) -c -o $@ $< $(LDFLAGS)
 %.o:%.c

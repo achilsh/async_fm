@@ -3,7 +3,8 @@
 namespace LIB_SHM  {
 
   ShmFLock::ShmFLock(const std::string& sShmKey):m_Init(false), m_openFd(0) {
-    std::string sKey = m_fLockPrefix + sShmKey;
+    //std::string sKey = m_fLockPrefix + sShmKey;
+    std::string sKey = SHM_WOP_FLOCK_PATH  + sShmKey;
     m_openFd = ::open(sKey.c_str(), O_CREAT|O_RDWR, 0600);
     if (m_openFd < 0) {
       sErrMsg = strerror(errno);
@@ -152,6 +153,114 @@ bool LibShm::ShmRm() {
     ::shmctl(m_shmId, IPC_RMID, 0);
     return true;
   }
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, std::string& sData) {
+  if (sKey.empty() || m_TbHash == NULL) {
+    SetErrNo(ERR_SHMPARAM);
+    SetErrMsg("get key empty or hash addr empty");
+    return false;
+  }
+
+  size_t  stLen = 0;
+  char *cRetValBuf = NULL;
+  cRetValBuf =  (char*)qhasharr_get(m_TbHash, sKey.c_str(), &stLen); 
+  if (NULL == cRetValBuf) {
+    if (errno == ENOENT) {
+      SetErrNo(ERR_SHMGETNOEXIST);
+      SetErrMsg("key not exist");
+      return false;
+    }
+    return false;
+  }
+
+  sData.assign(cRetValBuf, stLen);
+  if (cRetValBuf != NULL) {
+    free(cRetValBuf); cRetValBuf = NULL;
+  }
+
+  if (stLen < SHM_VALUE_MD5LEN) {
+    SetErrNo(ERR_SHMPARAM);
+    SetErrMsg("get data len less than md5 len");
+    return false;
+  }
+
+  char cValMd5[SHM_VALUE_MD5LEN] = {0};
+  qhashmd5(sData.c_str(), sData.size() - SHM_VALUE_MD5LEN, cValMd5);
+  if (0 != ::memcmp(cValMd5, sData.c_str() + sData.size() - SHM_VALUE_MD5LEN, SHM_VALUE_MD5LEN)) {
+    SetErrNo(ERR_SHMMD5CHECKSUM);
+    SetErrMsg("md5 checksum not eq");
+    return false;
+  }
+  sData.resize(sData.size() - SHM_VALUE_MD5LEN);
+
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, int32_t&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, uint32_t&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, int64_t&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, uint64_t&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, double&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
+  return true;
+}
+
+bool LibShm::GetValue(const std::string& sKey, bool&  tData) {
+  std::string sData;
+  if (GetValue(sKey, sData) == false) {
+    return false;
+  }
+  std::stringstream ios;
+  ios << sData;
+  ios >> tData;
   return true;
 }
 //

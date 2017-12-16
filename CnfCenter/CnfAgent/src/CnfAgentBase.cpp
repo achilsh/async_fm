@@ -411,6 +411,7 @@ namespace SubCnfTask {
         return false;
       }
 
+      DoWorkAfterSync();
       return true;
   }
 

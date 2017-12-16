@@ -50,6 +50,8 @@ namespace SubCnfTask {
       void SendKillSignToListenProcess(const std::string& sIp,
                                        uint32_t uiPort); 
     protected:
+      virtual void DoWorkAfterSync() {}
+    protected:
       struct event_base*  m_pEvent;
       bool                m_IsConnected;
       AsyncClient         m_asyncRedisCli;

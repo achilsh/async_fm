@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
       return 0;
     }
     std::cout << "val:[" << sGetStrVal <<"][done] " << std::endl;
-    int iGetValInt = 0;
+    int32_t iGetValInt = 0;
     if (false == shmTest.GetValue(sTestKeyInt,iGetValInt)) {
       std::cout << "get value from shm failed, errMsg: " << shmTest.GetErrMsg() << std::endl;
       return 0;
