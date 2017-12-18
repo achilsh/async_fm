@@ -70,12 +70,8 @@ namespace LIB_SHM {
      bool SetValue(const std::string& sKey, const T& tData);
      
      bool GetValue(const std::string& sKey, std::string& sData);
-     bool GetValue(const std::string& sKey, int32_t&  tData);
-     bool GetValue(const std::string& sKey, uint32_t&  tData);
-     bool GetValue(const std::string& sKey, int64_t&  tData);
-     bool GetValue(const std::string& sKey, uint64_t&  tData);
-     bool GetValue(const std::string& sKey, double&  tData);
-     bool GetValue(const std::string& sKey, bool&  tData);
+     template<typename T>
+     bool GetValue(const std::string& sKey, T& tData);
 
      bool DelKey(const std::string& sKey);
      bool ShmRm();
@@ -132,6 +128,52 @@ namespace LIB_SHM {
       SetErrMsg("set key value to hash failed");
       return false;
     }
+    return true;
+  }
+
+  template<typename T>
+  bool LibShm::GetValue(const std::string& sKey, T& tData) {
+    if (sKey.empty() || m_TbHash == NULL) {
+      SetErrNo(ERR_SHMPARAM);
+      SetErrMsg("get key empty or hash addr empty");
+      return false;
+    }
+
+    size_t  stLen = 0;
+    char *cRetValBuf = NULL;
+    cRetValBuf =  (char*)qhasharr_get(m_TbHash, sKey.c_str(), &stLen); 
+    if (NULL == cRetValBuf) {
+      if (errno == ENOENT) {
+        SetErrNo(ERR_SHMGETNOEXIST);
+        SetErrMsg("key not exist");
+        return false;
+      }
+      return false;
+    }
+    std::string sData;
+    sData.assign(cRetValBuf, stLen);
+    if (cRetValBuf != NULL) {
+      free(cRetValBuf); cRetValBuf = NULL;
+    }
+
+    if (stLen < SHM_VALUE_MD5LEN) {
+      SetErrNo(ERR_SHMPARAM);
+      SetErrMsg("get data len less than md5 len");
+      return false;
+    }
+
+    char cValMd5[SHM_VALUE_MD5LEN] = {0};
+    qhashmd5(sData.c_str(), sData.size() - SHM_VALUE_MD5LEN, cValMd5);
+    if (0 != ::memcmp(cValMd5, sData.c_str() + sData.size() - SHM_VALUE_MD5LEN, SHM_VALUE_MD5LEN)) {
+      SetErrNo(ERR_SHMMD5CHECKSUM);
+      SetErrMsg("md5 checksum not eq");
+      return false;
+    }
+    sData.resize(sData.size() - SHM_VALUE_MD5LEN);
+    
+    std::stringstream ios;
+    ios << sData;
+    ios >> tData ;
     return true;
   }
 
