@@ -48,7 +48,9 @@ namespace SubCnfTask {
       int32_t CheckChTypeForWork(const std::string& sChType);
 
       void SendKillSignToListenProcess(const std::string& sIp,
-                                       uint32_t uiPort); 
+                                       uint32_t uiPort,
+                                       const std::string& sSignel="USR1"); 
+      bool GetHostCnfRedisKey(std::vector<std::string>& vRedisKey);
     protected:
       virtual void DoWorkAfterSync() {}
     protected:

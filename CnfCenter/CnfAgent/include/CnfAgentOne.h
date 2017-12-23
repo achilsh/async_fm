@@ -79,6 +79,7 @@ class CnfAgentOne :public SubCnfAgent {
   bool GetSrvNameData(std::string& sSrvName);
   bool WriteNewSrvNameDatFile(const std::string& sSrvNameCnf);
   void GetNewestSrvNameVer();
+  void SendUSR2SignelToLocalHostSrv();
  protected:
   virtual void DoWorkAfterSync();
  private: 

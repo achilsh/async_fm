@@ -256,14 +256,9 @@ namespace SubCnfTask {
     }
     return true;
   }
-  
+
   //redis format is hash, key =>  prefix:ip:port:servername
-  //field: 1 ==> conf path file name, 2 ===> cnf content,json format
-  // 服务配置文件存储格式为： (hash)
-  // key: ip + port + servername, 
-  // field: 1, value: cnf path value,include file name
-  // field: 2, value: json formate conf file.
-  bool SubCnfAgent::SyncHostCnfDetailInfo() {
+  bool SubCnfAgent::GetHostCnfRedisKey(std::vector<std::string>& vRedisKey) {
     std::string sHostIp = GetEth0Ip();
     if (sHostIp.empty()) {
       TLOG4_ERROR("get host ip is empty");
@@ -279,16 +274,32 @@ namespace SubCnfTask {
     TLOG4_INFO("get related local host cnf key: %s", sKey.c_str());
 
     RedisKey rKOp(m_syncRedisCli);
-    std::vector<std::string> vKeyRet;
-    if (false == rKOp.Keys(sKey, vKeyRet)) {
+    if (false == rKOp.Keys(sKey, vRedisKey)) {
       TLOG4_ERROR("cmd: KEYS %s  failed", sKey.c_str());
       return false;
     }
+    if (vRedisKey.empty()) {
+      TLOG4_TRACE("key: %s in redis nums is 0", sKey.c_str());
+    }
+    return true;
+  }
+
+  //redis format is hash, key =>  prefix:ip:port:servername
+  //field: 1 ==> conf path file name, 2 ===> cnf content,json format
+  // 服务配置文件存储格式为： (hash)
+  // key: ip + port + servername, 
+  // field: 1, value: cnf path value,include file name
+  // field: 2, value: json formate conf file.
+  bool SubCnfAgent::SyncHostCnfDetailInfo() {
+    std::vector<std::string> vKeyRet;
+    if (GetHostCnfRedisKey(vKeyRet) == false) {
+      TLOG4_ERROR("get host conf redis key failed");
+      return false;
+    }
     if (vKeyRet.empty()) {
-        TLOG4_TRACE("key: %s in redis nums is 0", sKey.c_str());
         return true;
     }
-    
+
     std::vector<std::string> vField;
     vField.push_back(FieldNameFilePath);
     vField.push_back(FieldNameCnfContent);
@@ -326,6 +337,7 @@ namespace SubCnfTask {
         continue;
       }
       uint32_t uiPort = ::atoi(vIpPortSrvName[2].c_str());
+      const std::string& sHostIp = vIpPortSrvName[1];
       SendKillSignToListenProcess(sHostIp, uiPort);
     }
     return true;
@@ -511,8 +523,8 @@ namespace SubCnfTask {
   }
 
   void SubCnfAgent::SendKillSignToListenProcess(
-      const std::string& sIp, uint32_t uiPort) {
-    if (sIp.empty() || uiPort <= 0) {
+      const std::string& sIp, uint32_t uiPort, const std::string& sSignel) {
+    if (sIp.empty() || uiPort <= 0 || sSignel.empty()) {
       return ;
     }
 
@@ -541,8 +553,9 @@ namespace SubCnfTask {
 
     int32_t uiListenPid = ::atoi(buff);
     TLOG4_TRACE("get listen port: %u, pid: %u",uiPort, uiListenPid);
-
-    ios << "kill -s USR1 " << uiListenPid;
+    
+    ios << "kill -s " << sSignel << " " << uiListenPid;
+    //ios << "kill -s USR1 " << uiListenPid;
     std::string sKillUSR1Cmd = ios.str();
     TLOG4_TRACE("signal cmd: %s", sKillUSR1Cmd.c_str());
     if( -1 == ::system(sKillUSR1Cmd.c_str())) {

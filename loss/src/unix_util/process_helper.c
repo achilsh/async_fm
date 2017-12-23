@@ -148,7 +148,7 @@ void InstallSignal()
     signal(SIGWINCH,SIG_IGN);    /* (+) window size changed */
     signal(SIGPWR  ,SIG_IGN);    /* (+) power-fail restart */
     //signal(SIGUSR1 ,SIG_IGN);   /* user defined signal 1 */
-    signal(SIGUSR2 ,SIG_IGN);   /* user defined signal 2 */
+    //signal(SIGUSR2 ,SIG_IGN);   /* user defined signal 2 */
     signal(SIGPROF ,SIG_IGN);    /* profiling time alarm (see setitimer) */
 
 #ifdef D_AIX

@@ -147,6 +147,29 @@ void CnfAgentOne::GetNewestSrvNameVer() {
 
 void CnfAgentOne::DoWorkAfterSync() {
   this->GetNewestSrvNameVer();
+  this->SendUSR2SignelToLocalHostSrv();
+}
+
+void CnfAgentOne::SendUSR2SignelToLocalHostSrv() {
+  std::vector<std::string> vHostCnfRedisKey;
+  if (false == GetHostCnfRedisKey(vHostCnfRedisKey)) {
+    TLOG4_ERROR("get local host conf key from redis failed");
+    return ;
+  }
+  if (vHostCnfRedisKey.empty()) {
+    TLOG4_TRACE("has not config any host srv for this local host");
+    return ;
+  }
+  for (std::vector<std::string>::iterator it = vHostCnfRedisKey.begin();
+       it != vHostCnfRedisKey.end(); ++it) {
+    std::vector<std::string> vIpPortSrvName;
+    LIB_COMM::LibString::str2vec(*it, vIpPortSrvName, ":");
+    const std::string& sHost = vIpPortSrvName[1];
+    uint32_t uiPort = ::atoi(vIpPortSrvName[2].c_str());
+    SendKillSignToListenProcess(sHost, uiPort, "USR2");
+    TLOG4_TRACE("send USR2 signal to process, ip: %s, port: %u",
+                sHost.c_str(), uiPort);
+  }
 }
 
 //-------------------------------------//
@@ -283,6 +306,7 @@ bool SrvNameRetProc::operator() (const std::string& sCh,
   }
   //TODO: add cur version in shm memory.
   m_pCnfAgent->GetNewestSrvNameVer();
+  m_pCnfAgent->SendUSR2SignelToLocalHostSrv();
   return true;
 }
 
