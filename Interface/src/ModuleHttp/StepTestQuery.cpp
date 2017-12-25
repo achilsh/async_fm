@@ -28,7 +28,7 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   
   oOutMsgBody.set_body(m_sKey);
   oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
-  if (false == SendToNext("TestLogic", oOutMsgHead, oOutMsgBody)) {
+  if (false == SendToNext("TestLogic", oOutMsgHead, oOutMsgBody, this)) {
     LOG4_ERROR("send data to TestLogic failed");
     return oss::STATUS_CMD_FAULT;
   }

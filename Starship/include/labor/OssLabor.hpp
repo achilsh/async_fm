@@ -492,7 +492,7 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
      * @param oMsgBody 数据包体
      * @return 是否发送成功
      */
-    virtual bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody)
+    virtual bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody, Step* pStep)
     {
         return(false);
     }

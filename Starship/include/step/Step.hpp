@@ -278,7 +278,7 @@ protected:
      * @param oMsgBody 数据包体
      * @return 是否发送成功
      */
-    bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody);
+    bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody, Step* pStep);
 
     /**
      * @brief 以取模方式选择发送到同一类型节点
@@ -390,7 +390,7 @@ public:
      * 用。
      */
     void DelRedisContextAddr(const redisAsyncContext* ctx);
-
+    
 private:
     /**
      * @brief 设置框架层操作者
