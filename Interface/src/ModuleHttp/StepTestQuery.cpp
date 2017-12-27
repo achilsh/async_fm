@@ -1,4 +1,5 @@
 #include "StepTestQuery.h"
+#include "hello_test.pb.h"
 
 namespace im {
 
@@ -23,16 +24,22 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
                        const std::string& strErrShow ) {
   MsgBody oOutMsgBody;
   MsgHead oOutMsgHead;
+  
+  hellotest tData;
+  tData.set_strdata(m_sKey);
+  oOutMsgBody.set_body(tData.SerializeAsString());
+  
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
-  
-  oOutMsgBody.set_body(m_sKey);
   oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
+  
+  LOG4_TRACE("send req to TestLogic, msg body serailze len: %d, in head body len: %d", 
+             oOutMsgBody.ByteSize(), oOutMsgHead.msgbody_len());
+  
   if (false == SendToNext("TestLogic", oOutMsgHead, oOutMsgBody, this)) {
     LOG4_ERROR("send data to TestLogic failed");
     return oss::STATUS_CMD_FAULT;
   }
-  LOG4_TRACE("send req to TestLogic");
   return oss::STATUS_CMD_RUNNING;
 }
 
@@ -41,8 +48,17 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
          const MsgHead& oInMsgHead,
          const MsgBody& oInMsgBody,
          void* data) {
-  std::string sData = oInMsgBody.body();
-  SendAck("", sData);
+
+  hellotest tData;
+  std::string sData;
+  
+  if (false == tData.ParseFromString(oInMsgBody.body())) {
+    sData = "http parse ret body fail";
+    SendAck(sData);
+  } else {
+    sData= tData.strdata();
+    SendAck("", sData);
+  }
   return oss::STATUS_CMD_COMPLETED;
 }
 

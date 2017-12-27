@@ -1,1 +1,1 @@
- ../../l3oss/bin/protoc -I=. --cpp_out=./src common.proto  EnumDefinition.proto friends.proto socially.proto business.proto  user.proto  chat_msg.proto group_mng.proto  UserBasicInfo.proto interface.proto   custom_service.proto  server_internal.proto lbs.proto
+ ../../l3oss/bin/protoc -I=. --cpp_out=./  ./hello_test.proto

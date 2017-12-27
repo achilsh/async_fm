@@ -1,0 +1,6 @@
+syntax = "proto2";
+
+message hellotest {
+  optional bytes strData = 1;
+  //
+}

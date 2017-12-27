@@ -49,7 +49,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS) 
 	$(CXX) -fPIE -rdynamic -shared -g -o $@ $^ $(LDFLAGS)
-	cp $(TARGET) ../../../im3/lib
+	cp $(TARGET) ../../loss/lib
 
 %.o:%.cpp
 	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)

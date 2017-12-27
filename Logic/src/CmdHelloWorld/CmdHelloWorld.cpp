@@ -6,6 +6,7 @@
  * @date: 2017-11-14
  */
 #include "CmdHelloWorld.h"
+#include "hello_test.pb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,13 +37,24 @@ bool CmdHelloWorld::AnyMessage(
   oOutMsgHead.set_seq(oInMsgHead.seq());
   if (GetCmd() == (int)oInMsgHead.cmd())
   {
-    LOG4CPLUS_DEBUG_FMT(GetLogger(), "%s", oOutMsgBody.body().c_str());
-    std::string sBody =  oInMsgBody.body();
-    std::string sRetBody = sBody + "CmdHello world";
-    oOutMsgBody.set_body(sRetBody);
+    hellotest tData, retData;
+    std::string msgVal;
+    
+    if (false == tData.ParseFromString(oOutMsgBody.body())) {
+     LOG4CPLUS_DEBUG_FMT( GetLogger(), "parse msg body failed");
+     msgVal = "parse failed";
+    } else {
+      msgVal = tData.strdata();
+      LOG4CPLUS_DEBUG_FMT(GetLogger(), "%s", msgVal.c_str());
+      msgVal = msgVal + ":CmdHello world";
+      bResult = true;
+    } 
+
+    retData.set_strdata(msgVal);
+    oOutMsgBody.set_body(retData.SerializeAsString());
+    
     oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
     GetLabor()->SendTo(stMsgShell, oOutMsgHead, oOutMsgBody);
-    bResult = true;
   }
   return(bResult);
 }
