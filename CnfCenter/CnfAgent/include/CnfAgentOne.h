@@ -18,6 +18,9 @@
 #define HOSTCNF_DATA        "cnf_dat"
 #define HOSTCNF_PORT        "port"
 
+#define NODETYPECMD_TYPE   "nodetype_cmd"
+#define NODETYPE_CMD_KEY_PREX     "nodetype_cmd"
+
 using namespace LIB_REDIS;
 using namespace LIB_SHM;
 //define sub ret proc for host conf sub
@@ -46,6 +49,11 @@ class HostCnfRetProc: public SubRetProcBase {
      }
      return true;
    }
+   bool ProcSubNodeTypeCmdModify(const std::string& sNodeType,
+                                 const loss::CJsonObject& jsSubRet);
+   bool UpdateSubRetToLocalHostCnf(loss::CJsonObject& toJson,
+                                   const loss::CJsonObject& fromJson,
+                                   const std::string& sNodeType);
   private:
    SubCnfTask::CnfAgentOne *m_pCnfAgent;
 };
@@ -76,12 +84,27 @@ class CnfAgentOne :public SubCnfAgent {
   ~CnfAgentOne ();
   virtual bool AddSubProcMethod();
  public:
-  bool GetSrvNameData(std::string& sSrvName);
   bool WriteNewSrvNameDatFile(const std::string& sSrvNameCnf);
   void GetNewestSrvNameVer();
+  bool GetSrvNameData(std::string& sSrvName);
   void SendUSR2SignelToLocalHostSrv();
+
+  bool WriteSrvNameInfoInLocal(const std::map<std::string,std::string>& srvNameSet,
+                               const std::string& cnfFile); 
+  bool SyncAllCnfSerNameList();
+  bool SyncHostCnfDetailInfo();
+  bool SyncNodeTyeCmd();
+  // 
+  bool GetNodeTypeCmdFromLocalFile(loss::CJsonObject& jsCnf);
+  bool WriteNodeTypeCmdToFile(const std::string & strjsCnf);
+
+  void GetNewNodeTypeCmdVer();
+  void SendUSR2ToLocalUpdateNodeTypeCmd();
+  //
+  bool WriteCnfFile(const std::string& fName, const std::string& jsConttent);
+  bool GetShmVersion(const std::string& sKey);
  protected:
-  virtual void DoWorkAfterSync();
+  void DoWorkAfterSync();
  private: 
   //
   LIB_SHM::LibShm m_srvNameVerShm;

@@ -39,14 +39,20 @@ bool CmdHelloWorld::AnyMessage(
   {
     hellotest tData, retData;
     std::string msgVal;
-    
+     LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv msg body: %s", oOutMsgBody.DebugString().c_str());
     if (false == tData.ParseFromString(oOutMsgBody.body())) {
      LOG4CPLUS_DEBUG_FMT( GetLogger(), "parse msg body failed");
      msgVal = "parse failed";
     } else {
-      msgVal = tData.strdata();
+      if (tData.has_strdata()) {
+        LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv strdata field");
+        msgVal = tData.strdata();
+      } else {
+        msgVal = "logic recv not set strdata field";
+      }
+
       LOG4CPLUS_DEBUG_FMT(GetLogger(), "%s", msgVal.c_str());
-      msgVal = msgVal + ":CmdHello world";
+      msgVal += ":CmdHello world";
       bResult = true;
     } 
 

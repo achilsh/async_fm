@@ -1469,7 +1469,7 @@ bool loss::CJsonObject::Replace(const std::string& strKey, double dValue)
     return(true);
 }
 
-int loss::CJsonObject::GetArraySize()
+int loss::CJsonObject::GetArraySize() const
 {
     if (m_pJsonData != NULL)
     {

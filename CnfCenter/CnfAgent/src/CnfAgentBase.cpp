@@ -206,7 +206,7 @@ namespace SubCnfTask {
     event_base_set(m_pEvent,m_pSyncTimer);
     evtimer_add(m_pSyncTimer,&m_TimerTm);
 
-    TLOG4_TRACE("set timer tm dur: %lu, us: %lu", 
+    TLOG4_TRACE("set timer tm dur: %lu, us: %u", 
                 m_TimerTm.tv_sec, m_TimerTm.tv_usec);
   }
 
@@ -284,65 +284,6 @@ namespace SubCnfTask {
     return true;
   }
 
-  //redis format is hash, key =>  prefix:ip:port:servername
-  //field: 1 ==> conf path file name, 2 ===> cnf content,json format
-  // 服务配置文件存储格式为： (hash)
-  // key: ip + port + servername, 
-  // field: 1, value: cnf path value,include file name
-  // field: 2, value: json formate conf file.
-  bool SubCnfAgent::SyncHostCnfDetailInfo() {
-    std::vector<std::string> vKeyRet;
-    if (GetHostCnfRedisKey(vKeyRet) == false) {
-      TLOG4_ERROR("get host conf redis key failed");
-      return false;
-    }
-    if (vKeyRet.empty()) {
-        return true;
-    }
-
-    std::vector<std::string> vField;
-    vField.push_back(FieldNameFilePath);
-    vField.push_back(FieldNameCnfContent);
-
-    for (std::vector<std::string>::iterator it = vKeyRet.begin();
-         it != vKeyRet.end(); ++it) {
-      //*it format: prex:ip:port:srvname
-      RedisHash rHashOp(m_syncRedisCli);
-      std::map<std::string, std::string> mHVals;  
-      if (false == rHashOp.hMGet(*it,vField, mHVals)) {
-        TLOG4_ERROR("get hash value failed, key: %s", it->c_str());
-        continue;
-      }
-      if (mHVals.find(FieldNameFilePath) == mHVals.end() \
-          || mHVals.find(FieldNameCnfContent) == mHVals.end()) {
-        TLOG4_ERROR("not find field filepath or conf file content  value");
-        continue;
-      }
-      //TLOG4_TRACE("host conf file path: %s", mHVals[FieldNameFilePath].c_str());
-
-      loss::CJsonObject jsonCnfConent(mHVals[FieldNameCnfContent]);
-      std::string sCnfContent = jsonCnfConent.ToFormattedString();
-      //if content is empty or file path empty, should reset file content?
-      if (ReWriteHostCnfInfo(mHVals[FieldNameFilePath],
-                             sCnfContent) == false) {
-        TLOG4_ERROR("write host cnf file to local failed");
-        continue;
-      }
-      TLOG4_TRACE("sync host conf, path: %s\nhost conf content: %s", 
-                  mHVals[FieldNameFilePath].c_str(),sCnfContent.c_str());
-      std::string sKeyData = *it;
-      std::vector<std::string> vIpPortSrvName;
-      LIB_COMM::LibString::str2vec(sKeyData, vIpPortSrvName, ":");
-      if (vIpPortSrvName.size() < 4) {
-        continue;
-      }
-      uint32_t uiPort = ::atoi(vIpPortSrvName[2].c_str());
-      const std::string& sHostIp = vIpPortSrvName[1];
-      SendKillSignToListenProcess(sHostIp, uiPort);
-    }
-    return true;
-  }
-
   bool SubCnfAgent::ReWriteHostCnfInfo(const std::string& sFilePath, 
                                        const std::string& sCnfContent) {
     if (sFilePath.empty() || sCnfContent.empty()) {
@@ -357,7 +298,7 @@ namespace SubCnfTask {
       iRet = ::mkdir(sPath.c_str(), 0777);
       if (iRet < 0) {
         TLOG4_ERROR("creat dir: %s failed, err: %s",
-                   sPath.c_str(), strerror(errno));
+                    sPath.c_str(), strerror(errno));
         return false;
       }
     }
@@ -377,103 +318,6 @@ namespace SubCnfTask {
     }
     ::close(iFd);
 
-    return true;
-  }
-
-  /*****************************************/
-  //服务名配置存储格式为：string
-  //key: 服务名
-  //value: [{ip, port}, {"ip":"","port": 0} ] 
-  bool SubCnfAgent::SyncAllCnfSerNameList() {
-      std::string sKey;
-      sKey.append(PREFIXSVRNMKEY);
-      sKey.append(":*");
-      TLOG4_TRACE("get srv name key:  %s", sKey.c_str());
-
-      RedisKey rKOp(m_syncRedisCli);
-      std::vector<std::string> vKeyRet;
-      if (false == rKOp.Keys(sKey, vKeyRet)) {
-        TLOG4_ERROR("cmd: KEYS %s  failed", sKey.c_str());
-        return false;
-      }
-      if (vKeyRet.empty()) {
-        TLOG4_TRACE("srv name cnf key: %s  is empty", sKey.c_str());
-        ResetSrvNameFileContent(m_srvNameStoreFileName);
-        //del all srv name list in srv name file
-        return true;
-      }
-
-      std::map<std::string, std::string> mSrvNameListInfo;
-      for (std::vector<std::string>::iterator it = vKeyRet.begin();
-           it != vKeyRet.end(); ++it) {
-        std::size_t sIndex = it->find_last_of(":");
-        std::string sSrvName = it->substr(sIndex + 1);
-        
-        if (false == rKOp.Get(*it, mSrvNameListInfo[sSrvName])) {
-          TLOG4_ERROR("call redis failed, key: %s", it->c_str());
-          continue;
-        }
-        TLOG4_TRACE("srv name: %s \n\r srv name cnf: %s",sSrvName.c_str(),
-                    mSrvNameListInfo[sSrvName].c_str());
-      }
-      
-      //每次全量去拉取 覆盖文件写
-      if (false == WriteSrvNameInfoInLocal(mSrvNameListInfo, m_srvNameStoreFileName)) {
-        TLOG4_ERROR("write srv name info to local failed");
-        return false;
-      }
-
-      DoWorkAfterSync();
-      return true;
-  }
-
-  //[{},{},{} ]
-  bool SubCnfAgent::WriteSrvNameInfoInLocal(const std::map<std::string,std::string>& srvNameSet,
-                                            const std::string& cnfFile) {
-    //{"down_stream":[{"node_type":"TestLogic","ip":"192.168.1.100","port":36000}] }
-    if (cnfFile.empty()) {
-      TLOG4_INFO("store srv name info file path empty");
-      return true;
-    }
-    if (srvNameSet.empty()) {
-      return ResetSrvNameFileContent(cnfFile);
-    }
-    
-    loss::CJsonObject downStreaJson;
-    loss::CJsonObject jsonList; //all list
-    std::map<std::string, std::string>::const_iterator it;
-    for (it = srvNameSet.begin(); it != srvNameSet.end(); ++it) {
-      //it->second format is: [{},{},{}]
-      //it->first format is: srv_name 
-      std::string sSrvName = it->first;
-      loss::CJsonObject onejsonCnfList(it->second);
-      
-      if (onejsonCnfList.IsArray() == false) {
-        TLOG4_ERROR("srv name: %s  host list json not array", sSrvName.c_str());
-        continue;
-      }
-
-      for (int ii = 0; ii < onejsonCnfList.GetArraySize(); ++ii) {
-        //item: {"ip":"","port":0}
-        loss::CJsonObject& jsHostOne = onejsonCnfList[ii];
-        //add node_type node in this {}
-        jsHostOne.Add("node_type", sSrvName);
-        jsonList.AddAsFirst(jsHostOne);
-      }
-    }
-
-    downStreaJson.Add("down_stream", jsonList);
-    std::string sToWriteSrvName = downStreaJson.ToFormattedString();
-    TLOG4_TRACE("write srv name info: %s", sToWriteSrvName.c_str());
-    
-    std::string sSrvNameFile(m_srvNameStoreFileName);
-    if (false == ReWriteHostCnfInfo(sSrvNameFile, sToWriteSrvName)) {
-      TLOG4_ERROR("write srv name to local file: %s failed", sSrvNameFile.c_str());
-      return false;
-    }
-
-    TLOG4_TRACE("sync all srv name, file path: %s\n srv name content: %s",
-                sSrvNameFile.c_str(), sToWriteSrvName.c_str());
     return true;
   }
 
@@ -522,7 +366,7 @@ namespace SubCnfTask {
     return true;
   }
 
-  void SubCnfAgent::SendKillSignToListenProcess(
+  void SubCnfAgent::SendKillSignToListenProcess (
       const std::string& sIp, uint32_t uiPort, const std::string& sSignel) {
     if (sIp.empty() || uiPort <= 0 || sSignel.empty()) {
       return ;
@@ -565,4 +409,38 @@ namespace SubCnfTask {
     TLOG4_INFO("send proc signal cmd: %s succ", sKillUSR1Cmd.c_str());
   }
   ////////
+  bool SubCnfAgent::GetCnfData(const std::string& cnfFile, std::string& sData)  {
+    std::size_t sIndex = cnfFile.find_last_of("/");
+    std::string sPath = cnfFile.substr(0,sIndex);
+    int iRet = ::access(sPath.c_str(), F_OK);
+    if (iRet < 0 && errno == ENOENT) {
+      iRet = ::mkdir(sPath.c_str(), 0777);
+      if (iRet < 0) {
+        TLOG4_ERROR("creat dir: %s failed, err: %s",
+                    sPath.c_str(), strerror(errno));
+        return false;
+      }
+    }
+
+    int iMode = S_IRWXU |S_IRWXG|S_IRWXO; 
+    int iFd = ::open(cnfFile.c_str(), O_CREAT|O_RDWR, iMode);
+    if (iFd <= 0) {
+      TLOG4_ERROR("reopen file failed, err msg: %s, file: %s", strerror(errno), cnfFile.c_str());
+      return false;
+    }
+
+    int iMaxSz = 102400;
+    char buf[102400] = {0};
+    ssize_t iRRet = ::read(iFd, buf, iMaxSz); 
+    if (iRRet <= -1) {
+      TLOG4_ERROR("read file failed, errmsg: %s, file: %s", strerror(errno),cnfFile.c_str());
+      ::close(iFd);
+      return false;
+    }
+    sData.assign(buf, iRRet);
+    ::close(iFd);
+
+    TLOG4_TRACE("read srv cnf content: %s",sData.c_str());
+    return true;
+  }
 }

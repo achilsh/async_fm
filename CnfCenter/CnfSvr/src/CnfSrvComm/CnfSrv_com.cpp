@@ -212,14 +212,6 @@ bool CnfSrvHostCnf::CnfSrvCreate(const loss::CJsonObject& cnfData) {
   ios << PREFIXHOSTKEY << ":" << sCnfHost << ":" << uiCnfPort
       << ":" << sCnfSrvName;
   std::string sKey(ios.str());
-  
-  /*** 
-  RedisKey keyOp(m_syncRedisCli);
-  if (true == keyOp.Exists(sKey)) {
-    //is exist, so not can been create new host conf.
-    return false;
-  }
-  ***/
 
   RedisHash hashOp(m_syncRedisCli);
   bool bSucc = true;
@@ -237,6 +229,8 @@ bool CnfSrvHostCnf::CnfSrvCreate(const loss::CJsonObject& cnfData) {
     bSucc = false;
   }
 
+  PubCmdIdNodeType(jsCnfContent); //conf content;
+  
   m_PushData.clear();
   loss::CJsonObject jsPushData;
   //format: {"ip":"", "cnf_path": "", "cnf_dat": {} }
@@ -246,6 +240,163 @@ bool CnfSrvHostCnf::CnfSrvCreate(const loss::CJsonObject& cnfData) {
   jsPushData.Add("cnf_dat", jsCnfContent);
   m_PushData.append(jsPushData.ToString());
   
+  return bSucc;
+}
+
+// node_type -- cmd id 的关系在redis中用set存储
+// key format: nodetype_cmd:** 其中**表示node_type 值。
+// set 的member format: cmdid数字
+// pub format: {"nodetype_cmd": "***", "***": [191,21,3]} 其中***是node_type value,
+bool CnfSrvHostCnf::PubCmdIdNodeType(const loss::CJsonObject& cnfData) {
+  if (cnfData.IsEmpty()) {
+    return true;
+  }
+
+  std::string sNodeType;
+  if (cnfData.Get("node_type",sNodeType) == false || sNodeType.empty()) {
+    LOG4_ERROR("get not_type item in conf failed");
+    return false;
+  }
+
+  loss::CJsonObject soJson;
+  std::vector<std::string> vCmdList;
+  do {
+    if (cnfData.Get("so",soJson) == false || soJson.IsEmpty()) {
+      LOG4_INFO("conf data content not include so: [{}, {}] cnf");
+      break;
+    }
+    if (soJson.IsArray() == false || soJson.GetArraySize() <= 0) {
+      LOG4_INFO("conf so data not array or is empty arr");
+      break;
+    }
+
+    for (int i = 0; i < soJson.GetArraySize(); ++i) {
+      loss::CJsonObject  oneCmd;
+      if (soJson.Get(i,oneCmd) == false) {
+        LOG4_INFO("get set {}  include cmd: failed");
+        continue;
+      }
+      int cmdV = 0;
+      if (oneCmd.Get("cmd",cmdV) == false) {
+        LOG4_INFO("get cmd:  item failed");
+        continue;
+      }
+
+      bool loadFlag = false;
+      if (oneCmd.Get("load",loadFlag) == false || loadFlag == false) {
+        LOG4_TRACE("cmd: %u, load: %u", cmdV, loadFlag);
+        continue;
+      }
+      std::stringstream cmdIos;
+      cmdIos << cmdV;
+      vCmdList.push_back(cmdIos.str());
+    }
+  } while(0);
+
+  std::stringstream ios;
+  ios << NODETYPE_CMD_KEY_PREX << ":" << sNodeType;
+  std::string sKey(ios.str()); 
+  
+  RedisSets setOp(m_syncRedisCli);
+  std::vector<std::string> vPreNodeTypeCmd;
+  //just compare current conf,if two eq, not to pub signal to agent.
+  if (setOp.Smembers(sKey, vPreNodeTypeCmd) == false ) {
+    LOG4_ERROR("get node type cmd from redis fail, key: %s",sKey.c_str());
+  }
+
+  bool bReset = false;
+  do {
+    if (vPreNodeTypeCmd.size() != vCmdList.size()) {
+      bReset = true;
+      break;
+    }
+
+    for (unsigned int i = 0; i < vCmdList.size(); ++i) {
+      if (vPreNodeTypeCmd[i] != vCmdList[i]) {
+        bReset = true; 
+        break;
+      }
+    }
+  } while(0);
+
+  if (bReset == true) {
+    setOp.Srem(sKey,vPreNodeTypeCmd);
+    if(vCmdList.empty() == false) {
+      setOp.Sadd(sKey, vCmdList);
+    }
+  }
+  
+  //pub format: {"nodetype_cmd":"aa", "aa": [1,2,3,4,5]}
+  m_PushData.clear();
+  loss::CJsonObject jsPushData;
+  jsPushData.Add(NODETYPE_CMD_PUB_KEY, sNodeType);
+  jsPushData.AddEmptySubArray(sNodeType);
+  //if  vCmdList empty, alse pub  empty list.
+  for (unsigned int i = 0; i< vCmdList.size(); ++i) {
+    jsPushData[sNodeType].Add(atoi(vCmdList[i].c_str()));
+  }
+
+  m_PushData.append(jsPushData.ToString());
+  PushWriteOp();
+  LOG4_TRACE("pub so cmd to sub agent succ, node tye: %s", sNodeType.c_str());
+ 
+  //add new item in vCmdList, del not exist in vCmdList. redis struct is,
+  //string, key format => cmd_nodetype:cmd, value is node_type value 
+  UpdateCmdNodeType(sNodeType, vCmdList, vPreNodeTypeCmd);
+  return true;
+}
+
+//cmd->node_type relation stored format is string in redis.
+//key format =>  cmd_nodetype:cmd, value is node_type value
+bool CnfSrvHostCnf::UpdateCmdNodeType(const std::string& sNodeType,
+                                      const std::vector<std::string>& vNewCmdList,
+                                      const std::vector<std::string>& vPreCmdList) {
+  if (sNodeType.empty()) {
+    LOG4_ERROR("node_type value is empty");
+    return false;
+  }
+  //add item exist newcmdlist but not exist in precmd list;
+  std::vector<std::string> vToAddCmdList, vToDelCmdList;
+  for(std::vector<std::string>::const_iterator itNewCmdList = vNewCmdList.begin();
+      itNewCmdList != vNewCmdList.end(); ++itNewCmdList) {
+    std::vector<std::string>::const_iterator itPreCmdList = 
+        std::find(vPreCmdList.begin(), vPreCmdList.end(),*itNewCmdList);
+    if (itPreCmdList == vPreCmdList.end()) {
+      vToAddCmdList.push_back(*itNewCmdList);
+    }
+  }
+  //del item exist precmd list but not exist in newcmd list
+  for (std::vector<std::string>::const_iterator itPreCmdList = vPreCmdList.begin();
+       itPreCmdList != vPreCmdList.end(); ++itPreCmdList) {
+    std::vector<std::string>::const_iterator itNewCmdList = 
+        std::find(vNewCmdList.begin(), vNewCmdList.end(), *itPreCmdList);
+    if (itNewCmdList == vNewCmdList.end()) {
+      vToDelCmdList.push_back(*itPreCmdList);
+    }
+  }
+
+  RedisKey stringRedis(m_syncRedisCli);
+  LOG4_TRACE("add cmd node type data, add new item nums: %d ", vToAddCmdList.size());
+
+  std::map<std::string, std::string> mpKV;
+  for (std::vector<std::string>::iterator it = vToAddCmdList.begin(); it != vToAddCmdList.end(); ++it) {
+    std::stringstream ios;
+    ios << CMD_NODETYPE_KEY_PRE << ":" << *it;
+    mpKV[ios.str()] = sNodeType;
+  }
+
+  if (false == stringRedis.Mset(mpKV)) {
+    LOG4_ERROR("mset cmd nodetype relation to redis failed");
+  }
+  
+  LOG4_TRACE("del cmd node type data, del cmd item nums: %d", vToDelCmdList.size());
+  for (std::vector<std::string>::iterator it = vToDelCmdList.begin(); it != vToDelCmdList.end(); ++it) {
+    std::stringstream ios;
+    ios << CMD_NODETYPE_KEY_PRE << ":" << *it;
+    std::string sKey = ios.str();
+    stringRedis.Del(sKey);
+  }
+
   return true;
 }
 
@@ -293,6 +444,8 @@ bool CnfSrvHostCnf::CnfSrvModify(const loss::CJsonObject& cnfData) {
   if (bSucc == false) {
     return false;
   }
+
+
   m_PushData.clear();
   loss::CJsonObject jsPushData;
   //format: {"ip":"", "cnf_path": "","port":0, "cnf_dat": {} }

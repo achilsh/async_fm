@@ -45,7 +45,6 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/lib -lloss \
            -L$(LIB3RD_PATH)/lib -lhiredis \
            -L$(LIB3RD_PATH)/lib -levent \
-           -L$(LIB3RD_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -llog4cplus \
            -L$(LIB3RD_PATH)/lib -ljemalloc \
            -L$(SYSTEM_LIB_PATH) -lpthread \

@@ -30,7 +30,7 @@ INC := $(INC) \
 
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(LIB3RD_PATH)/lib -lprotobuf \
+           -L$(LIB3RD_PATH)/lib -Wl,-Bstatic -lprotobuf -L$(LIB3RD_PATH)/lib -Wl,-Bdynamic -ltcmalloc_minimal  \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -L$(SYSTEM_LIB_PATH) -lc -ldl -lrt
 

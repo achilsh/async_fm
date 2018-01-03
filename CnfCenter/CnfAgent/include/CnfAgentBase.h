@@ -14,6 +14,8 @@
 #define FieldNameFilePath      "1"
 #define FieldNameCnfContent    "2"
 
+#define NODETYPECMDSTOREFILE  "/etc/srv_name/nodetype_cmd.json"
+
 using namespace LIB_REDIS;
 using namespace BASE_TASK;
 
@@ -37,13 +39,9 @@ namespace SubCnfTask {
       static void StartSyncTimerWork(int fd, short event, void * arg);
       bool CheckRedisConnected(); 
       bool FullSyncCnfFromCnfCenterSvr(); 
-      bool SyncHostCnfDetailInfo();
       bool ReWriteHostCnfInfo(const std::string& sFilePath, 
                               const std::string& sCnfContent); 
       bool ResetSrvNameFileContent(const std::string& sFileName);
-      bool SyncAllCnfSerNameList();
-      bool WriteSrvNameInfoInLocal(const std::map<std::string,std::string>& srvNameSet,
-                                   const std::string& cnfFile); 
       std::string GetEth0Ip();
       int32_t CheckChTypeForWork(const std::string& sChType);
 
@@ -51,8 +49,7 @@ namespace SubCnfTask {
                                        uint32_t uiPort,
                                        const std::string& sSignel="USR1"); 
       bool GetHostCnfRedisKey(std::vector<std::string>& vRedisKey);
-    protected:
-      virtual void DoWorkAfterSync() {}
+      bool GetCnfData(const std::string& cnfFile, std::string& sData);
     protected:
       struct event_base*  m_pEvent;
       bool                m_IsConnected;

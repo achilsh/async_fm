@@ -1,0 +1,9 @@
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:98] call: DoSendMsg
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:103] create conn fd: 4
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:177] has set strdata field
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:189] call: PackMsg
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:115] send ret: 60, send msg len: 60
+[2018-01-04 00:51:38,381][INFO] [AccessTest.cpp:121] send ok
+[2018-01-04 00:51:38,385][INFO] [AccessTest.cpp:137] recv msg len: 66
+[2018-01-04 00:51:38,385][INFO] [AccessTest.cpp:212] recv cmd: 102, body len: 51 in head, head size: 15
+[2018-01-04 00:51:38,385][INFO] [AccessTest.cpp:231] recv response msg:[ logic recv not set strdata field:CmdHello world ], cmd: [102]

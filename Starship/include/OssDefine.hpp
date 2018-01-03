@@ -26,7 +26,8 @@
 
 #define  SRV_NAME_VER_SHM_KEY  (0X20171216)
 #define  SRV_NAME_VER_SHM_SZ   (10*256)
-#define  SRV_NAME_VER_KEY     "cnf_agent:srv_name_ver"
+#define  SRV_NAME_VER_KEY      "cnf_agent:srv_name_ver"
+#define  NODETYPE_CMD_VER_KEY  "cnf_agent:nodetype_cmd_ver"
 
 namespace oss
 {

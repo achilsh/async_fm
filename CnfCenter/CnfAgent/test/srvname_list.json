@@ -1,11 +1,9 @@
 {
-	"down_stream":	[{
-			"ip":	"192.0.0.1",
-			"port":	60101,
-			"node_type":	"test_2"
-		}, {
-			"ip":	"192.0.0.1",
-			"port":	60100,
-			"node_type":	"test_1"
-		}]
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
 }

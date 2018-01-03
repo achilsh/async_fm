@@ -13,7 +13,8 @@
 
 #include <stdio.h>
 #include <stddef.h>
-#include <malloc.h>
+//#include <malloc.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
 #include <limits.h>
@@ -87,7 +88,7 @@ public:     // method of ordinary json object
     bool Replace(const std::string& strKey, double dValue);
 
 public:     // method of json array
-    int GetArraySize();
+    int GetArraySize()const;
     CJsonObject& operator[](unsigned int uiWhich);
     std::string operator()(unsigned int uiWhich) const;
     bool Get(int iWhich, CJsonObject& oJsonObject) const;

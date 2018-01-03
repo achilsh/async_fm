@@ -35,8 +35,13 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   
   LOG4_TRACE("send req to TestLogic, msg body serailze len: %d, in head body len: %d", 
              oOutMsgBody.ByteSize(), oOutMsgHead.msgbody_len());
-  
-  if (false == SendToNext("TestLogic", oOutMsgHead, oOutMsgBody, this)) {
+  std::string strDstNodeType;
+  if (false == GetLabor()->QueryNodeTypeByCmd(strDstNodeType, 101)) {
+    LOG4_ERROR("get node type fail by cmd: %u", 101);
+    return oss::STATUS_CMD_FAULT;
+  }
+
+  if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody, this)) {
     LOG4_ERROR("send data to TestLogic failed");
     return oss::STATUS_CMD_FAULT;
   }

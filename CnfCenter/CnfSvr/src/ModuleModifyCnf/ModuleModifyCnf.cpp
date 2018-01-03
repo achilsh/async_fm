@@ -88,7 +88,7 @@ bool ModuleModifyCnf::AnyMessage(
   }
 
   CnfSrvOp* cnfModify = it->second;
-  if (false == cnfModify->OpCnfSrvCreate(jsParam)) {
+  if (false == cnfModify->OpCnfSrvCreate(jsParam)) { //include: create + pub op
      LOG4_ERROR("modify cnf failed, type: %s",cnfTypeVal.c_str());
      SendAck(100,"modify cnf failed");
      return false;

@@ -659,9 +659,9 @@ static bool IsTradeDay2015(int64_t time_point)
      2015-10-06
      2015-10-07
      */
-  static std::set<int64_t> trade_day_set;
+  static std::set<long> trade_day_set;
   if (trade_day_set.empty()) {
-    int64_t trade_day = 0;
+    long trade_day = 0;
     UnStrDate8("20150101", trade_day);trade_day_set.insert(trade_day);
     UnStrDate8("20150102", trade_day);trade_day_set.insert(trade_day);
     UnStrDate8("20150218", trade_day);trade_day_set.insert(trade_day);
@@ -678,7 +678,7 @@ static bool IsTradeDay2015(int64_t time_point)
     UnStrDate8("20151006", trade_day);trade_day_set.insert(trade_day);
     UnStrDate8("20151007", trade_day);trade_day_set.insert(trade_day);
   }
-  int64_t date_point = 0;
+  long  date_point = 0;
   TruncDay(time_point, date_point);
   if (trade_day_set.end() != trade_day_set.find(date_point))//match holiday
     return false;

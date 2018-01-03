@@ -36,7 +36,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(LIB3RD_PATH)/lib -lprotobuf \
+           -L$(LIB3RD_PATH)/lib  -Wl,-Bstatic -lprotobuf -Wl,-Bdynamic \
            -lqlibc \
            -llog4cplus \
            -levent \
@@ -44,6 +44,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -ljsoncpp \
            -levent \
            -lhiredis \
+           -ltcmalloc_minimal \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -ldl -lrt -liconv
 

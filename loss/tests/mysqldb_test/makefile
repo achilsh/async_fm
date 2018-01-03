@@ -36,7 +36,6 @@ INC := $(INC) \
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/loss \
            -L$(LOSS_PATH)/lib -lloss \
-           -L$(LIB3RD_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -llog4cplus \
            -L$(LIB3RD_PATH)/lib -lev \
            -L$(LIB3RD_PATH)/lib -ljemalloc \

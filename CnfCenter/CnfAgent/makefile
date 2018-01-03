@@ -40,8 +40,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(LOSS_PATH)/lib -lloss \
-           -L$(LIB3RD_PATH)/lib -lprotobuf \
+           -L$(LOSS_PATH)/lib -lloss -L$(LIB3RD_PATH)/lib \
            -llog4cplus \
            -lqlibc \
            -levent \

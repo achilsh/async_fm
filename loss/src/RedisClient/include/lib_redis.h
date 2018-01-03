@@ -278,8 +278,10 @@ class RedisSets : public ServiceBase
   bool Smembers(const std::string& sKey, std::vector<std::string>& members) ; 
 
   bool Sadd(const std::string& sets, const std::string& value);
+  bool Sadd(const std::string& sets, const std::vector<std::string>& valuelist);
   
   bool Spop(const std::string& sets, std::string& value);
+  bool Srem(const std::string& sets, std::vector<std::string>& members);
 };
 
 class RedisKey : public ServiceBase
@@ -327,6 +329,8 @@ class RedisKey : public ServiceBase
   bool Decr(const std::string& key, int64_t& val);
   
   bool DecrBy(const std::string& key, int64_t delta, int64_t& val);
+
+  bool Mset(const std::map<std::string,std::string>& mpKV);
  protected:
   std::string GetRealKey(const std::string& key) ;
  private:

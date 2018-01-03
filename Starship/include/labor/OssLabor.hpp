@@ -119,6 +119,7 @@ public:     // Labor相关设置（由Cmd类或Step类调用这些方法完成La
     virtual void AddInnerFd(const tagMsgShell& stMsgShell) = 0;
 
     virtual uint32 GetNodeId() const = 0;
+    virtual bool QueryNodeTypeByCmd(std::string& sNodeType, const int iCmd) = 0;
 
 public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成数据交互，Worker类必须重新实现这些方法，Manager类可不实现）
     /**

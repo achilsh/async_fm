@@ -1,6 +1,6 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// http://code.google.com/p/protobuf/
+// https://developers.google.com/protocol-buffers/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -41,12 +41,16 @@
 #include <assert.h>
 #include <string>
 
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
 
-#include <google/protobuf/stubs/common.h>
 namespace google {
 
 namespace protobuf {
+
+class Arena;
+namespace io { class CodedInputStream; }
+
 namespace internal {
 
 
@@ -58,6 +62,8 @@ namespace internal {
 // there.
 #undef DEPRECATED_PROTOBUF_FIELD
 #define PROTOBUF_DEPRECATED
+
+#define GOOGLE_PROTOBUF_DEPRECATED_ATTR
 
 
 // Constants for special floating point values.
@@ -85,12 +91,6 @@ LIBPROTOBUF_EXPORT inline const ::std::string& GetEmptyString() {
   return GetEmptyStringAlreadyInited();
 }
 
-// Defined in generated_message_reflection.cc -- not actually part of the lite
-// library.
-//
-// TODO(jasonh): The various callers get this declaration from a variety of
-// places: probably in most cases repeated_field.h. Clean these up so they all
-// get the declaration from this file.
 LIBPROTOBUF_EXPORT int StringSpaceUsedExcludingSelf(const string& str);
 
 
@@ -105,6 +105,20 @@ template <class Type> bool AllAreInitialized(const Type& t) {
   }
   return true;
 }
+
+class ArenaString;
+
+// Read a length (varint32), followed by a string, from *input.  Return a
+// pointer to a copy of the string that resides in *arena.  Requires both
+// args to be non-NULL.  If something goes wrong while reading the data
+// then NULL is returned (e.g., input does not start with a valid varint).
+LIBPROTOBUF_EXPORT ArenaString* ReadArenaString(
+    ::google::protobuf::io::CodedInputStream* input,
+    ::google::protobuf::Arena* arena);
+
+// Helper function to crash on merge failure.
+// Moved out of generated code to reduce binary size.
+LIBPROTOBUF_EXPORT void MergeFromFail(const char* file, int line) GOOGLE_ATTRIBUTE_NORETURN;
 
 }  // namespace internal
 }  // namespace protobuf

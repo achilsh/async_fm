@@ -60,7 +60,9 @@ enum E_CMD
     CMD_RSP_RELOAD_MODULE               = 34,   ///< 重新加载module响应（无须响应）
     CMD_REQ_RELOAD_DOWN_STREAM          = 35,   ///< 重新加载down stream worker节点配置
     CMD_RSP_RELOAD_DOWN_STREAM          = 36,   ///< 重新加载down stream worker节点配置响应(无需响应)
-
+    CMD_REQ_RELOAD_NODETYP_CMD          = 37,   ///< 重新加载nodetype cmd
+    CMD_RSP_RELOAD_NODETYP_CMD          = 38,   ///< 重新加载nodetype cmd 响应
+    
     // 接入层转发命令字，如客户端数据转发给Logic，Logic数据转发给客户端等
     CMD_REQ_FROM_CLIENT                 = 501,     ///< 客户端发送过来需由接入层转发的数据，传输的MsgHead里的Cmd不会被改变（无业务逻辑直接转发的场景，如登录等接入层有业务逻辑的场景不适用）
     CMD_RSP_FROM_CLIENT                 = 502,     ///< 无意义，不会被使用

@@ -723,6 +723,27 @@ bool RedisSets::Sadd(const std::string& sets, const std::string& value)
   return true;
 }
 
+//todo: test
+bool RedisSets::Sadd(const std::string& sets, const std::vector<std::string>& valuelist) {
+  if (sets.empty() || valuelist.empty()) {
+    return false;
+  }
+  
+  std::vector<std::string> send;
+  send.push_back("sadd");
+  send.push_back(sets);
+  send.insert(send.end(), valuelist.begin(), valuelist.end());
+
+  Reply reply;
+  int32_t ret = client_.Command(send, reply);
+  if (ret != REDIS_OK) {
+    RecordErrmsg(client_.ErrMsg());
+    return false;
+  }
+
+  return true;
+}
+
 bool RedisSets::Spop(const std::string& sets, std::string& value)
 {
   std::vector<std::string> send;
@@ -745,6 +766,33 @@ bool RedisSets::Spop(const std::string& sets, std::string& value)
 
   return true;
 }
+
+//todo:  test
+bool RedisSets::Srem(const std::string& sets, std::vector<std::string>& members) {
+  if (members.empty() || sets.empty()) {
+    return true;
+  }
+  
+  std::vector<std::string> send;
+  send.push_back("srem");
+  send.push_back(sets);
+  send.insert(send.end(), members.begin(), members.end());
+
+  Reply reply;
+  int32_t ret = client_.Command(send, reply);
+  if (ret != REDIS_OK) {
+    RecordErrmsg(client_.ErrMsg());
+    return false;
+  }
+
+  if (reply.Type() == ERROR) {
+    RecordErrmsg(reply.Str());
+    return false;
+  }
+
+  return true;
+}
+
 ////////////
 void RedisKey::SetNamespace(const std::string& key_prefix) {
   namespace_ = key_prefix; 
@@ -1134,6 +1182,30 @@ std::string RedisKey::GetRealKey(const std::string& key) {
 
   return namespace_ + key;
 }
+
+//todo test
+bool RedisKey::Mset(const std::map<std::string,std::string>& mpKV) {
+  std::vector<std::string> send;
+  send.push_back("MSET");
+  
+  for (std::map<std::string, std::string>::const_iterator it = mpKV.begin(); 
+       it != mpKV.end(); ++it) {
+    if (it->first.empty() || it->second.empty()) {
+      return false;
+    }
+    send.push_back(it->first);
+    send.push_back(it->second);
+  }
+
+  Reply reply;
+  int32_t ret = client_.Command(send, reply);
+  if (ret != REDIS_OK) {
+    RecordErrmsg(client_.ErrMsg());
+    return false;
+  }
+  return true;
+}
+
 ///////////
 bool RedisWatch::Watch(const std::string& key) {
   std::vector<std::string> key_vec;

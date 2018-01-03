@@ -22,7 +22,7 @@ CnfAgentOne::~CnfAgentOne () {
 }
 //==========================
 
-bool CnfAgentOne::AddSubProcMethod(){ //call by base init...
+bool CnfAgentOne::AddSubProcMethod() { //call by base init...
   SubRetProcBase* retProc = new HostCnfRetProc(HOST_CNF_CHANNEL, this);
   retProc->SetLog(GetTLog());
   if (false == RegisteSubRetProc(HOST_CNF_CHANNEL,retProc )) {
@@ -51,8 +51,8 @@ bool CnfAgentOne::AddSubProcMethod(){ //call by base init...
   return true;
 }
 
-bool CnfAgentOne::WriteNewSrvNameDatFile(const std::string& sCnfContent) {
-  std::string sFilePath = m_srvNameStoreFileName;
+bool CnfAgentOne::WriteCnfFile(const std::string& fName, const std::string& jsConttent) {
+  std::string sFilePath = fName;
   std::size_t sIndex = sFilePath.find_last_of("/");
   std::string sPath = sFilePath.substr(0,sIndex);
   int iRet = ::access(sPath.c_str(), F_OK);
@@ -72,7 +72,12 @@ bool CnfAgentOne::WriteNewSrvNameDatFile(const std::string& sCnfContent) {
     return false;
   }
 
-  ssize_t iWRet = ::write(iFd,  sCnfContent.c_str(), sCnfContent.size());
+  if (jsConttent.empty()) {
+    ::close(iFd);
+    return true;
+  }
+
+  ssize_t iWRet = ::write(iFd,  jsConttent.c_str(), jsConttent.size());
   if (iWRet <= -1) {
     TLOG4_ERROR("write file failed, errmsg: %s, file: %s", strerror(errno), sFilePath.c_str());
     ::close(iFd);
@@ -83,66 +88,47 @@ bool CnfAgentOne::WriteNewSrvNameDatFile(const std::string& sCnfContent) {
   return true;
 }
 
-bool CnfAgentOne::GetSrvNameData(std::string& sSrvNameContent) {
-  std::string sFilePath = m_srvNameStoreFileName;
-
-  std::size_t sIndex = sFilePath.find_last_of("/");
-  std::string sPath = sFilePath.substr(0,sIndex);
-  int iRet = ::access(sPath.c_str(), F_OK);
-  if (iRet < 0 && errno == ENOENT) {
-    iRet = ::mkdir(sPath.c_str(), 0777);
-    if (iRet < 0) {
-      TLOG4_ERROR("creat dir: %s failed, err: %s",
-                  sPath.c_str(), strerror(errno));
-      return false;
-    }
-  }
-
-  int iMode = S_IRWXU |S_IRWXG|S_IRWXO; 
-  int iFd = ::open(sFilePath.c_str(), O_CREAT|O_RDWR, iMode);
-  if (iFd <= 0) {
-    TLOG4_ERROR("reopen file failed, err msg: %s, file: %s", strerror(errno), sFilePath.c_str());
-    return false;
-  }
-
-  int iMaxSz = 102400;
-  char buf[102400] = {0};
-  ssize_t iRRet =  ::read(iFd, buf, iMaxSz); 
-  if (iRRet <= -1) {
-    TLOG4_ERROR("read file failed, errmsg: %s, file: %s", strerror(errno),sFilePath.c_str());
-    ::close(iFd);
-    return false;
-  }
-  sSrvNameContent.assign(buf, iRRet);
-  ::close(iFd);
+bool CnfAgentOne::WriteNewSrvNameDatFile(const std::string& sCnfContent) {
+  return WriteCnfFile(m_srvNameStoreFileName,sCnfContent);
   
-  TLOG4_TRACE("read srv cnf content: %s", sSrvNameContent.c_str());
-  return true;
+}
+
+bool CnfAgentOne::GetSrvNameData(std::string& sSrvNameContent) {
+  return GetCnfData(m_srvNameStoreFileName, sSrvNameContent);
+}
+
+void CnfAgentOne::GetNewNodeTypeCmdVer() {
+  std::string sKey = NODETYPE_CMD_VER_KEY;
+  GetShmVersion(sKey);
 }
 
 void CnfAgentOne::GetNewestSrvNameVer() {
+  std::string  sKey = SRV_NAME_VER_KEY;
+  GetShmVersion(sKey);
+}
+
+bool CnfAgentOne::GetShmVersion(const std::string& sKey) {
   if (m_srvNameShmInit == false) {
-    TLOG4_ERROR("srv name shm init failed");
-    return ;
+    TLOG4_ERROR("shm init failed, shm key: %s", sKey.c_str());
+    return false;
   }
 
   RedisKey  rKey(m_syncRedisCli);
   int64_t iLVerNo = 0;
-  std::string  sKey = SRV_NAME_VER_KEY;
 
   bool bRet = rKey.Incr(sKey, iLVerNo);  
   if (bRet == false) {
-    TLOG4_ERROR("incr version for srv name fail");
-    return ;
+    TLOG4_ERROR("incr version fail, key: %s", sKey.c_str());
+    return false;
   }
-  TLOG4_TRACE("srv name ver no: %ld", iLVerNo);
+  TLOG4_TRACE("ver No: %lld, key: %s", iLVerNo, sKey.c_str());
   
   if (false == m_srvNameVerShm.SetValue(sKey,iLVerNo)) {
-    TLOG4_ERROR("set srv name shm value fail, errmsg: %s",
-               m_srvNameVerShm.GetErrMsg().c_str());
-    return ;
+    TLOG4_ERROR("set shm value fail, errmsg: %s, key: %s",
+               m_srvNameVerShm.GetErrMsg().c_str(), sKey.c_str());
+    return false;
   }
-  //
+  return true;
 }
 
 void CnfAgentOne::DoWorkAfterSync() {
@@ -172,6 +158,257 @@ void CnfAgentOne::SendUSR2SignelToLocalHostSrv() {
   }
 }
 
+void CnfAgentOne::SendUSR2ToLocalUpdateNodeTypeCmd() {
+  this->SendUSR2SignelToLocalHostSrv();
+  TLOG4_TRACE("send usr2 signal to update node type cmd");
+}
+
+bool CnfAgentOne::GetNodeTypeCmdFromLocalFile(loss::CJsonObject& jsCnf)  {
+  std::string sNodeTypeCmdCnfFile = NODETYPECMDSTOREFILE;
+  std::string sCnfData; 
+  if (false == GetCnfData(sNodeTypeCmdCnfFile,sCnfData)) {
+    TLOG4_ERROR("get cnf data failed, file: %s", sNodeTypeCmdCnfFile.c_str());
+    return false;
+  }
+  if (sCnfData.empty()) {
+    return true;
+  }
+  
+  if (false == jsCnf.Parse(sCnfData)) {
+    TLOG4_ERROR("parse node type cmd relation from str to js fail");
+    return false;
+  }
+  return true;
+}
+
+bool CnfAgentOne::WriteNodeTypeCmdToFile(const std::string& strjsCnf) {
+  std::string sNodeTypeCmdCnfFile = NODETYPECMDSTOREFILE;
+  return WriteCnfFile(sNodeTypeCmdCnfFile, strjsCnf);
+}
+
+/*****************************************/
+//服务名配置存储格式为：string
+//key: 服务名
+//value: [{ip, port}, {"ip":"","port": 0} ] 
+bool CnfAgentOne::SyncAllCnfSerNameList() {
+  std::string sKey;
+  sKey.append(PREFIXSVRNMKEY);
+  sKey.append(":*");
+  TLOG4_TRACE("get srv name key:  %s", sKey.c_str());
+
+  RedisKey rKOp(m_syncRedisCli);
+  std::vector<std::string> vKeyRet;
+  if (false == rKOp.Keys(sKey, vKeyRet)) {
+    TLOG4_ERROR("cmd: KEYS %s  failed", sKey.c_str());
+    return false;
+  }
+  if (vKeyRet.empty()) {
+    TLOG4_TRACE("srv name cnf key: %s  is empty", sKey.c_str());
+    ResetSrvNameFileContent(m_srvNameStoreFileName);
+    //del all srv name list in srv name file
+    return true;
+  }
+
+  std::map<std::string, std::string> mSrvNameListInfo;
+  for (std::vector<std::string>::iterator it = vKeyRet.begin();
+       it != vKeyRet.end(); ++it) {
+    std::size_t sIndex = it->find_last_of(":");
+    std::string sSrvName = it->substr(sIndex + 1);
+
+    if (false == rKOp.Get(*it, mSrvNameListInfo[sSrvName])) {
+      TLOG4_ERROR("call redis failed, key: %s", it->c_str());
+      continue;
+    }
+    TLOG4_TRACE("srv name: %s \n\r srv name cnf: %s",sSrvName.c_str(),
+                mSrvNameListInfo[sSrvName].c_str());
+  }
+
+  //每次全量去拉取 覆盖文件写
+  if (false == WriteSrvNameInfoInLocal(mSrvNameListInfo, m_srvNameStoreFileName)) {
+    TLOG4_ERROR("write srv name info to local failed");
+    return false;
+  }
+
+  DoWorkAfterSync();
+  return true;
+}
+
+//[{},{},{} ]
+bool CnfAgentOne::WriteSrvNameInfoInLocal(const std::map<std::string,std::string>& srvNameSet,
+                                          const std::string& cnfFile) {
+  //{"down_stream":[{"node_type":"TestLogic","ip":"192.168.1.100","port":36000}] }
+  if (cnfFile.empty()) {
+    TLOG4_INFO("store srv name info file path empty");
+    return true;
+  }
+  if (srvNameSet.empty()) {
+    return ResetSrvNameFileContent(cnfFile);
+  }
+
+  loss::CJsonObject downStreaJson;
+  loss::CJsonObject jsonList; //all list
+  std::map<std::string, std::string>::const_iterator it;
+  for (it = srvNameSet.begin(); it != srvNameSet.end(); ++it) {
+    //it->second format is: [{},{},{}]
+    //it->first format is: srv_name 
+    std::string sSrvName = it->first;
+    loss::CJsonObject onejsonCnfList(it->second);
+
+    if (onejsonCnfList.IsArray() == false) {
+      TLOG4_ERROR("srv name: %s  host list json not array", sSrvName.c_str());
+      continue;
+    }
+
+    for (int ii = 0; ii < onejsonCnfList.GetArraySize(); ++ii) {
+      //item: {"ip":"","port":0}
+      loss::CJsonObject& jsHostOne = onejsonCnfList[ii];
+      //add node_type node in this {}
+      jsHostOne.Add("node_type", sSrvName);
+      jsonList.AddAsFirst(jsHostOne);
+    }
+  }
+
+  downStreaJson.Add("down_stream", jsonList);
+  std::string sToWriteSrvName = downStreaJson.ToFormattedString();
+  TLOG4_TRACE("write srv name info: %s", sToWriteSrvName.c_str());
+
+  std::string sSrvNameFile(m_srvNameStoreFileName);
+  if (false == ReWriteHostCnfInfo(sSrvNameFile, sToWriteSrvName)) {
+    TLOG4_ERROR("write srv name to local file: %s failed", sSrvNameFile.c_str());
+    return false;
+  }
+
+  TLOG4_TRACE("sync all srv name, file path: %s\n srv name content: %s",
+              sSrvNameFile.c_str(), sToWriteSrvName.c_str());
+  return true;
+}
+
+//redis format is hash, key =>  prefix:ip:port:servername
+//field: 1 ==> conf path file name, 2 ===> cnf content,json format
+// 服务配置文件存储格式为： (hash)
+// key: ip + port + servername, 
+// field: 1, value: cnf path value,include file name
+// field: 2, value: json formate conf file.
+bool CnfAgentOne::SyncHostCnfDetailInfo() {
+  if (false == SyncNodeTyeCmd()) {
+    TLOG4_ERROR("sync node type cmd relation fail");
+  }
+
+  std::vector<std::string> vKeyRet;
+  if (GetHostCnfRedisKey(vKeyRet) == false) {
+    TLOG4_ERROR("get host conf redis key failed");
+    return false;
+  }
+  if (vKeyRet.empty()) {
+    return true;
+  }
+
+  std::vector<std::string> vField;
+  vField.push_back(FieldNameFilePath);
+  vField.push_back(FieldNameCnfContent);
+
+  for (std::vector<std::string>::iterator it = vKeyRet.begin();
+       it != vKeyRet.end(); ++it) {
+    //*it format: prex:ip:port:srvname
+    RedisHash rHashOp(m_syncRedisCli);
+    std::map<std::string, std::string> mHVals;  
+    if (false == rHashOp.hMGet(*it,vField, mHVals)) {
+      TLOG4_ERROR("get hash value failed, key: %s", it->c_str());
+      continue;
+    }
+    if (mHVals.find(FieldNameFilePath) == mHVals.end() \
+        || mHVals.find(FieldNameCnfContent) == mHVals.end()) {
+      TLOG4_ERROR("not find field filepath or conf file content  value");
+      continue;
+    }
+    //TLOG4_TRACE("host conf file path: %s", mHVals[FieldNameFilePath].c_str());
+
+    loss::CJsonObject jsonCnfConent(mHVals[FieldNameCnfContent]);
+    std::string sCnfContent = jsonCnfConent.ToFormattedString();
+    //if content is empty or file path empty, should reset file content?
+    if (ReWriteHostCnfInfo(mHVals[FieldNameFilePath],
+                           sCnfContent) == false) {
+      TLOG4_ERROR("write host cnf file to local failed");
+      continue;
+    }
+    TLOG4_TRACE("sync host conf, path: %s\nhost conf content: %s", 
+                mHVals[FieldNameFilePath].c_str(),sCnfContent.c_str());
+    std::string sKeyData = *it;
+    std::vector<std::string> vIpPortSrvName;
+    LIB_COMM::LibString::str2vec(sKeyData, vIpPortSrvName, ":");
+    if (vIpPortSrvName.size() < 4) {
+      continue;
+    }
+    uint32_t uiPort = ::atoi(vIpPortSrvName[2].c_str());
+    const std::string& sHostIp = vIpPortSrvName[1];
+    SendKillSignToListenProcess(sHostIp, uiPort);
+  }
+  return true;
+}
+
+
+bool CnfAgentOne::SyncNodeTyeCmd() {
+  std::map<std::string, std::vector<std::string> > mpNodeTypeCmd;
+  std::string sKey;
+  sKey.append(NODETYPE_CMD_KEY_PREX);
+  sKey.append(":*");
+  TLOG4_TRACE("get nodetype cmd key:  %s" , sKey.c_str());
+
+  RedisKey rKOp(m_syncRedisCli);
+  std::vector<std::string> vKeyRet;
+  if (false == rKOp.Keys(sKey, vKeyRet)) {
+    TLOG4_ERROR("cmd: KEYS %s  failed", sKey.c_str());
+    return false;
+  }
+  
+  if (vKeyRet.empty()) {
+   TLOG4_TRACE("get keys ret is empty");
+   WriteNodeTypeCmdToFile("");
+   return true;
+  }
+
+ 
+  std::vector<std::string>::iterator it;
+  for (it = vKeyRet.begin(); it != vKeyRet.end(); ++it) {
+    sKey = *it;
+
+    std::size_t sIndex = it->find_last_of(":");
+    std::string sNodeType = it->substr(sIndex + 1); 
+    
+    RedisSets setOp(m_syncRedisCli);
+    if (false == setOp.Smembers(sKey, mpNodeTypeCmd[sNodeType])) {
+      TLOG4_ERROR("get member failed, set key: %s", sKey.c_str());
+      mpNodeTypeCmd.erase(sNodeType);
+      continue;
+    }
+  }
+  
+  loss::CJsonObject jsNodeTypeCmd;
+  std::map<std::string, std::vector<std::string> >::iterator mpIt; 
+  
+  for (mpIt = mpNodeTypeCmd.begin(); mpIt != mpNodeTypeCmd.end(); ++mpIt) {
+    jsNodeTypeCmd.AddEmptySubArray(mpIt->first);
+    loss::CJsonObject& vJsCmd = jsNodeTypeCmd[mpIt->first];
+    
+    std::vector<std::string>::iterator itCmd;
+    for (itCmd = mpIt->second.begin(); itCmd != mpIt->second.end(); ++itCmd) {
+      vJsCmd.Add(atoi(itCmd->c_str()));
+    }
+  }
+
+  std::string strNodeTypeCmd = jsNodeTypeCmd.ToFormattedString();
+  if (false == WriteNodeTypeCmdToFile(strNodeTypeCmd)) {
+    TLOG4_ERROR("write node type cmd to file failed");
+    return false;
+  }
+
+  GetNewNodeTypeCmdVer();
+  SendUSR2ToLocalUpdateNodeTypeCmd();
+  return true;
+}
+
+
+
 //-------------------------------------//
 
 
@@ -198,6 +435,7 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
   //TODO: parse json and write host conf json file to file
   //
   //pub ret format: {"ip":"", "port": 0, "cnf_path":"", "cnf_dat":""} 
+  //pub ret format: {"nodetype_cmd": "***", "***": [191,21,3]}
   TLOG4_INFO("ch: %s, sub info: %s", sCh.c_str(), 
              sSubRet.c_str());
   loss::CJsonObject jsHostCnf;
@@ -210,6 +448,17 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
     TLOG4_INFO("host cnf sub ret is empty json");
     return true;
   }
+
+  std::string sNodeTypeCmdVal;
+  if (GetSubRetItem(NODETYPECMD_TYPE, jsHostCnf, sNodeTypeCmdVal)) {
+    if (sNodeTypeCmdVal.empty()) {
+      TLOG4_ERROR("item: %s value is empty", NODETYPECMD_TYPE);
+      return false;
+    }
+    // input params is {"nodetype_cmd": "***","****":[]},  "*****"
+    return ProcSubNodeTypeCmdModify(sNodeTypeCmdVal, jsHostCnf);
+  }
+
   std::string sIp, sCnfPath;
   loss::CJsonObject sCnfData;
   uint32_t uiPort = 0;
@@ -261,9 +510,110 @@ bool HostCnfRetProc::operator()(const std::string& sCh,
   return true;
 }
 
-//////
+//pub ret format: {"nodetype_cmd": "***", "***": [191,21,3]}
+//sNodeType is "****", is node type value.
+bool HostCnfRetProc::ProcSubNodeTypeCmdModify(const std::string& sNodeType,
+                                              const loss::CJsonObject& jsSubRet) {
+  if (sNodeType.empty() || jsSubRet.IsEmpty()) {
+    TLOG4_ERROR("input invaild param, is empty");
+    return false;
+  }
+
+  loss::CJsonObject vCmdJson; //[1,2,3,4,5,7]
+  if (false == GetSubRetItem(sNodeType,jsSubRet, vCmdJson)) {
+    TLOG4_ERROR("get cmd list from sub ret, cmd key: %s", sNodeType.c_str());
+    return false;
+  }
+
+  if (vCmdJson.IsArray() == false) {
+    TLOG4_ERROR("cmd list key: %s, value not array", sNodeType.c_str());
+    return false;
+  }
+
+  loss::CJsonObject jsFileCnf;
+  //node type cmd format is: {"****": [1,2,3,4,5], "**": [7,8,9]}
+  if (false == m_pCnfAgent->GetNodeTypeCmdFromLocalFile(jsFileCnf)) {
+    TLOG4_ERROR("get node type cmd rel from local file fail");
+    return false;
+  }
+
+  if (false == UpdateSubRetToLocalHostCnf(jsFileCnf, vCmdJson, sNodeType)) { //1. {"***": [1,2,3,4], "***":[3,45,6]}, 2. [12,3,6,7]
+    TLOG4_ERROR("update sub ret to local host cnf fail");
+    return false;
+  }
+  std::string sNewNodeTyeCmdJsCnf = jsFileCnf.ToFormattedString();
+  //将该数据写入到特定目录下的文件,文件内容格式为： {"node_type1": [1,2,3,4,5,6],
+  // "node_type2": [1,2,3,4,5,6]}; 其中 node_typen等同于srv_name
+  if (false == m_pCnfAgent->WriteNodeTypeCmdToFile(sNewNodeTyeCmdJsCnf)) {
+    TLOG4_ERROR("write node type cmd relation to file fail, node type: %s", sNodeType.c_str());
+    return false;
+  }
+  
+  m_pCnfAgent->GetNewNodeTypeCmdVer();
+  m_pCnfAgent->SendUSR2ToLocalUpdateNodeTypeCmd();
+  return true;
+}
+
+
+//add new item not exist toJson but exist in fromJson, 
+//del del item 
+bool HostCnfRetProc::UpdateSubRetToLocalHostCnf(loss::CJsonObject& toJson, /**{"***":[1,3,4,5], "***":[4,5,67]} ***/
+                                                const loss::CJsonObject& vfromJson, /***[1,2,3,4,6] ***/
+                                                const std::string& sNodeType) {
+  if (sNodeType.empty()) {
+    TLOG4_ERROR("node type is empty");
+    return false;
+  }
+
+  loss::CJsonObject vjsCmdListCnf; 
+  if (false == GetSubRetItem(sNodeType, toJson, vjsCmdListCnf)) {
+    toJson.Add(sNodeType,vfromJson);
+    return true;
+  }
+
+  std::vector<int> vCmdTo, vCmdFrom;
+  for (int ii = 0; ii < vjsCmdListCnf.GetArraySize(); ++ii) {
+    int iCmd = 0;
+    if (vjsCmdListCnf.Get(ii, iCmd)) {
+      vCmdTo.push_back(iCmd);
+    }
+  }
+
+  for (int ii = 0; ii < vfromJson.GetArraySize(); ++ii) {
+    int iCmd = 0;
+    if (vfromJson.Get(ii, iCmd)) {
+      vCmdFrom.push_back(iCmd);
+    }
+  }
+  
+  for (std::vector<int>::iterator it = vCmdFrom.begin(); it != vCmdFrom.end(); ++it) {
+    std::vector<int>::iterator itFind = std::find(vCmdTo.begin(), vCmdTo.end(), *it);
+    if (itFind == vCmdTo.end()) {
+      vCmdTo.push_back(*it);
+    }
+  }
+
+  for (std::vector<int>::iterator it = vCmdTo.begin(); it != vCmdTo.end(); ) {
+    std::vector<int>::iterator itFind = std::find(vCmdFrom.begin(), vCmdFrom.end(), *it);
+    if (itFind == vCmdFrom.end()) {
+      it = vCmdTo.erase(it);
+      continue;
+    }
+    ++it;
+  }
+
+  loss::CJsonObject newCmdIdList;
+  for (std::vector<int>::iterator it = vCmdTo.begin(); it != vCmdTo.end(); ++it) {
+    newCmdIdList.Add(*it);
+  }
+
+  toJson.Replace(sNodeType, newCmdIdList);
+  return true;
+}
+
+///------------------------------///
 bool SrvNameRetProc::operator() (const std::string& sCh,
-                 const std::string& sSubRet) {
+                                 const std::string& sSubRet) {
   //TODO: parse json and  write content to srv name json file 
   ////pub ret format:
   // {"XX": [{"ip":"","port":1}, {"ip":"","port":2}] }

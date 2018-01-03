@@ -31,7 +31,12 @@
 //这是查询请求的返回结果中json 前缀。
 #define FilePathNameJSIndex      "cnf_path"
 #define CnfContentJsIndex        "cnf_content"
-
+//
+#define NODETYPE_CMD_KEY_PREX     "nodetype_cmd"
+#define NODETYPE_CMD_PUB_KEY       NODETYPE_CMD_KEY_PREX
+//
+#define CMD_NODETYPE_KEY_PRE      "cmd_nodetype"
+//
 using namespace LIB_COMM;
 using namespace LIB_REDIS;
 using namespace loss;
@@ -71,10 +76,12 @@ namespace CNF_SRV {
        return true;
      }
 
+     //http svr 暂时不会用到该接口
      bool OpCnfSrvModify(const loss::CJsonObject& cnfData) {
        if (false == m_Init)  {
          return false;
        }
+       //所以 CnfSrvModify()暂时也不会用
        if (false == CnfSrvModify(cnfData)) {
           return false;
        }
@@ -93,7 +100,7 @@ namespace CNF_SRV {
      virtual bool CnfSrvCreate(const loss::CJsonObject& cnfData) = 0;
      virtual bool CnfSrvModify(const loss::CJsonObject& cnfData) = 0;
 
-    private:
+    protected:
      bool PushWriteOp();
     protected:
      loss::CJsonObject  m_jsSrvCnf;
@@ -119,6 +126,10 @@ namespace CNF_SRV {
      bool ParseCnfHostConf(const loss::CJsonObject& cnfData,
                            std::string& sIp,uint32_t& uiPort,
                            std::string& sSrvName);
+     bool PubCmdIdNodeType(const loss::CJsonObject& cnfData);
+     bool UpdateCmdNodeType(const std::string& sNodeType,
+                            const std::vector<std::string>& vNewCmdList,
+                            const std::vector<std::string>& vPreCmdList);
   };
   //
   class CnfSrvNameCnf: public CnfSrvOp {
