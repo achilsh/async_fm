@@ -1,5 +1,4 @@
 #include "StepTestQuery.h"
-#include "hello_test.pb.h"
 
 namespace im {
 
@@ -24,11 +23,11 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
                        const std::string& strErrShow ) {
   MsgBody oOutMsgBody;
   MsgHead oOutMsgHead;
-  
-  hellotest tData;
-  tData.set_strdata(m_sKey);
-  oOutMsgBody.set_body(tData.SerializeAsString());
-  
+#if 1
+  loss::CJsonObject tData; 
+  tData.Add("key",m_sKey);
+  oOutMsgBody.set_body(tData.ToString());
+  LOG4_TRACE("add test 1 ");  
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
   oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
@@ -45,6 +44,7 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
     LOG4_ERROR("send data to TestLogic failed");
     return oss::STATUS_CMD_FAULT;
   }
+#endif
   return oss::STATUS_CMD_RUNNING;
 }
 
@@ -53,17 +53,17 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
          const MsgHead& oInMsgHead,
          const MsgBody& oInMsgBody,
          void* data) {
-
-  hellotest tData;
-  std::string sData;
-  
-  if (false == tData.ParseFromString(oInMsgBody.body())) {
+#if 1 
+  loss::CJsonObject jsData;
+  std::string sData = oInMsgBody.body();
+  if (false == jsData.Parse(sData)) {
     sData = "http parse ret body fail";
     SendAck(sData);
   } else {
-    sData= tData.strdata();
+    sData= jsData("key");
     SendAck("", sData);
   }
+#endif
   return oss::STATUS_CMD_COMPLETED;
 }
 

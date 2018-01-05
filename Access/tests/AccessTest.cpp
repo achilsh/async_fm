@@ -24,8 +24,7 @@
 #include "log4cplus/logger.h"
 #include "log4cplus/fileappender.h"
 #include "log4cplus/loggingmacros.h"
-
-#include "hello_test.pb.h"
+#include "util/json/CJsonObject.hpp"
 
 #include <iostream>
 #include <string>
@@ -171,14 +170,10 @@ bool TestClient::PackMsg(const SndMsg& strMsg, std::string& strPack) {
   MsgHead oMsgHead;
   static int ii = 100;
   ++ii;
-  hellotest tData;
-  tData.set_strdata(strMsg.sToSendMsg);
-  if (tData.has_strdata()) {
-    TLOG4_INFO("has set strdata field");
-  }
-
+  loss::CJsonObject tData;
+  tData.Add("key",strMsg.sToSendMsg);
   MsgBody oMsgBody;
-  oMsgBody.set_body(tData.SerializeAsString());
+  oMsgBody.set_body(tData.ToString());
 
   oMsgHead.set_cmd(strMsg.iCmd);
   oMsgHead.set_seq(ii);
@@ -216,18 +211,11 @@ bool TestClient::UnPackMsg(const std::string& strUnPack, RcvMsg& strMsg) {
   int msgbodylen = iMsgHead.msgbody_len();
   if (strUnPack.size() >= msgbodylen + iMsgheadLen) {
     MsgBody oMsgBody;
-    hellotest tData;
+    loss::CJsonObject tData;
     bRet = oMsgBody.ParseFromArray(strUnPack.c_str() + iMsgheadLen, msgbodylen);
-    /***
-    if (bRet == false) {
-      TLOG4_ERROR("parse msg body failed, msg body len: %u, msg head len: %u", 
-                  msgbodylen, iMsgheadLen);
-      //return false;
-    }
-    ***/
-
-    tData.ParseFromString(oMsgBody.body());
-    strMsg.sRecvMsg = tData.strdata();
+    
+    tData.Parse(oMsgBody.body());
+    strMsg.sRecvMsg = tData("key");
     TLOG4_INFO("recv response msg:[ %s ], cmd: [%u]", strMsg.sRecvMsg.c_str(), strMsg.iCmd);
   }
   return true;

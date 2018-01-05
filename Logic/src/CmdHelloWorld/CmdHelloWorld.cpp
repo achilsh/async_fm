@@ -6,7 +6,6 @@
  * @date: 2017-11-14
  */
 #include "CmdHelloWorld.h"
-#include "hello_test.pb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,16 +36,16 @@ bool CmdHelloWorld::AnyMessage(
   oOutMsgHead.set_seq(oInMsgHead.seq());
   if (GetCmd() == (int)oInMsgHead.cmd())
   {
-    hellotest tData, retData;
     std::string msgVal;
-     LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv msg body: %s", oOutMsgBody.DebugString().c_str());
-    if (false == tData.ParseFromString(oOutMsgBody.body())) {
-     LOG4CPLUS_DEBUG_FMT( GetLogger(), "parse msg body failed");
-     msgVal = "parse failed";
+    LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv msg body: %s", oInMsgBody.DebugString().c_str());
+    loss::CJsonObject tData, retData;
+    
+    if (false == tData.Parse(oInMsgBody.body())) {
+      LOG4CPLUS_DEBUG_FMT( GetLogger(), "parse msg body failed");
+      msgVal = "parse failed";
     } else {
-      if (tData.has_strdata()) {
+      if (tData.Get("key", msgVal)) {
         LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv strdata field");
-        msgVal = tData.strdata();
       } else {
         msgVal = "logic recv not set strdata field";
       }
@@ -56,9 +55,9 @@ bool CmdHelloWorld::AnyMessage(
       bResult = true;
     } 
 
-    retData.set_strdata(msgVal);
-    oOutMsgBody.set_body(retData.SerializeAsString());
-    
+    retData.Add("key",msgVal);
+    oOutMsgBody.set_body(retData.ToString());
+
     oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
     GetLabor()->SendTo(stMsgShell, oOutMsgHead, oOutMsgBody);
   }

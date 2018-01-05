@@ -1,6 +1,6 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
+// http://code.google.com/p/protobuf/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -39,7 +39,6 @@
 #define GOOGLE_PROTOBUF_COMPILER_COMMAND_LINE_INTERFACE_H__
 
 #include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/hash.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -55,11 +54,6 @@ class FileDescriptor;        // descriptor.h
 class FileDescriptorProto;   // descriptor.pb.h
 template<typename T> class RepeatedPtrField;  // repeated_field.h
 
-}  // namespace protobuf
-}  // namespace google
-
-namespace google {
-namespace protobuf {
 namespace compiler {
 
 class CodeGenerator;        // code_generator.h
@@ -196,7 +190,6 @@ class LIBPROTOC_EXPORT CommandLineInterface {
   class ErrorPrinter;
   class GeneratorContextImpl;
   class MemoryOutputStream;
-  typedef hash_map<string, GeneratorContextImpl*> GeneratorContextMap;
 
   // Clear state from previous Run().
   void Clear();
@@ -217,12 +210,11 @@ class LIBPROTOC_EXPORT CommandLineInterface {
   // Parse all command-line arguments.
   ParseArgumentStatus ParseArguments(int argc, const char* const argv[]);
 
-
   // Parses a command-line argument into a name/value pair.  Returns
   // true if the next argument in the argv should be used as the value,
   // false otherwise.
   //
-  // Examples:
+  // Exmaples:
   //   "-Isrc/protos" ->
   //     name = "-I", value = "src/protos"
   //   "--cpp_out=src/foo.pb2.cc" ->
@@ -255,12 +247,6 @@ class LIBPROTOC_EXPORT CommandLineInterface {
   // Implements the --descriptor_set_out option.
   bool WriteDescriptorSet(const vector<const FileDescriptor*> parsed_files);
 
-  // Implements the --dependency_out option
-  bool GenerateDependencyManifestFile(
-      const vector<const FileDescriptor*>& parsed_files,
-      const GeneratorContextMap& output_directories,
-      DiskSourceTree* source_tree);
-
   // Get all transitive dependencies of the given file (including the file
   // itself), adding them to the given list of FileDescriptorProtos.  The
   // protos will be ordered such that every file is listed before any file that
@@ -268,11 +254,8 @@ class LIBPROTOC_EXPORT CommandLineInterface {
   // in order.  Any files in *already_seen will not be added, and each file
   // added will be inserted into *already_seen.  If include_source_code_info is
   // true then include the source code information in the FileDescriptorProtos.
-  // If include_json_name is true, populate the json_name field of
-  // FieldDescriptorProto for all fields.
   static void GetTransitiveDependencies(
       const FileDescriptor* file,
-      bool include_json_name,
       bool include_source_code_info,
       set<const FileDescriptor*>* already_seen,
       RepeatedPtrField<FileDescriptorProto>* output);
@@ -369,10 +352,6 @@ class LIBPROTOC_EXPORT CommandLineInterface {
   // If --descriptor_set_out was given, this is the filename to which the
   // FileDescriptorSet should be written.  Otherwise, empty.
   string descriptor_set_name_;
-
-  // If --dependency_out was given, this is the path to the file where the
-  // dependency file will be written. Otherwise, empty.
-  string dependency_out_name_;
 
   // True if --include_imports was given, meaning that we should
   // write all transitive dependencies to the DescriptorSet.  Otherwise, only

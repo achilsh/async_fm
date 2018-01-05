@@ -1,6 +1,6 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
+// http://code.google.com/p/protobuf/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -38,7 +38,6 @@
 #include <string>
 
 #include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/common.h>
 
 namespace google {
@@ -48,7 +47,6 @@ class Descriptor;
 class EnumDescriptor;
 class EnumValueDescriptor;
 class FieldDescriptor;
-class OneofDescriptor;
 class ServiceDescriptor;
 
 namespace io { class Printer; }
@@ -129,8 +127,6 @@ class LIBPROTOC_EXPORT Generator : public CodeGenerator {
   void PrintServiceDescriptor(const ServiceDescriptor& descriptor) const;
   void PrintServiceClass(const ServiceDescriptor& descriptor) const;
   void PrintServiceStub(const ServiceDescriptor& descriptor) const;
-  void PrintDescriptorKeyAndModuleName(
-      const ServiceDescriptor& descriptor) const ;
 
   void PrintEnumValueDescriptor(const EnumValueDescriptor& descriptor) const;
   string OptionsValue(const string& class_name,
@@ -149,12 +145,8 @@ class LIBPROTOC_EXPORT Generator : public CodeGenerator {
 
   void FixAllDescriptorOptions() const;
   void FixOptionsForField(const FieldDescriptor& field) const;
-  void FixOptionsForOneof(const OneofDescriptor& oneof) const;
   void FixOptionsForEnum(const EnumDescriptor& descriptor) const;
   void FixOptionsForMessage(const Descriptor& descriptor) const;
-
-  void CopyPublicDependenciesAliases(
-      const string& copy_from, const FileDescriptor* file) const;
 
   // Very coarse-grained lock to ensure that Generate() is reentrant.
   // Guards file_, printer_ and file_descriptor_serialized_.

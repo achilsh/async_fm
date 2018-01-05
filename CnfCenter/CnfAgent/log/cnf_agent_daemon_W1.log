@@ -1,0 +1,459 @@
+[2018-01-02 09:23:10,851][TRACE] [src/CnfAgentBase.cpp:123] this worker not regiter channel [ host_conf ] 
+[2018-01-02 09:23:10,851][TRACE] [src/CnfAgentBase.cpp:123] this worker not regiter channel [ host_conf ] 
+[2018-01-02 09:23:10,851][INFO] [src/CnfAgentBase.cpp:146] register channel type: [ srv_name ],sub ret resp proc :[0x1c51670],worker: [1]
+[2018-01-02 09:23:10,851][INFO] [src/CnfAgentBase.cpp:166] regiter sync handler for channel: srv_name
+[2018-01-02 09:23:10,851][INFO] [src/CnfComm/src/base_task.cpp:325] work [1] going to run 
+[2018-01-02 09:23:10,851][INFO] [src/CnfAgentBase.cpp:177] worker [1] first sync, need to syns full cnf from cnf_srv
+[2018-01-02 09:23:10,851][TRACE] [src/CnfAgentOne.cpp:197] get srv name key:  cnf_N1:*
+[2018-01-02 09:23:10,852][TRACE] [src/CnfAgentOne.cpp:206] srv name cnf key: cnf_N1:*  is empty
+[2018-01-02 09:23:10,852][TRACE] [src/CnfAgentBase.cpp:186] SetSynTimer()
+[2018-01-02 09:23:10,852][TRACE] [src/CnfAgentBase.cpp:210] set timer tm dur: 10, us: 0
+[2018-01-02 09:23:20,862][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:23:20,862][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:23:30,871][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:23:30,871][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:23:40,882][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:23:40,882][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:23:50,892][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:23:50,892][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:00,902][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:00,902][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:10,912][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:10,912][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:20,922][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:20,922][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:30,932][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:30,932][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:40,943][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:40,943][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:24:50,953][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:24:50,953][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:00,963][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:00,963][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:10,973][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:10,973][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:20,983][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:20,983][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:30,993][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:30,993][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:41,004][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:41,004][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:25:51,014][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:25:51,014][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:01,024][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:01,024][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:11,034][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:11,034][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:21,045][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:21,045][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:31,055][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:31,055][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:41,065][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:41,065][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:26:51,075][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:26:51,075][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:01,085][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:01,085][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:11,095][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:11,095][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:21,105][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:21,105][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:31,115][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:31,115][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:41,125][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:41,125][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:27:51,135][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:27:51,136][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:01,146][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:01,146][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:11,156][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:11,156][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:21,166][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:21,166][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:31,176][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:31,176][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:34,616][INFO] [src/CnfAgentOne.cpp:640] ch: srv_name, data: {"HttpInterface":[{"ip":"192.168.1.106","port":25000}]}
+[2018-01-02 09:28:34,616][TRACE] [src/CnfAgentBase.cpp:443] read srv cnf content: 
+[2018-01-02 09:28:34,616][TRACE] [src/CnfAgentOne.cpp:850] srv name first new content: {
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
+}
+
+[2018-01-02 09:28:34,617][TRACE] [src/CnfAgentOne.cpp:124] srv name ver no: 1
+[2018-01-02 09:28:34,617][TRACE] [src/CnfAgentBase.cpp:267] local ip: 192.168.1.106
+[2018-01-02 09:28:34,617][INFO] [src/CnfAgentBase.cpp:274] get related local host cnf key: cnf_H1:192.168.1.106:*
+[2018-01-02 09:28:34,617][TRACE] [src/CnfAgentBase.cpp:282] key: cnf_H1:192.168.1.106:* in redis nums is 0
+[2018-01-02 09:28:34,617][TRACE] [src/CnfAgentOne.cpp:146] has not config any host srv for this local host
+[2018-01-02 09:28:41,186][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:41,186][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:28:51,196][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:28:51,196][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:01,206][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:01,206][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:11,216][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:11,216][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:21,226][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:21,226][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:31,237][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:31,237][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:41,247][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:41,247][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:29:51,257][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:29:51,257][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:01,267][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:01,267][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:11,277][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:11,277][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:21,287][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:21,287][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:31,297][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:31,297][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:41,308][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:41,308][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:30:51,318][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:30:51,318][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:01,328][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:01,328][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:11,338][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:11,338][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:21,348][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:21,348][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:31,358][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:31,358][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:41,368][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:41,369][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:31:51,379][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:31:51,379][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:01,389][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:01,389][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:11,399][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:11,399][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:21,409][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:21,409][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:31,419][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:31,419][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:41,429][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:41,429][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:32:51,440][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:32:51,440][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:01,450][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:01,450][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:11,460][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:11,460][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:21,470][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:21,470][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:31,480][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:31,480][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:41,490][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:41,490][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:33:51,500][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:33:51,500][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:01,510][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:01,511][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:11,521][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:11,521][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:21,531][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:21,531][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:31,541][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:31,541][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:41,551][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:41,551][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:34:51,561][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:34:51,561][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:01,571][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:01,571][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:11,581][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:11,581][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:21,591][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:21,592][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:31,602][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:31,602][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:41,612][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:41,612][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:35:51,622][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:35:51,622][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:01,632][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:01,632][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:11,642][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:11,642][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:21,652][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:21,652][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:31,662][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:31,662][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:41,672][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:41,672][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:36:51,683][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:36:51,683][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:01,693][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:01,693][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:11,703][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:11,703][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:21,713][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:21,713][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:31,723][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:31,723][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:41,733][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:41,733][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:37:51,743][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:37:51,743][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:01,749][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:01,749][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:11,759][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:11,759][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:21,769][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:21,769][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:31,779][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:31,780][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:41,790][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:41,790][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:38:51,800][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:38:51,800][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:01,810][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:01,810][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:11,820][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:11,820][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:21,830][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:21,830][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:31,840][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:31,840][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:41,850][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:41,850][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:39:51,860][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:39:51,860][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:01,871][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:01,871][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:11,881][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:11,881][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:21,891][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:21,891][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:31,901][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:31,901][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:41,911][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:41,911][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:40:51,921][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:40:51,921][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:01,931][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:01,931][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:11,941][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:11,941][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:21,951][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:21,952][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:31,962][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:31,962][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:41,972][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:41,972][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:41:51,982][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:41:51,982][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:01,992][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:01,992][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:12,002][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:12,002][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:22,012][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:22,012][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:32,022][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:32,022][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:42,032][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:42,032][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:42:52,042][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:42:52,043][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:02,053][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:02,053][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:12,063][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:12,063][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:22,073][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:22,073][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:32,083][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:32,083][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:42,093][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:42,093][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:43:52,103][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:43:52,103][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:02,113][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:02,113][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:12,123][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:12,123][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:22,130][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:22,130][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:32,140][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:32,140][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:42,143][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:42,143][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:44:52,153][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:44:52,153][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:02,163][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:02,163][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:12,174][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:12,174][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:22,184][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:22,184][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:32,194][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:32,194][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:42,204][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:42,204][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:45:52,214][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:45:52,214][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:02,223][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:02,223][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:12,224][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:12,224][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:22,225][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:22,225][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:32,226][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:32,226][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:42,232][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:42,232][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:46:52,242][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:46:52,242][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:02,245][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:02,245][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:12,255][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:12,255][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:22,260][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:22,260][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:32,270][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:32,270][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:42,274][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:42,274][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:47:52,284][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:47:52,284][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:02,294][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:02,294][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:12,304][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:12,304][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:22,314][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:22,314][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:32,325][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:32,325][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:42,335][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:42,335][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:48:52,345][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:48:52,345][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:02,355][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:02,355][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:12,365][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:12,365][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:22,375][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:22,375][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:32,385][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:32,385][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:42,395][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:42,395][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:49:52,405][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:49:52,405][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:02,416][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:02,416][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:12,426][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:12,426][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:22,436][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:22,436][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:32,446][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:32,446][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:42,456][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:42,456][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:50:52,464][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:50:52,464][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:02,474][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:02,474][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:09,914][INFO] [src/CnfAgentOne.cpp:640] ch: srv_name, data: {"HttpInterface":[{"ip":"192.168.1.106","port":25000}]}
+[2018-01-02 09:51:09,914][TRACE] [src/CnfAgentBase.cpp:443] read srv cnf content: {
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
+}
+
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentOne.cpp:733] find same node_type item in srv name cnf, node_type: HttpInterface
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentOne.cpp:764] srname: HttpInterface, ip: 192.168.1.106, port: 25000 exist srv name cnf
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentOne.cpp:816] new content: {
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
+}
+
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentOne.cpp:124] srv name ver no: 2
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentBase.cpp:267] local ip: 192.168.1.106
+[2018-01-02 09:51:09,915][INFO] [src/CnfAgentBase.cpp:274] get related local host cnf key: cnf_H1:192.168.1.106:*
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentBase.cpp:282] key: cnf_H1:192.168.1.106:* in redis nums is 0
+[2018-01-02 09:51:09,915][TRACE] [src/CnfAgentOne.cpp:146] has not config any host srv for this local host
+[2018-01-02 09:51:12,479][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:12,479][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:22,489][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:22,489][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:32,499][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:32,499][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:42,509][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:42,509][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:51:52,519][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:51:52,520][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:02,530][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:02,530][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:12,540][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:12,540][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:22,550][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:22,550][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:32,560][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:32,560][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:42,570][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:42,570][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:52:52,580][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:52:52,580][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:02,590][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:02,590][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:12,600][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:12,601][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:22,611][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:22,611][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:32,621][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:32,621][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:38,358][INFO] [src/CnfAgentOne.cpp:640] ch: srv_name, data: {"HttpInterface":[{"ip":"192.168.1.106","port":25000}]}
+[2018-01-02 09:53:38,358][TRACE] [src/CnfAgentBase.cpp:443] read srv cnf content: {
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
+}
+
+[2018-01-02 09:53:38,358][TRACE] [src/CnfAgentOne.cpp:733] find same node_type item in srv name cnf, node_type: HttpInterface
+[2018-01-02 09:53:38,358][TRACE] [src/CnfAgentOne.cpp:764] srname: HttpInterface, ip: 192.168.1.106, port: 25000 exist srv name cnf
+[2018-01-02 09:53:38,358][TRACE] [src/CnfAgentOne.cpp:816] new content: {
+   "down_stream" : [
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "HttpInterface",
+         "port" : 25000
+      }
+   ]
+}
+
+[2018-01-02 09:53:38,359][TRACE] [src/CnfAgentOne.cpp:124] srv name ver no: 3
+[2018-01-02 09:53:38,359][TRACE] [src/CnfAgentBase.cpp:267] local ip: 192.168.1.106
+[2018-01-02 09:53:38,359][INFO] [src/CnfAgentBase.cpp:274] get related local host cnf key: cnf_H1:192.168.1.106:*
+[2018-01-02 09:53:38,359][TRACE] [src/CnfAgentBase.cpp:282] key: cnf_H1:192.168.1.106:* in redis nums is 0
+[2018-01-02 09:53:38,359][TRACE] [src/CnfAgentOne.cpp:146] has not config any host srv for this local host
+[2018-01-02 09:53:42,625][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:42,625][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:53:52,636][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:53:52,636][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:54:02,646][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:54:02,646][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:54:12,656][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:54:12,656][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:54:22,666][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:54:22,666][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again
+[2018-01-02 09:54:32,676][TRACE] [src/CnfAgentBase.cpp:230] timer check async redis connect status
+[2018-01-02 09:54:32,676][TRACE] [src/CnfAgentBase.cpp:225] sync timer handle is called again

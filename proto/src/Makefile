@@ -1,6 +1,6 @@
 CC = gcc
 CXX = g++
-CXXFLAG = -Wall -Wno-format -g -O0 -fPIC 
+CXXFLAG = -Wall -Wno-format -g -O0 -fPIE -fPIC
 
 ARCH:=$(shell uname -m)
 
@@ -30,7 +30,7 @@ INC := $(INC) \
 
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(LIB3RD_PATH)/lib -Wl,-Bstatic -lprotobuf -L$(LIB3RD_PATH)/lib -Wl,-Bdynamic -ltcmalloc_minimal  \
+           -L$(LIB3RD_PATH)/lib  -lprotobuf  -ltcmalloc_minimal  \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -L$(SYSTEM_LIB_PATH) -lc -ldl -lrt
 
@@ -50,6 +50,8 @@ all: $(TARGET)
 $(TARGET): $(OBJS) 
 	$(CXX) -fPIE -rdynamic -shared -g -o $@ $^ $(LDFLAGS)
 	cp $(TARGET) ../../loss/lib
+	ar -crv libim_proto.a $(OBJS)
+	ranlib libim_proto.a
 
 %.o:%.cpp
 	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
@@ -60,5 +62,6 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(OBJS) 
 	rm -f $(TARGET)
+	rm -f libim_proto.a
         
         

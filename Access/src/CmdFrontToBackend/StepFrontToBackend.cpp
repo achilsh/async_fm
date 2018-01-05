@@ -16,7 +16,7 @@ namespace im {
                                              const std::string& strErrShow) {
     MsgHead sendHead = m_oReqMsgHead;
     sendHead.set_seq(GetSequence());
-    
+    LOG4_TRACE("==========");    
     std::string sserType;
     if (false  == QueryNodeTypeByCmd(sserType, m_oReqMsgHead.cmd())) {
       LOG4_ERROR("Get node type fail by cmd: %u", m_oReqMsgHead.cmd());

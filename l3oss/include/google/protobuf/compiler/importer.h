@@ -1,6 +1,6 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
+// http://code.google.com/p/protobuf/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -121,12 +121,6 @@ class LIBPROTOBUF_EXPORT SourceTreeDescriptorDatabase : public DescriptorDatabas
                   ErrorLocation location,
                   const string& message);
 
-    virtual void AddWarning(const string& filename,
-                            const string& element_name,
-                            const Message* descriptor,
-                            ErrorLocation location,
-                            const string& message);
-
    private:
     SourceTreeDescriptorDatabase* owner_;
   };
@@ -193,9 +187,6 @@ class LIBPROTOBUF_EXPORT MultiFileErrorCollector {
   // an error with the entire file (e.g. "not found").
   virtual void AddError(const string& filename, int line, int column,
                         const string& message) = 0;
-
-  virtual void AddWarning(const string& filename, int line, int column,
-                          const string& message) {}
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MultiFileErrorCollector);

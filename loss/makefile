@@ -36,7 +36,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(LIB3RD_PATH)/lib  -Wl,-Bstatic -lprotobuf -Wl,-Bdynamic \
+           -L$(LIB3RD_PATH)/lib -lprotobuf \
            -lqlibc \
            -llog4cplus \
            -levent \
@@ -60,12 +60,11 @@ Ts:
 	@for dir in $(TESTSPATH); do echo "making in $$dir"; ( cd $$dir && make -f makefile -e CC='$(CXX)' CFLAG='$(CFLAG)'); done  
 
 LIBRARYS: $(OBJS)
-	ar -crv libloss.a $(OBJS)
-	ranlib libloss.a
 	$(CXX) -shared -Wl,-soname,libloss.so -o libloss.so $(OBJS) -lc -lrt -ldl $(LDFLAGS)
-	mv libloss.a $(LOSS_PATH)/lib/
 	mv libloss.so $(LOSS_PATH)/lib/
 	cp $(LOSS_PATH)/lib/* $(LIB3RD_PATH)/lib/
+	ar -crv libloss.a $(OBJS)
+	ranlib libloss.a
 
 
 

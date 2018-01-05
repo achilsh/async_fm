@@ -37,7 +37,7 @@ INC := $(INC) \
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(STARSHIP_PATH)/lib -lstarship \
            -L$(LOSS_PATH)/lib -lloss \
-           -L$(LOSS_PATH)/lib -lim_proto \
+           -L$(LOSS_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -lhiredis \
            -L$(LIB3RD_PATH)/lib -llog4cplus \
 					 -L$(LIB3RD_PATH)/lib -ljemalloc \

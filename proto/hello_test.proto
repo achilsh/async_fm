@@ -1,0 +1,4 @@
+message hellotest {
+  //optional bytes strData = 1;
+  //
+}
