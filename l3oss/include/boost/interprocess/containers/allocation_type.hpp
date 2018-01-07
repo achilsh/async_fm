@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2008-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2008-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,23 +11,19 @@
 #ifndef BOOST_INTERPROCESS_CONTAINERS_ALLOCATION_TYPE_HPP
 #define BOOST_INTERPROCESS_CONTAINERS_ALLOCATION_TYPE_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
 #include <boost/interprocess/detail/config_begin.hpp>
-#include <boost/container/detail/allocation_type.hpp>
+#include <boost/interprocess/containers/container/detail/allocation_type.hpp>
 
 namespace boost {
 namespace interprocess {
 
-#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+/// @cond
 typedef int allocation_type;
-#endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+/// @endcond
 static const allocation_type allocate_new       = boost::container::allocate_new;
 static const allocation_type expand_fwd         = boost::container::expand_fwd;
 static const allocation_type expand_bwd         = boost::container::expand_bwd;
@@ -41,4 +37,4 @@ static const allocation_type zero_memory        = boost::container::zero_memory;
 
 #include <boost/interprocess/detail/config_end.hpp>
 
-#endif //   #ifndef  BOOST_INTERPROCESS_CONTAINERS_ALLOCATION_TYPE_HPP
+#endif //   #ifndef  BOOST_INTERPROCESS_CONTAINERS_VERSION_TYPE_HPP

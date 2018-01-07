@@ -32,7 +32,7 @@
 #endif
 
 namespace boost{
-namespace BOOST_REGEX_DETAIL_NS{
+namespace re_detail{
 
 class BOOST_REGEX_DECL abstract_protected_call
 {

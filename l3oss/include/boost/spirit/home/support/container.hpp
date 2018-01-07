@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
     http://spirit.sourceforge.net/
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -22,7 +22,6 @@
 #include <boost/variant.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/repeat.hpp>
-#include <boost/range/iterator_range.hpp>
 
 namespace boost { namespace spirit { namespace traits
 {
@@ -41,7 +40,7 @@ namespace boost { namespace spirit { namespace traits
     }
 
     template <typename T, typename Enable/* = void*/>
-    struct is_container
+    struct is_container 
       : mpl::bool_<
             detail::has_value_type<T>::value &&
             detail::has_iterator<T>::value &&
@@ -49,57 +48,27 @@ namespace boost { namespace spirit { namespace traits
             detail::has_reference<T>::value>
     {};
 
-    template <typename T>
-    struct is_container<T&>
-      : is_container<T>
-    {};
+   template <typename T>
+   struct is_container<T&> 
+     : is_container<T> 
+   {};
 
-    template <typename T>
-    struct is_container<boost::optional<T> >
-      : is_container<T>
-    {};
+   template <typename T>
+   struct is_container<optional<T> > 
+     : is_container<T> 
+   {};
 
-#if !defined(BOOST_VARIANT_DO_NOT_USE_VARIADIC_TEMPLATES)
-    template<typename T>
-    struct is_container<boost::variant<T> >
-      : is_container<T>
-    {};
-
-    template<typename T0, typename T1, typename ...TN>
-    struct is_container<boost::variant<T0, T1, TN...> >
-      : mpl::bool_<is_container<T0>::value ||
-            is_container<boost::variant<T1, TN...> >::value>
-    {};
-
-#else
 #define BOOST_SPIRIT_IS_CONTAINER(z, N, data)                                 \
-        is_container<BOOST_PP_CAT(T, N)>::value ||                            \
-    /***/
+       is_container<BOOST_PP_CAT(T, N)>::value ||                             \
+   /***/
 
-    // make sure unused variant parameters do not affect the outcome
-    template <>
-    struct is_container<boost::detail::variant::void_>
-      : mpl::false_
-    {};
-
-    template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
-    struct is_container<variant<BOOST_VARIANT_ENUM_PARAMS(T)> >
-       : mpl::bool_<BOOST_PP_REPEAT(BOOST_VARIANT_LIMIT_TYPES
-            , BOOST_SPIRIT_IS_CONTAINER, _) false>
-    {};
+   template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
+   struct is_container<variant<BOOST_VARIANT_ENUM_PARAMS(T)> > 
+     : mpl::bool_<BOOST_PP_REPEAT(BOOST_VARIANT_LIMIT_TYPES
+         , BOOST_SPIRIT_IS_CONTAINER, _) false> 
+   {};
 
 #undef BOOST_SPIRIT_IS_CONTAINER
-#endif
-
-    template <typename T, typename Enable/* = void*/>
-    struct is_iterator_range
-      : mpl::false_
-    {};
-
-    template <typename T>
-    struct is_iterator_range<iterator_range<T> >
-      : mpl::true_
-    {};
 
     ///////////////////////////////////////////////////////////////////////////
     namespace detail
@@ -111,7 +80,7 @@ namespace boost { namespace spirit { namespace traits
         };
 
         template <typename T>
-        struct remove_value_const<T const>
+        struct remove_value_const<T const> 
           : remove_value_const<T>
         {};
 
@@ -133,25 +102,25 @@ namespace boost { namespace spirit { namespace traits
     //]
 
     template <typename T>
-    struct container_value<T&>
-      : container_value<T>
+    struct container_value<T&> 
+      : container_value<T> 
     {};
 
     // this will be instantiated if the optional holds a container
     template <typename T>
-    struct container_value<boost::optional<T> >
-      : container_value<T>
+    struct container_value<optional<T> > 
+      : container_value<T> 
     {};
 
     // this will be instantiated if the variant holds a container
     template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
     struct container_value<variant<BOOST_VARIANT_ENUM_PARAMS(T)> >
     {
-        typedef typename
-            variant<BOOST_VARIANT_ENUM_PARAMS(T)>::types
+        typedef typename 
+            variant<BOOST_VARIANT_ENUM_PARAMS(T)>::types 
         types;
-        typedef typename
-            mpl::find_if<types, is_container<mpl::_1> >::type
+        typedef typename 
+            mpl::find_if<types, is_container<mpl::_1> >::type 
         iter;
 
         typedef typename container_value<
@@ -194,23 +163,6 @@ namespace boost { namespace spirit { namespace traits
         typedef typename Container::const_iterator type;
     };
 
-    template <typename T>
-    struct container_iterator<optional<T> >
-      : container_iterator<T>
-    {};
-
-    template <typename T>
-    struct container_iterator<optional<T> const>
-      : container_iterator<T const>
-    {};
-
-    template <typename Iterator>
-    struct container_iterator<iterator_range<Iterator> >
-    {
-        typedef typename range_const_iterator<
-              iterator_range<Iterator> >::type type;
-    };
-
     template <>
     struct container_iterator<unused_type>
     {
@@ -241,18 +193,34 @@ namespace boost { namespace spirit { namespace traits
     };
 
     template <typename T>
-    struct optional_attribute<boost::optional<T> >
+    struct optional_attribute<optional<T> >
     {
         typedef T const& type;
 
-        static type call(boost::optional<T> const& val)
+        static type call(optional<T> const& val)
         {
             return boost::get<T>(val);
         }
 
-        static bool is_valid(boost::optional<T> const& val)
+        static bool is_valid(optional<T> const& val)
         {
-            return !!val;
+            return val;
+        }
+    };
+
+    template <typename T>
+    struct optional_attribute<optional<T const> >
+    {
+        typedef T const& type;
+
+        static type call(optional<T const> const& val)
+        {
+            return boost::get<T const>(val);
+        }
+
+        static bool is_valid(optional<T const> const& val)
+        {
+            return val;
         }
     };
 
@@ -281,28 +249,25 @@ namespace boost { namespace spirit { namespace traits
 
     ///////////////////////////////////////////////////////////////////////////
     template <typename Container, typename T>
-    bool push_back(Container& c, T const& val);
+    void push_back(Container& c, T const& val);
 
-    //[customization_push_back_default
     template <typename Container, typename T, typename Enable/* = void*/>
     struct push_back_container
     {
-        static bool call(Container& c, T const& val)
+        static void call(Container& c, T const& val)
         {
             c.insert(c.end(), val);
-            return true;
         }
     };
-    //]
 
     template <typename Container, typename T>
     struct push_back_container<optional<Container>, T>
     {
-        static bool call(boost::optional<Container>& c, T const& val)
+        static void call(optional<Container>& c, T const& val)
         {
             if (!c)
                 c = Container();
-            return push_back(boost::get<Container>(c), val);
+            push_back(boost::get<Container>(c), val);
         }
     };
 
@@ -311,28 +276,25 @@ namespace boost { namespace spirit { namespace traits
         template <typename T>
         struct push_back_visitor : public static_visitor<>
         {
-            typedef bool result_type;
-
             push_back_visitor(T const& t) : t_(t) {}
 
             template <typename Container>
-            bool push_back_impl(Container& c, mpl::true_) const
+            void push_back_impl(Container& c, mpl::true_) const
             {
-                return push_back(c, t_);
+                push_back(c, t_);
             }
 
             template <typename T_>
-            bool push_back_impl(T_&, mpl::false_) const
+            void push_back_impl(T_&, mpl::false_) const
             {
                 // this variant doesn't hold a container
-                BOOST_ASSERT(false && "This variant doesn't hold a container");
-                return false;
+                BOOST_ASSERT(false);
             }
 
             template <typename T_>
-            bool operator()(T_& c) const
+            void operator()(T_& c) const
             {
-                return push_back_impl(c, typename is_container<T_>::type());
+                push_back_impl(c, typename is_container<T_>::type());
             }
 
             T const& t_;
@@ -342,82 +304,35 @@ namespace boost { namespace spirit { namespace traits
     template <BOOST_VARIANT_ENUM_PARAMS(typename T_), typename T>
     struct push_back_container<variant<BOOST_VARIANT_ENUM_PARAMS(T_)>, T>
     {
-        static bool call(variant<BOOST_VARIANT_ENUM_PARAMS(T_)>& c, T const& val)
+        static void call(variant<BOOST_VARIANT_ENUM_PARAMS(T_)>& c, T const& val)
         {
-            return apply_visitor(detail::push_back_visitor<T>(val), c);
+            apply_visitor(detail::push_back_visitor<T>(val), c);
         }
     };
 
     template <typename Container, typename T>
-    bool push_back(Container& c, T const& val)
+    void push_back(Container& c, T const& val)
     {
-        return push_back_container<Container, T>::call(c, val);
+        push_back_container<Container, T>::call(c, val);
     }
-
-    //[customization_push_back_unused
-    template <typename Container>
-    bool push_back(Container&, unused_type)
-    {
-        return true;
-    }
-    //]
-
-    template <typename T>
-    bool push_back(unused_type, T const&)
-    {
-        return true;
-    }
-
-    inline bool push_back(unused_type, unused_type)
-    {
-        return true;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Container, typename Enable/* = void*/>
-    struct is_empty_container
-    {
-        static bool call(Container const& c)
-        {
-            return c.empty();
-        }
-    };
 
     template <typename Container>
-    bool is_empty(Container const& c)
+    void push_back(Container&, unused_type)
     {
-        return is_empty_container<Container>::call(c);
     }
-
-    inline bool is_empty(unused_type)
-    {
-        return true;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Ensure the attribute is actually a container type
-    template <typename Container, typename Enable/* = void*/>
-    struct make_container_attribute
-    {
-        static void call(Container&)
-        {
-            // for static types this function does nothing
-        }
-    };
 
     template <typename T>
-    void make_container(T& t)
+    void push_back(unused_type, T const&)
     {
-        make_container_attribute<T>::call(t);
     }
 
-    inline void make_container(unused_type)
+    inline void push_back(unused_type, unused_type)
     {
     }
 
     ///////////////////////////////////////////////////////////////////////////
     template <typename Container, typename Enable/* = void*/>
-    struct begin_container
+    struct begin_container 
     {
         static typename container_iterator<Container>::type call(Container& c)
         {
@@ -539,13 +454,13 @@ namespace boost { namespace spirit { namespace result_of
     };
 
     template <typename T>
-    struct optional_value<boost::optional<T> >
+    struct optional_value<optional<T> >
     {
         typedef T type;
     };
 
     template <typename T>
-    struct optional_value<boost::optional<T> const>
+    struct optional_value<optional<T> const>
     {
         typedef T const type;
     };
@@ -564,7 +479,7 @@ namespace boost { namespace spirit { namespace result_of
 
     ///////////////////////////////////////////////////////////////////////////
     template <typename Container>
-    struct begin
+    struct begin 
       : traits::container_iterator<Container>
     {};
 

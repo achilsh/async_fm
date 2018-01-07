@@ -49,16 +49,18 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
         typename parser_result<self_t, ScannerT>::type
         parse(ScannerT const& scan) const
         {
+            typedef typename parser_result<self_t, ScannerT>::type result_t;
+            typedef typename ScannerT::value_t      value_t;
             typedef typename ScannerT::iterator_t   iterator_t;
 
             iterator_t const s(scan.first);
-            functor_result_t functor_result;
-            std::ptrdiff_t len = functor(scan, functor_result);
+            functor_result_t result;
+            std::ptrdiff_t len = functor(scan, result);
 
             if (len < 0)
                 return scan.no_match();
             else
-                return scan.create_match(std::size_t(len), functor_result, s, scan.first);
+                return scan.create_match(std::size_t(len), result, s, scan.first);
         }
     };
 

@@ -1,8 +1,8 @@
 //
-// detail/buffer_resize_guard.hpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// buffer_resize_guard.hpp
+// ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,10 +15,12 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
-#include <boost/asio/detail/limits.hpp>
+#include <boost/asio/detail/push_options.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
+#include <limits>
+#include <boost/config.hpp>
+#include <boost/asio/detail/pop_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -39,7 +41,8 @@ public:
   // Destructor rolls back the buffer resize unless commit was called.
   ~buffer_resize_guard()
   {
-    if (old_size_ != (std::numeric_limits<size_t>::max)())
+    if (old_size_
+        != std::numeric_limits<size_t>::max BOOST_PREVENT_MACRO_SUBSTITUTION())
     {
       buffer_.resize(old_size_);
     }
@@ -48,7 +51,8 @@ public:
   // Commit the resize transaction.
   void commit()
   {
-    old_size_ = (std::numeric_limits<size_t>::max)();
+    old_size_
+      = std::numeric_limits<size_t>::max BOOST_PREVENT_MACRO_SUBSTITUTION();
   }
 
 private:

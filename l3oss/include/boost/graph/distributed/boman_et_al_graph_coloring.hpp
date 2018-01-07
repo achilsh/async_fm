@@ -22,7 +22,7 @@
 #include <utility>
 #include <boost/graph/iteration_macros.hpp>
 #include <boost/optional.hpp>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <boost/graph/parallel/container_traits.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -123,6 +123,7 @@ boman_et_al_graph_coloring
     process_group_type;
   typedef typename process_group_type::process_id_type process_id_type;
   typedef typename graph_traits<DistributedGraph>::vertex_descriptor Vertex;
+  typedef typename graph_traits<DistributedGraph>::edge_descriptor Edge;
   typedef typename graph_traits<DistributedGraph>::vertices_size_type 
     vertices_size_type;
   typedef typename property_traits<ColorMap>::value_type color_type;
@@ -147,7 +148,7 @@ boman_et_al_graph_coloring
   typedef typename process_group_type::communication_category
     communication_category;
   static const bool asynchronous = 
-    is_convertible<communication_category, boost::parallel::immediate_process_group_tag>::value;
+    is_convertible<communication_category, immediate_process_group_tag>::value;
   process_group_type pg = process_group(g);
 
   // U_i <- V_i
@@ -219,7 +220,7 @@ boman_et_al_graph_coloring
 
         // Receive boundary colors from other processors
         while (optional<std::pair<process_id_type, int> > stp = probe(pg)) {
-          BOOST_ASSERT(stp->second == 17);
+          assert(stp->second == 17);
           message_type msg;
           receive(pg, stp->first, stp->second, msg);
           cache(color, msg.first, msg.second);
@@ -278,7 +279,7 @@ boman_et_al_graph_coloring
 
     // Receive boundary colors from other processors
     while (optional<std::pair<process_id_type, int> > stp = probe(pg)) {
-      BOOST_ASSERT(stp->second == 17);
+      assert(stp->second == 17);
       message_type msg;
       receive(pg, stp->first, stp->second, msg);
       cache(color, msg.first, msg.second);
@@ -297,7 +298,7 @@ boman_et_al_graph_coloring
   color_type num_colors = 0;
   BGL_FORALL_VERTICES_T(v, g, DistributedGraph) {
     color_type k = get(color, v);
-    BOOST_ASSERT(k != no_color);
+    assert(k != no_color);
     if (k != no_color) {
       if (k >= (color_type)marked.size()) marked.resize(k + 1, 0); // TBD: perf?
       if (marked[k] != iter_num) {

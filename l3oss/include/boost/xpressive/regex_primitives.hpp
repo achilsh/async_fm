@@ -20,7 +20,6 @@
 #include <boost/preprocessor/cat.hpp>
 #include <boost/xpressive/detail/detail_fwd.hpp>
 #include <boost/xpressive/detail/core/matchers.hpp>
-#include <boost/xpressive/detail/core/regex_domain.hpp>
 #include <boost/xpressive/detail/utility/ignore_unused.hpp>
 
 // Doxygen can't handle proto :-(
@@ -161,7 +160,7 @@ namespace boost { namespace xpressive { namespace detail
         {}
 
         template<typename Sig>
-        struct result {};
+        struct result;
 
         template<typename This, typename Expr>
         struct result<This(Expr)>
@@ -537,24 +536,16 @@ detail::set_initializer_type const set = {{}};
 /// can be used to index into the <tt>match_results\<\></tt> object to retrieve the
 /// corresponding sub-match.
 struct mark_tag
-  : proto::extends<detail::basic_mark_tag, mark_tag, detail::regex_domain>
+  : proto::extends<detail::basic_mark_tag, mark_tag>
 {
-private:
-    typedef proto::extends<detail::basic_mark_tag, mark_tag, detail::regex_domain> base_type;
-
-    static detail::basic_mark_tag make_tag(int mark_nbr)
-    {
-        detail::basic_mark_tag mark = {{mark_nbr}};
-        return mark;
-    }
-
-public:
     /// \brief Initialize a mark_tag placeholder
     /// \param mark_nbr An integer that uniquely identifies this \c mark_tag
     /// within the static regexes in which this \c mark_tag will be used.
     /// \pre <tt>mark_nbr \> 0</tt>
     mark_tag(int mark_nbr)
-      : base_type(mark_tag::make_tag(mark_nbr))
+      : proto::extends<detail::basic_mark_tag, mark_tag>(
+            detail::basic_mark_tag::make(mark_nbr)
+        )
     {
         // Marks numbers must be integers greater than 0.
         BOOST_ASSERT(mark_nbr > 0);
@@ -566,7 +557,7 @@ public:
         return this->proto_base();
     }
 
-    BOOST_PROTO_EXTENDS_USING_ASSIGN_NON_DEPENDENT(mark_tag)
+    using proto::extends<detail::basic_mark_tag, mark_tag>::operator =;
 };
 
 // This macro is used when declaring mark_tags that are global because
@@ -879,46 +870,46 @@ namespace detail
 {
     inline void ignore_unused_regex_primitives()
     {
-        detail::ignore_unused(repeat_max);
-        detail::ignore_unused(inf);
-        detail::ignore_unused(epsilon);
-        detail::ignore_unused(nil);
-        detail::ignore_unused(alnum);
-        detail::ignore_unused(bos);
-        detail::ignore_unused(eos);
-        detail::ignore_unused(bol);
-        detail::ignore_unused(eol);
-        detail::ignore_unused(bow);
-        detail::ignore_unused(eow);
-        detail::ignore_unused(_b);
-        detail::ignore_unused(_w);
-        detail::ignore_unused(_d);
-        detail::ignore_unused(_s);
-        detail::ignore_unused(_n);
-        detail::ignore_unused(_ln);
-        detail::ignore_unused(_);
-        detail::ignore_unused(self);
-        detail::ignore_unused(set);
-        detail::ignore_unused(s0);
-        detail::ignore_unused(s1);
-        detail::ignore_unused(s2);
-        detail::ignore_unused(s3);
-        detail::ignore_unused(s4);
-        detail::ignore_unused(s5);
-        detail::ignore_unused(s6);
-        detail::ignore_unused(s7);
-        detail::ignore_unused(s8);
-        detail::ignore_unused(s9);
-        detail::ignore_unused(a1);
-        detail::ignore_unused(a2);
-        detail::ignore_unused(a3);
-        detail::ignore_unused(a4);
-        detail::ignore_unused(a5);
-        detail::ignore_unused(a6);
-        detail::ignore_unused(a7);
-        detail::ignore_unused(a8);
-        detail::ignore_unused(a9);
-        detail::ignore_unused(as_xpr);
+        ignore_unused(repeat_max);
+        ignore_unused(inf);
+        ignore_unused(epsilon);
+        ignore_unused(nil);
+        ignore_unused(alnum);
+        ignore_unused(bos);
+        ignore_unused(eos);
+        ignore_unused(bol);
+        ignore_unused(eol);
+        ignore_unused(bow);
+        ignore_unused(eow);
+        ignore_unused(_b);
+        ignore_unused(_w);
+        ignore_unused(_d);
+        ignore_unused(_s);
+        ignore_unused(_n);
+        ignore_unused(_ln);
+        ignore_unused(_);
+        ignore_unused(self);
+        ignore_unused(set);
+        ignore_unused(s0);
+        ignore_unused(s1);
+        ignore_unused(s2);
+        ignore_unused(s3);
+        ignore_unused(s4);
+        ignore_unused(s5);
+        ignore_unused(s6);
+        ignore_unused(s7);
+        ignore_unused(s8);
+        ignore_unused(s9);
+        ignore_unused(a1);
+        ignore_unused(a2);
+        ignore_unused(a3);
+        ignore_unused(a4);
+        ignore_unused(a5);
+        ignore_unused(a6);
+        ignore_unused(a7);
+        ignore_unused(a8);
+        ignore_unused(a9);
+        ignore_unused(as_xpr);
     }
 }
 

@@ -1,6 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2011 Jan Frederick Eick
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -27,7 +26,6 @@ namespace boost { namespace spirit { namespace qi
     inline bool
     extract_sign(Iterator& first, Iterator const& last)
     {
-        (void)last;                  // silence unused warnings
         BOOST_ASSERT(first != last); // precondition
 
         // Extract the sign
@@ -44,16 +42,16 @@ namespace boost { namespace spirit { namespace qi
     // Low level unsigned integer parser
     ///////////////////////////////////////////////////////////////////////////
     template <typename T, unsigned Radix, unsigned MinDigits, int MaxDigits
-      , bool Accumulate = false, bool IgnoreOverflowDigits = false>
+      , bool Accumulate = false>
     struct extract_uint
     {
         // check template parameter 'Radix' for validity
         BOOST_SPIRIT_ASSERT_MSG(
-            Radix >= 2 && Radix <= 36,
+            Radix == 2 || Radix == 8 || Radix == 10 || Radix == 16,
             not_supported_radix, ());
 
-        template <typename Iterator>
-        inline static bool call(Iterator& first, Iterator const& last, T& attr_)
+        template <typename Iterator, typename Attribute>
+        static bool call(Iterator& first, Iterator const& last, Attribute& attr)
         {
             if (first == last)
                 return false;
@@ -64,31 +62,16 @@ namespace boost { namespace spirit { namespace qi
               , MinDigits
               , MaxDigits
               , detail::positive_accumulator<Radix>
-              , Accumulate
-              , IgnoreOverflowDigits>
+              , Accumulate>
             extract_type;
 
             Iterator save = first;
-            if (!extract_type::parse(first, last,
-                detail::cast_unsigned<T>::call(attr_)))
+            if (!extract_type::parse(first, last, attr))
             {
                 first = save;
                 return false;
             }
             return true;
-        }
-
-        template <typename Iterator, typename Attribute>
-        inline static bool call(Iterator& first, Iterator const& last, Attribute& attr_)
-        {
-            // this case is called when Attribute is not T
-            T attr_local;
-            if (call(first, last, attr_local))
-            {
-                traits::assign_to(attr_local, attr_);
-                return true;
-            }
-            return false;
         }
     };
 
@@ -103,8 +86,8 @@ namespace boost { namespace spirit { namespace qi
             Radix == 2 || Radix == 8 || Radix == 10 || Radix == 16,
             not_supported_radix, ());
 
-        template <typename Iterator>
-        inline static bool call(Iterator& first, Iterator const& last, T& attr_)
+        template <typename Iterator, typename Attribute>
+        static bool call(Iterator& first, Iterator const& last, Attribute& attr)
         {
             if (first == last)
                 return false;
@@ -120,9 +103,9 @@ namespace boost { namespace spirit { namespace qi
             Iterator save = first;
             bool hit = extract_sign(first, last);
             if (hit)
-                hit = extract_neg_type::parse(first, last, attr_);
+                hit = extract_neg_type::parse(first, last, attr);
             else
-                hit = extract_pos_type::parse(first, last, attr_);
+                hit = extract_pos_type::parse(first, last, attr);
 
             if (!hit)
             {
@@ -130,19 +113,6 @@ namespace boost { namespace spirit { namespace qi
                 return false;
             }
             return true;
-        }
-
-        template <typename Iterator, typename Attribute>
-        inline static bool call(Iterator& first, Iterator const& last, Attribute& attr_)
-        {
-            // this case is called when Attribute is not T
-            T attr_local;
-            if (call(first, last, attr_local))
-            {
-                traits::assign_to(attr_local, attr_);
-                return true;
-            }
-            return false;
         }
     };
 }}}

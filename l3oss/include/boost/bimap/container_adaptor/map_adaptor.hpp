@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_CONTAINER_ADAPTOR_MAP_ADAPTOR_HPP
 #define BOOST_BIMAP_CONTAINER_ADAPTOR_MAP_ADAPTOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -82,7 +82,6 @@ class map_adaptor :
     public:
 
     typedef BOOST_DEDUCED_TYPENAME Iterator::value_type::second_type data_type;
-    typedef data_type mapped_type;
 
     // Access -----------------------------------------------------------------
 

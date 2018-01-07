@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_RELATION_SUPPORT_GET_PAIR_FUNCTOR_HPP
 #define BOOST_BIMAP_RELATION_SUPPORT_GET_PAIR_FUNCTOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 

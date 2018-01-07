@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2012.
+// (C) Copyright Ion Gaztanaga 2005-2009.
 // (C) Copyright Gennaro Prota 2003 - 2004.
 //
 // Distributed under the Boost Software License, Version 1.0.
@@ -14,11 +14,7 @@
 #ifndef BOOST_INTERPROCESS_DETAIL_POINTER_TYPE_HPP
 #define BOOST_INTERPROCESS_DETAIL_POINTER_TYPE_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
@@ -28,7 +24,7 @@
 
 namespace boost {
 namespace interprocess {
-namespace ipcdetail {
+namespace detail {
 
 struct two {char _[2];};
 
@@ -65,11 +61,11 @@ template <class T, class D>
 struct pointer_type
 {
     typedef typename pointer_type_imp::pointer_type<T,
-        typename remove_reference<D>::type>::type type;
+        typename detail::remove_reference<D>::type>::type type;
 };
 
-}  //namespace ipcdetail {
-}  //namespace interprocess {
+}  //namespace detail {
+}  //namespace interprocess { 
 }  //namespace boost {
 
 #include <boost/interprocess/detail/config_end.hpp>

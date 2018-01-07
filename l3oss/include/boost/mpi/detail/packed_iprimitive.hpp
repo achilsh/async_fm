@@ -10,14 +10,15 @@
 #define BOOST_MPI_PACKED_IPRIMITIVE_HPP
 
 #include <boost/mpi/config.hpp>
+#include <iostream>
 #include <cstddef> // size_t
 #include <boost/config.hpp>
 #include <boost/mpi/datatype.hpp>
 #include <boost/mpi/exception.hpp>
 #include <boost/assert.hpp>
 #include <boost/serialization/array.hpp>
+#include <boost/serialization/detail/get_data.hpp>
 #include <vector>
-#include <boost/mpi/detail/antiques.hpp>
 #include <boost/mpi/allocator.hpp>
 
 namespace boost { namespace mpi {
@@ -64,19 +65,17 @@ public:
 
     // fast saving of arrays of fundamental types
     template<class T>
-    void load_array(serialization::array_wrapper<T> const& x, unsigned int /* file_version */)
+    void load_array(serialization::array<T> const& x, unsigned int /* file_version */)
     {
       if (x.count())
         load_impl(x.address(), get_mpi_datatype(*x.address()), x.count());
     }
 
-/*
     template<class T>
-    void load(serialization::array_wrapper<T> const& x)
+    void load(serialization::array<T> const& x)
     {
       load_array(x,0u);
     }
-*/
 
     typedef is_mpi_datatype<mpl::_1> use_array_optimization;
 
@@ -84,33 +83,34 @@ public:
     template<class T>
     void load( T & t)
     {
-      load_impl(&t, get_mpi_datatype(t), 1);
+        load_impl(&t, get_mpi_datatype(t), 1);
     }
 
-    template<class CharType>
-    void load(std::basic_string<CharType> & s)
+    void load( std::string & s)
     {
-        unsigned int l;
+       unsigned int l;
         load(l);
+        // borland de-allocator fixup
+        #if BOOST_WORKAROUND(_RWSTD_VER, BOOST_TESTED_AT(20101))
+        if(NULL != s.data())
+        #endif
         s.resize(l);
         // note breaking a rule here - could be a problem on some platform
-        if (l)
-          load_impl(const_cast<CharType *>(s.data()),
-                    get_mpi_datatype(CharType()),l);
+        load_impl(const_cast<char *>(s.data()),MPI_CHAR,l);
     }
 
 private:
 
     void load_impl(void * p, MPI_Datatype t, int l)
     {
-      BOOST_MPI_CHECK_RESULT(MPI_Unpack,
-                             (const_cast<char*>(detail::c_data(buffer_)), buffer_.size(), &position, p, l, t, comm));
+        BOOST_MPI_CHECK_RESULT(MPI_Unpack,
+        (const_cast<char*>(boost::serialization::detail::get_data(buffer_)), buffer_.size(), &position, p, l, t, comm));
     }
 
-    buffer_type & buffer_;
-    mutable std::size_t size_;
-    MPI_Comm comm;
-    int position;
+        buffer_type & buffer_;
+        mutable std::size_t size_;
+        MPI_Comm comm;
+        int position;
 };
 
 } } // end namespace boost::mpi

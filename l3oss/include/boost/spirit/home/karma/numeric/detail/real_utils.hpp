@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@
 #include <boost/config.hpp>
 #include <boost/config/no_tr1/cmath.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/limits.hpp>
+#include <limits>
 
 #include <boost/spirit/home/support/char_class.hpp>
 #include <boost/spirit/home/support/unused.hpp>
@@ -41,19 +41,61 @@ namespace boost { namespace spirit { namespace karma
       , typename Tag = unused_type>
     struct real_inserter
     {
+        template <typename OutputIterator>
+        static bool
+        call (OutputIterator& sink, float n, Policies const& p = Policies())
+        {
+            int fpclass = (math::fpclassify)(n);
+            if ((int)FP_NAN == fpclass) {
+                return Policies::template nan<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            else if ((int)FP_INFINITE == fpclass) {
+                return Policies::template inf<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            return p.template call<real_inserter>(sink, n, p);
+        }
+
+        template <typename OutputIterator>
+        static bool
+        call (OutputIterator& sink, double n, Policies const& p = Policies())
+        {
+            int fpclass = (math::fpclassify)(n);
+            if ((int)FP_NAN == fpclass) {
+                return Policies::template nan<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            else if ((int)FP_INFINITE == fpclass) {
+                return Policies::template inf<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            return p.template call<real_inserter>(sink, n, p);
+        }
+
+        template <typename OutputIterator>
+        static bool
+        call (OutputIterator& sink, long double n, Policies const& p = Policies())
+        {
+            int fpclass = (math::fpclassify)(n);
+            if ((int)FP_NAN == fpclass) {
+                return Policies::template nan<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            else if ((int)FP_INFINITE == fpclass) {
+                return Policies::template inf<CharEncoding, Tag>(
+                    sink, n, p.force_sign(n));
+            }
+            return p.template call<real_inserter>(sink, n, p);
+        }
+
         template <typename OutputIterator, typename U>
         static bool
         call (OutputIterator& sink, U n, Policies const& p = Policies())
         {
-            if (traits::test_nan(n)) {
-                return p.template nan<CharEncoding, Tag>(
-                    sink, n, p.force_sign(n));
-            }
-            else if (traits::test_infinite(n)) {
-                return p.template inf<CharEncoding, Tag>(
-                    sink, n, p.force_sign(n));
-            }
-            return p.template call<real_inserter>(sink, n, p);
+            // we have no means of testing whether the number is normalized if
+            // the type is not float, double or long double
+            return p.template call<real_inserter>(sink, T(n), p);
         }
 
 #if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)  
@@ -73,7 +115,7 @@ namespace boost { namespace spirit { namespace karma
             bool force_sign = p.force_sign(n);
             bool sign_val = false;
             int flags = p.floatfield(n);
-            if (traits::test_negative(n)) 
+            if (detail::is_negative(n)) 
             {
                 n = -n;
                 sign_val = true;
@@ -95,23 +137,18 @@ namespace boost { namespace spirit { namespace karma
             using namespace std;
 
             U dim = 0;
-            if (0 == (Policies::fmtflags::fixed & flags) && !traits::test_zero(n))
+            if (0 == (Policies::fmtflags::fixed & flags) && !detail::is_zero(n))
             {
                 dim = log10(n);
                 if (dim > 0) 
-                    n /= spirit::traits::pow10<U>(traits::truncate_to_long::call(dim));
-                else if (n < 1.) {
-                    long exp = traits::truncate_to_long::call(-dim);
-                    if (exp != -dim)
-                        ++exp;
-                    dim = static_cast<U>(-exp);
-                    n *= spirit::traits::pow10<U>(exp);
-                }
+                    n /= spirit::detail::pow10<U>(detail::truncate_to_long::call(dim));
+                else if (n < 1.) 
+                    n *= spirit::detail::pow10<U>(detail::truncate_to_long::call(-dim) + 1);
             }
 
         // prepare numbers (sign, integer and fraction part)
             U integer_part;
-            U precexp = spirit::traits::pow10<U>(precision);
+            U precexp = spirit::detail::pow10<U>(precision);
             U fractional_part = modf(n, &integer_part);
 
             fractional_part = floor(fractional_part * precexp + U(0.5));
@@ -132,9 +169,9 @@ namespace boost { namespace spirit { namespace karma
                 if (0 != long_frac_part) {
                     // remove the trailing zeros
                     while (0 != prec && 
-                           0 == traits::remainder<10>::call(long_frac_part)) 
+                           0 == detail::remainder<10>::call(long_frac_part)) 
                     {
-                        long_frac_part = traits::divide<10>::call(long_frac_part);
+                        long_frac_part = detail::divide<10>::call(long_frac_part);
                         --prec;
                     }
                 }
@@ -147,17 +184,15 @@ namespace boost { namespace spirit { namespace karma
                 if (precision != prec)
                 {
                     long_frac_part = frac_part_floor / 
-                        spirit::traits::pow10<U>(precision-prec);
+                        spirit::detail::pow10<U>(precision-prec);
                 }
             }
 
         // call the actual generating functions to output the different parts
-            if ((force_sign || sign_val) &&
-                traits::test_zero(long_int_part) &&
-                traits::test_zero(long_frac_part))
+            if (sign_val && detail::is_zero(long_int_part) && 
+                detail::is_zero(long_frac_part))
             {
                 sign_val = false;     // result is zero, no sign please
-                force_sign = false;
             }
 
         // generate integer part
@@ -171,7 +206,7 @@ namespace boost { namespace spirit { namespace karma
 
             if (r && 0 == (Policies::fmtflags::fixed & flags)) {
                 return p.template exponent<CharEncoding, Tag>(sink, 
-                    traits::truncate_to_long::call(dim));
+                    detail::truncate_to_long::call(dim >= 0 ? dim : dim - 1));
             }
             return r;
         }
@@ -181,6 +216,7 @@ namespace boost { namespace spirit { namespace karma
 #endif 
 
     };
+
 }}}
 
 #endif

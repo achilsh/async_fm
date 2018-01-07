@@ -41,9 +41,12 @@ public:
           BOOST_MPL_ASSERT((is_mpi_datatype<T>));
           *this << x;                   // serialize the object
         }
-
+        
+    // intermediate level to support override of operators
+    // for templates in the absence of partial function 
+    // template ordering
     template<class T>
-    void save_override(T const& t)
+    void save_override(T const& t, BOOST_PFTO int)
     {
       save_enum(t,boost::is_enum<T>());
     }
@@ -51,7 +54,7 @@ public:
     template<class T>
     void save_enum(T const& t, mpl::false_)
     {
-      ignore_skeleton_oarchive<mpi_datatype_oarchive>::save_override(t);
+      ignore_skeleton_oarchive<mpi_datatype_oarchive>::save_override(t, 0);
     }
 
     template<class T>

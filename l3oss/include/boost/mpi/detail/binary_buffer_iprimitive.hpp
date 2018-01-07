@@ -21,7 +21,6 @@
 #include <vector>
 #include <boost/mpi/allocator.hpp>
 #include <cstring> // for memcpy
-#include <cassert>
 
 namespace boost { namespace mpi {
 
@@ -66,7 +65,7 @@ public:
 
     // fast saving of arrays of fundamental types
     template<class T>
-    void load_array(serialization::array_wrapper<T> const& x, unsigned int /* file_version */)
+    void load_array(serialization::array<T> const& x, unsigned int /* file_version */)
     {
       BOOST_MPL_ASSERT((serialization::is_bitwise_serializable<BOOST_DEDUCED_TYPENAME remove_const<T>::type>));
       if (x.count())
@@ -76,7 +75,7 @@ public:
     typedef serialization::is_bitwise_serializable<mpl::_1> use_array_optimization;
 
     template<class T>
-    void load(serialization::array_wrapper<T> const& x)
+    void load(serialization::array<T> const& x)
     {
       load_array(x,0u);
     }
@@ -89,8 +88,7 @@ public:
       load_impl(&t, sizeof(T));
     }
 
-    template<class CharType>
-    void load(std::basic_string<CharType> & s)
+    void load( std::string & s)
     {
       unsigned int l;
       load(l);
@@ -108,8 +106,7 @@ private:
     void load_impl(void * p, int l)
     {
       assert(position+l<=static_cast<int>(buffer_.size()));
-      if (l)
-        std::memcpy(p,&buffer_[position],l);
+      std::memcpy(p,&buffer_[position],l);
       position += l;
     }
 

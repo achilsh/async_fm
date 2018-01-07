@@ -1,6 +1,6 @@
 //  Copyright (c) 2009 Francois Barel
-//  Copyright (c) 2001-2011 Joel de Guzman
-//  Copyright (c) 2001-2012 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Joel de Guzman
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -20,7 +20,7 @@
 #include <boost/spirit/home/karma/nonterminal/detail/parameterized.hpp>
 #include <boost/spirit/home/support/argument.hpp>
 #include <boost/spirit/home/support/assert_msg.hpp>
-#include <boost/spirit/home/karma/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/nonterminal/extract_param.hpp>
@@ -207,8 +207,8 @@ namespace boost { namespace spirit { namespace repository { namespace karma
             // trying to use a subrule which has inherited attributes,
             // without passing values for them.
             context_type context(*this
-              , traits::pre_transform<spirit::karma::domain, subrule_attr_type>(
-                      make_attribute::call(attr)));
+              , traits::pre_transform<subrule_attr_type>(
+                  make_attribute::call(attr)));
 
             return def.binder(sink, context, delimiter);
         }
@@ -242,8 +242,8 @@ namespace boost { namespace spirit { namespace repository { namespace karma
             // trying to use a subrule which has inherited attributes,
             // passing values of incompatible types for them.
             context_type context(*this
-              , traits::pre_transform<spirit::karma::domain, subrule_attr_type>(
-                        make_attribute::call(attr)), params, caller_context);
+              , traits::pre_transform<subrule_attr_type>(
+                    make_attribute::call(attr)), params, caller_context);
 
             return def.binder(sink, context, delimiter);
         }
@@ -414,11 +414,7 @@ namespace boost { namespace spirit { namespace repository { namespace karma
 
             // create Defs map with only one entry: (ID -> def)
             typedef typename
-#ifndef BOOST_FUSION_HAS_VARIADIC_MAP
                 fusion::result_of::make_map<id_type, def_type>::type
-#else
-                fusion::result_of::make_map<id_type>::template apply<def_type>::type
-#endif
             defs_type;
 
             typedef subrule_group<defs_type> type;
@@ -507,7 +503,7 @@ namespace boost { namespace spirit { namespace repository { namespace karma
         {
             // If you are seeing a compilation error here, you are trying
             // to use a subrule as a generator outside of a subrule group.
-            BOOST_SPIRIT_ASSERT_FAIL(OutputIterator
+            BOOST_SPIRIT_ASSERT_MSG(false
               , subrule_used_outside_subrule_group, (id_type));
 
             return false;
@@ -536,7 +532,7 @@ namespace boost { namespace spirit { namespace repository { namespace karma
         {
             // If you are seeing a compilation error here, you are trying
             // to use a subrule as a generator outside of a subrule group.
-            BOOST_SPIRIT_ASSERT_FAIL(OutputIterator
+            BOOST_SPIRIT_ASSERT_MSG(false
               , subrule_used_outside_subrule_group, (id_type));
 
             return false;

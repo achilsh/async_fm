@@ -6,6 +6,9 @@
  * @date: 2017-11-14
  */
 #include "CmdHelloWorld.h"
+#include "thrift_serialize.h"
+#include "hello_test_types.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +21,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+using namespace Test;
+
+int MStatic::m_MTest = 100;
 
 CmdHelloWorld::CmdHelloWorld() {
 }
@@ -38,26 +45,26 @@ bool CmdHelloWorld::AnyMessage(
   {
     std::string msgVal;
     LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv msg body: %s", oInMsgBody.DebugString().c_str());
-    loss::CJsonObject tData, retData;
     
-    if (false == tData.Parse(oInMsgBody.body())) {
+    MStatic::m_MTest = 1000; 
+    LOG4CPLUS_DEBUG_FMT(GetLogger(), "test change num: 8, test: %u", MStatic::m_MTest);
+
+    OneTest tData, retData;
+    std::string sData = oInMsgBody.body();
+    if (0 != ThrifSerialize<OneTest>::FromString(sData,tData)) { 
       LOG4CPLUS_DEBUG_FMT( GetLogger(), "parse msg body failed");
       msgVal = "parse failed";
     } else {
-      if (tData.Get("key", msgVal)) {
-        LOG4CPLUS_DEBUG_FMT(GetLogger(),"logic recv strdata field");
-      } else {
-        msgVal = "logic recv not set strdata field";
-      }
+      msgVal = tData.fOne;
+      msgVal += ":cmdHello world";
+    }
 
-      LOG4CPLUS_DEBUG_FMT(GetLogger(), "%s", msgVal.c_str());
-      msgVal += ":CmdHello world";
-      bResult = true;
-    } 
-
-    retData.Add("key",msgVal);
-    oOutMsgBody.set_body(retData.ToString());
-
+    retData.__set_fOne(msgVal);
+    if (0 != ThrifSerialize<OneTest>::ToString(retData, sData)) {
+      sData = "serialize failed";
+    }
+    
+    oOutMsgBody.set_body(sData);
     oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
     GetLabor()->SendTo(stMsgShell, oOutMsgHead, oOutMsgBody);
   }

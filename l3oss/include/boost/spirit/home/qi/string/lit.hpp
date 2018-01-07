@@ -1,7 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c)      2010 Bryce Lelbach
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -19,15 +17,12 @@
 #include <boost/spirit/home/qi/parser.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/auxiliary/lazy.hpp>
-#include <boost/spirit/home/qi/detail/enable_lit.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/char_class.hpp>
 #include <boost/spirit/home/support/modify.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/spirit/home/support/string_traits.hpp>
-#include <boost/spirit/home/support/detail/get_encoding.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/type_traits/add_reference.hpp>
@@ -35,7 +30,6 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <string>
 
 namespace boost { namespace spirit
@@ -62,20 +56,11 @@ namespace boost { namespace spirit
       , 1 /*arity*/
     > : mpl::true_ {};
 
-    // enables lit(...)
-    template <typename A0>
-    struct use_terminal<qi::domain
-          , terminal_ex<tag::lit, fusion::vector1<A0> >
-          , typename enable_if<traits::is_string<A0> >::type>
-      : mpl::true_ {};
 }}
 
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::lit;
-#endif
-    using spirit::lit_type;
 
     ///////////////////////////////////////////////////////////////////////////
     // Parse for literal strings
@@ -89,8 +74,8 @@ namespace boost { namespace spirit { namespace qi
         char_type;
         typedef std::basic_string<char_type> string_type;
 
-        literal_string(typename add_reference<String>::type str_)
-          : str(str_)
+        literal_string(typename add_reference<String>::type str)
+          : str(str)
         {}
 
         template <typename Context, typename Iterator>
@@ -104,10 +89,10 @@ namespace boost { namespace spirit { namespace qi
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context& /*context*/, Skipper const& skipper, Attribute& attr_) const
+          , Context& /*context*/, Skipper const& skipper, Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
-            return detail::string_parse(str, first, last, attr_);
+            return detail::string_parse(str, first, last, attr);
         }
 
         template <typename Context>
@@ -163,10 +148,10 @@ namespace boost { namespace spirit { namespace qi
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context& /*context*/, Skipper const& skipper, Attribute& attr_) const
+          , Context& /*context*/, Skipper const& skipper, Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
-            return detail::string_parse(str_lo, str_hi, first, last, attr_);
+            return detail::string_parse(str_lo, str_hi, first, last, attr);
         }
 
         template <typename Context>
@@ -209,54 +194,12 @@ namespace boost { namespace spirit { namespace qi
         template <typename String>
         result_type op(String const& str, mpl::true_) const
         {
-            typename spirit::detail::get_encoding<Modifiers,
-                spirit::char_encoding::standard>::type encoding;
+            typename Modifiers::char_encoding encoding;
             return result_type(traits::get_c_string(str), encoding);
         }
     };
 
-    // lit("...")
-    template <typename Modifiers, typename A0>
-    struct make_primitive<
-        terminal_ex<tag::lit, fusion::vector1<A0> >
-      , Modifiers
-      , typename enable_if<traits::is_string<A0> >::type>
-    {
-        typedef has_modifier<Modifiers, tag::char_code_base<tag::no_case> > no_case;
-
-        typedef typename add_const<A0>::type const_string;
-        typedef typename mpl::if_<
-            no_case
-          , no_case_literal_string<const_string, true>
-          , literal_string<const_string, true> >::type
-        result_type;
-
-        template <typename Terminal>
-        result_type operator()(Terminal const& term, unused_type) const
-        {
-            return op(fusion::at_c<0>(term.args), no_case());
-        }
-
-        template <typename String>
-        result_type op(String const& str, mpl::false_) const
-        {
-            return result_type(str);
-        }
-
-        template <typename String>
-        result_type op(String const& str, mpl::true_) const
-        {
-            typedef typename traits::char_encoding_from_char<
-                typename traits::char_type_of<A0>::type>::type encoding_type;
-            typename spirit::detail::get_encoding<Modifiers,
-                encoding_type>::type encoding;
-            return result_type(traits::get_c_string(str), encoding);
-        }
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    // string("...")
-    template <typename CharEncoding, typename Modifiers, typename A0>
+    template <typename Modifiers, typename CharEncoding, typename A0>
     struct make_primitive<
         terminal_ex<
             tag::char_code<tag::string, CharEncoding>
@@ -291,22 +234,7 @@ namespace boost { namespace spirit { namespace qi
             return result_type(traits::get_c_string(str), encoding());
         }
     };
-}}}
 
-namespace boost { namespace spirit { namespace traits
-{
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename String, bool no_attribute, typename Attribute
-      ,typename Context, typename Iterator>
-    struct handles_container<qi::literal_string<String, no_attribute>
-      , Attribute, Context, Iterator>
-      : mpl::true_ {};
-
-    template <typename String, bool no_attribute, typename Attribute
-      , typename Context, typename Iterator>
-    struct handles_container<qi::no_case_literal_string<String, no_attribute>
-      , Attribute, Context, Iterator>
-      : mpl::true_ {};
 }}}
 
 #endif

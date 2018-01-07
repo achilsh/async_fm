@@ -15,8 +15,6 @@
 
 #include <functional>
 
-#include <boost/core/ignore_unused.hpp>
-
 #include <boost/numeric/ublas/traits.hpp>
 #ifdef BOOST_UBLAS_USE_DUFF_DEVICE
 #include <boost/numeric/ublas/detail/duff.hpp>
@@ -1163,7 +1161,6 @@ namespace boost { namespace numeric { namespace ublas {
 #elif defined(BOOST_UBLAS_HAVE_BINDINGS)
             return boost::numeric::bindings::atlas::dot (c1 ().row (i), c2 ().column (j));
 #else
-            boost::ignore_unused(j);
             return apply (static_cast<const matrix_expression<C1> > (c1), static_cast<const matrix_expression<C2> > (c2, i));
 #endif
         }
@@ -1733,22 +1730,22 @@ namespace boost { namespace numeric { namespace ublas {
         // FIXME: this should not be used at all
         static
         BOOST_UBLAS_INLINE
-        size_type restrict1 (size_type i, size_type /* j */) {
+        size_type restrict1 (size_type i, size_type j) {
             return i;
         }
         static
         BOOST_UBLAS_INLINE
-        size_type restrict2 (size_type /* i */, size_type j) {
+        size_type restrict2 (size_type i, size_type j) {
             return j;
         }
         static
         BOOST_UBLAS_INLINE
-        size_type mutable_restrict1 (size_type i, size_type /* j */) {
+        size_type mutable_restrict1 (size_type i, size_type j) {
             return i;
         }
         static
         BOOST_UBLAS_INLINE
-        size_type mutable_restrict2 (size_type /* i */, size_type j) {
+        size_type mutable_restrict2 (size_type i, size_type j) {
             return j;
         }
     };
@@ -1783,7 +1780,7 @@ namespace boost { namespace numeric { namespace ublas {
             template<class LAYOUT>
             static
             BOOST_UBLAS_INLINE
-            size_type element (LAYOUT /* l */, size_type i, size_type size_i, size_type j, size_type size_j) {
+            size_type element (LAYOUT l, size_type i, size_type size_i, size_type j, size_type size_j) {
                 return L::element(typename LAYOUT::transposed_layout(), j, size_j, i, size_i);
             }
 
@@ -1868,7 +1865,7 @@ namespace boost { namespace numeric { namespace ublas {
         // return nearest valid index in column j
         static
         BOOST_UBLAS_INLINE
-        size_type restrict1 (size_type i, size_type j, size_type size1, size_type /* size2 */) {
+        size_type restrict1 (size_type i, size_type j, size_type size1, size_type size2) {
             return (std::max)(j, (std::min) (size1, i));
         }
         // return nearest valid index in row i
@@ -1880,7 +1877,7 @@ namespace boost { namespace numeric { namespace ublas {
         // return nearest valid mutable index in column j
         static
         BOOST_UBLAS_INLINE
-        size_type mutable_restrict1 (size_type i, size_type j, size_type size1, size_type /* size2 */) {
+        size_type mutable_restrict1 (size_type i, size_type j, size_type size1, size_type size2) {
             return (std::max)(j, (std::min) (size1, i));
         }
         // return nearest valid mutable index in row i
@@ -1893,26 +1890,26 @@ namespace boost { namespace numeric { namespace ublas {
         // return an index between the first and (1+last) filled row
         static
         BOOST_UBLAS_INLINE
-        size_type global_restrict1 (size_type index1, size_type size1, size_type /* index2 */, size_type /* size2 */) {
+        size_type global_restrict1 (size_type index1, size_type size1, size_type index2, size_type size2) {
             return (std::max)(size_type(0), (std::min)(size1, index1) );
         }
         // return an index between the first and (1+last) filled column
         static
         BOOST_UBLAS_INLINE
-        size_type global_restrict2 (size_type /* index1 */, size_type /* size1 */, size_type index2, size_type size2) {
+        size_type global_restrict2 (size_type index1, size_type size1, size_type index2, size_type size2) {
             return (std::max)(size_type(0), (std::min)(size2, index2) );
         }
 
         // return an index between the first and (1+last) filled mutable row
         static
         BOOST_UBLAS_INLINE
-        size_type global_mutable_restrict1 (size_type index1, size_type size1, size_type /* index2 */, size_type /* size2 */) {
+        size_type global_mutable_restrict1 (size_type index1, size_type size1, size_type index2, size_type size2) {
             return (std::max)(size_type(0), (std::min)(size1, index1) );
         }
         // return an index between the first and (1+last) filled mutable column
         static
         BOOST_UBLAS_INLINE
-        size_type global_mutable_restrict2 (size_type /* index1 */, size_type /* size1 */, size_type index2, size_type size2) {
+        size_type global_mutable_restrict2 (size_type index1, size_type size1, size_type index2, size_type size2) {
             return (std::max)(size_type(0), (std::min)(size2, index2) );
         }
     };
@@ -1953,25 +1950,25 @@ namespace boost { namespace numeric { namespace ublas {
 
         static
         BOOST_UBLAS_INLINE
-        size_type mutable_restrict1 (size_type i, size_type j, size_type size1, size_type /* size2 */) {
+        size_type mutable_restrict1 (size_type i, size_type j, size_type size1, size_type size2) {
             return (std::max)(j+1, (std::min) (size1, i));
         }
         static
         BOOST_UBLAS_INLINE
-        size_type mutable_restrict2 (size_type i, size_type j, size_type /* size1 */, size_type /* size2 */) {
+        size_type mutable_restrict2 (size_type i, size_type j, size_type size1, size_type size2) {
             return (std::max)(size_type(0), (std::min) (i, j));
         }
 
         // return an index between the first and (1+last) filled mutable row
         static
         BOOST_UBLAS_INLINE
-        size_type global_mutable_restrict1 (size_type index1, size_type size1, size_type /* index2 */, size_type /* size2 */) {
+        size_type global_mutable_restrict1 (size_type index1, size_type size1, size_type index2, size_type size2) {
             return (std::max)(size_type(1), (std::min)(size1, index1) );
         }
         // return an index between the first and (1+last) filled mutable column
         static
         BOOST_UBLAS_INLINE
-        size_type global_mutable_restrict2 (size_type /* index1 */, size_type /* size1 */, size_type index2, size_type size2) {
+        size_type global_mutable_restrict2 (size_type index1, size_type size1, size_type index2, size_type size2) {
             BOOST_UBLAS_CHECK( size2 >= 1 , external_logic() );
             return (std::max)(size_type(0), (std::min)(size2-1, index2) );
         }

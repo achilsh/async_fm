@@ -1,6 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -62,35 +61,13 @@ namespace boost { namespace spirit { namespace qi
     struct make_composite<proto::tag::shift_right, Elements, Modifiers>
       : make_nary_composite<Elements, sequence>
     {};
-
-//     ///////////////////////////////////////////////////////////////////////////
-//     // Define what attributes are compatible with a sequence
-//     template <typename Attribute, typename Elements, typename Context, typename Iterator>
-//     struct is_attribute_compatible<Attribute, sequence<Elements>, Context, Iterator>
-//       : mpl::or_<
-//             is_convertible<Attribute
-//               , typename traits::attribute_of<sequence<Elements>, Context, Iterator>::type> 
-//           , traits::is_fusion_sequence_compatible<qi::domain, Attribute
-//               , sequence<Elements>, Context, Iterator> 
-//           , traits::is_container_compatible<qi::domain, Attribute
-//               , sequence<Elements>, Context, Iterator>
-//         >
-//     {};
 }}}
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Elements>
     struct has_semantic_action<qi::sequence<Elements> >
       : nary_has_semantic_action<Elements> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Elements, typename Attribute, typename Context
-      , typename Iterator>
-    struct handles_container<qi::sequence<Elements>, Attribute, Context
-          , Iterator>
-      : mpl::true_ {};
 }}}
 
 #endif

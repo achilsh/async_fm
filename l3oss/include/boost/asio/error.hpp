@@ -2,7 +2,7 @@
 // error.hpp
 // ~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,18 +15,15 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
+
+#include <boost/asio/detail/push_options.hpp>
+#include <boost/config.hpp>
 #include <boost/cerrno.hpp>
 #include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
-#if defined(BOOST_ASIO_WINDOWS) \
-  || defined(__CYGWIN__) \
-  || defined(BOOST_ASIO_WINDOWS_RUNTIME)
-# include <winerror.h>
-#else
-# include <cerrno>
-# include <netdb.h>
-#endif
+#include <boost/asio/detail/pop_options.hpp>
+
+#include <boost/asio/detail/socket_types.hpp>
 
 #if defined(GENERATING_DOCUMENTATION)
 /// INTERNAL ONLY.
@@ -39,13 +36,7 @@
 # define BOOST_ASIO_GETADDRINFO_ERROR(e) implementation_defined
 /// INTERNAL ONLY.
 # define BOOST_ASIO_WIN_OR_POSIX(e_win, e_posix) implementation_defined
-#elif defined(BOOST_ASIO_WINDOWS_RUNTIME)
-# define BOOST_ASIO_NATIVE_ERROR(e) __HRESULT_FROM_WIN32(e)
-# define BOOST_ASIO_SOCKET_ERROR(e) __HRESULT_FROM_WIN32(WSA ## e)
-# define BOOST_ASIO_NETDB_ERROR(e) __HRESULT_FROM_WIN32(WSA ## e)
-# define BOOST_ASIO_GETADDRINFO_ERROR(e) __HRESULT_FROM_WIN32(WSA ## e)
-# define BOOST_ASIO_WIN_OR_POSIX(e_win, e_posix) e_win
-#elif defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#elif defined(BOOST_WINDOWS) || defined(__CYGWIN__)
 # define BOOST_ASIO_NATIVE_ERROR(e) e
 # define BOOST_ASIO_SOCKET_ERROR(e) WSA ## e
 # define BOOST_ASIO_NETDB_ERROR(e) WSA ## e
@@ -58,8 +49,6 @@
 # define BOOST_ASIO_GETADDRINFO_ERROR(e) e
 # define BOOST_ASIO_WIN_OR_POSIX(e_win, e_posix) e_posix
 #endif
-
-#include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -148,11 +137,6 @@ enum basic_errors
   /// Protocol not available.
   no_protocol_option = BOOST_ASIO_SOCKET_ERROR(ENOPROTOOPT),
 
-  /// No such device.
-  no_such_device = BOOST_ASIO_WIN_OR_POSIX(
-      BOOST_ASIO_NATIVE_ERROR(ERROR_BAD_UNIT),
-      BOOST_ASIO_NATIVE_ERROR(ENODEV)),
-
   /// Transport endpoint is not connected.
   not_connected = BOOST_ASIO_SOCKET_ERROR(ENOTCONN),
 
@@ -225,20 +209,78 @@ enum misc_errors
   fd_set_failure
 };
 
+enum ssl_errors
+{
+};
+
 inline const boost::system::error_category& get_system_category()
 {
-  return boost::system::system_category();
+  return boost::system::get_system_category();
 }
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
-extern BOOST_ASIO_DECL
-const boost::system::error_category& get_netdb_category();
+namespace detail {
 
-extern BOOST_ASIO_DECL
-const boost::system::error_category& get_addrinfo_category();
+class netdb_category : public boost::system::error_category
+{
+public:
+  const char* name() const
+  {
+    return "asio.netdb";
+  }
 
-#else // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+  std::string message(int value) const
+  {
+    if (value == error::host_not_found)
+      return "Host not found (authoritative)";
+    if (value == error::host_not_found_try_again)
+      return "Host not found (non-authoritative), try again later";
+    if (value == error::no_data)
+      return "The query is valid, but it does not have associated data";
+    if (value == error::no_recovery)
+      return "A non-recoverable error occurred during database lookup";
+    return "asio.netdb error";
+  }
+};
+
+} // namespace detail
+
+inline const boost::system::error_category& get_netdb_category()
+{
+  static detail::netdb_category instance;
+  return instance;
+}
+
+namespace detail {
+
+class addrinfo_category : public boost::system::error_category
+{
+public:
+  const char* name() const
+  {
+    return "asio.addrinfo";
+  }
+
+  std::string message(int value) const
+  {
+    if (value == error::service_not_found)
+      return "Service not found";
+    if (value == error::socket_type_not_supported)
+      return "Socket type not supported";
+    return "asio.addrinfo error";
+  }
+};
+
+} // namespace detail
+
+inline const boost::system::error_category& get_addrinfo_category()
+{
+  static detail::addrinfo_category instance;
+  return instance;
+}
+
+#else // !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
 inline const boost::system::error_category& get_netdb_category()
 {
@@ -250,29 +292,78 @@ inline const boost::system::error_category& get_addrinfo_category()
   return get_system_category();
 }
 
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#endif // !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
-extern BOOST_ASIO_DECL
-const boost::system::error_category& get_misc_category();
+namespace detail {
 
-static const boost::system::error_category&
-  system_category BOOST_ASIO_UNUSED_VARIABLE
+class misc_category : public boost::system::error_category
+{
+public:
+  const char* name() const
+  {
+    return "asio.misc";
+  }
+
+  std::string message(int value) const
+  {
+    if (value == error::already_open)
+      return "Already open";
+    if (value == error::eof)
+      return "End of file";
+    if (value == error::not_found)
+      return "Element not found";
+    if (value == error::fd_set_failure)
+      return "The descriptor does not fit into the select call's fd_set";
+    return "asio.misc error";
+  }
+};
+
+} // namespace detail
+
+inline const boost::system::error_category& get_misc_category()
+{
+  static detail::misc_category instance;
+  return instance;
+}
+
+namespace detail {
+
+class ssl_category : public boost::system::error_category
+{
+public:
+  const char* name() const
+  {
+    return "asio.ssl";
+  }
+
+  std::string message(int) const
+  {
+    return "asio.ssl error";
+  }
+};
+
+} // namespace detail
+
+inline const boost::system::error_category& get_ssl_category()
+{
+  static detail::ssl_category instance;
+  return instance;
+}
+
+static const boost::system::error_category& system_category
   = boost::asio::error::get_system_category();
-static const boost::system::error_category&
-  netdb_category BOOST_ASIO_UNUSED_VARIABLE
+static const boost::system::error_category& netdb_category
   = boost::asio::error::get_netdb_category();
-static const boost::system::error_category&
-  addrinfo_category BOOST_ASIO_UNUSED_VARIABLE
+static const boost::system::error_category& addrinfo_category
   = boost::asio::error::get_addrinfo_category();
-static const boost::system::error_category&
-  misc_category BOOST_ASIO_UNUSED_VARIABLE
+static const boost::system::error_category& misc_category
   = boost::asio::error::get_misc_category();
+static const boost::system::error_category& ssl_category
+  = boost::asio::error::get_ssl_category();
 
 } // namespace error
 } // namespace asio
-} // namespace boost
 
-namespace boost {
 namespace system {
 
 template<> struct is_error_code_enum<boost::asio::error::basic_errors>
@@ -295,10 +386,13 @@ template<> struct is_error_code_enum<boost::asio::error::misc_errors>
   static const bool value = true;
 };
 
-} // namespace system
-} // namespace boost
+template<> struct is_error_code_enum<boost::asio::error::ssl_errors>
+{
+  static const bool value = true;
+};
 
-namespace boost {
+} // namespace system
+
 namespace asio {
 namespace error {
 
@@ -326,27 +420,15 @@ inline boost::system::error_code make_error_code(misc_errors e)
       static_cast<int>(e), get_misc_category());
 }
 
+inline boost::system::error_code make_error_code(ssl_errors e)
+{
+  return boost::system::error_code(
+      static_cast<int>(e), get_ssl_category());
+}
+
 } // namespace error
-namespace stream_errc {
-  // Simulates the proposed stream_errc scoped enum.
-  using error::eof;
-  using error::not_found;
-} // namespace stream_errc
-namespace socket_errc {
-  // Simulates the proposed socket_errc scoped enum.
-  using error::already_open;
-  using error::not_found;
-} // namespace socket_errc
-namespace resolver_errc {
-  // Simulates the proposed resolver_errc scoped enum.
-  using error::host_not_found;
-  const error::netdb_errors try_again = error::host_not_found_try_again;
-  using error::service_not_found;
-} // namespace resolver_errc
 } // namespace asio
 } // namespace boost
-
-#include <boost/asio/detail/pop_options.hpp>
 
 #undef BOOST_ASIO_NATIVE_ERROR
 #undef BOOST_ASIO_SOCKET_ERROR
@@ -354,8 +436,7 @@ namespace resolver_errc {
 #undef BOOST_ASIO_GETADDRINFO_ERROR
 #undef BOOST_ASIO_WIN_OR_POSIX
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/impl/error.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+
+#include <boost/asio/detail/pop_options.hpp>
 
 #endif // BOOST_ASIO_ERROR_HPP

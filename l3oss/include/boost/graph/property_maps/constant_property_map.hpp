@@ -43,7 +43,7 @@ struct constant_property_map
         : m_value(copy.m_value)
     { }
 
-    inline reference operator [](const key_type&) const
+    inline reference operator [](const key_type& v) const
     { return m_value; }
 
     value_type m_value;
@@ -53,39 +53,6 @@ template <typename Key, typename Value>
 inline constant_property_map<Key, Value>
 make_constant_property(const Value& value)
 { return constant_property_map<Key, Value>(value); }
-
-/**
- * Same as above, but pretends to be writable as well.
- */
-template <typename Key, typename Value>
-struct constant_writable_property_map {
-    typedef Key key_type;
-    typedef Value value_type;
-    typedef Value& reference;
-    typedef boost::read_write_property_map_tag category;
-
-    constant_writable_property_map()
-        : m_value()
-    { }
-
-    constant_writable_property_map(const value_type &value)
-        : m_value(value)
-    { }
-
-    constant_writable_property_map(const constant_writable_property_map& copy)
-        : m_value(copy.m_value)
-    { }
-
-    friend Value get(const constant_writable_property_map& me, Key) {return me.m_value;}
-    friend void put(const constant_writable_property_map&, Key, Value) {}
-
-    value_type m_value;
-};
-
-template <typename Key, typename Value>
-inline constant_writable_property_map<Key, Value>
-make_constant_writable_property(const Value& value)
-{ return constant_writable_property_map<Key, Value>(value); }
 
 } /* namespace boost */
 

@@ -87,6 +87,8 @@ class handle
         return *this;
     }
 
+#if !defined(BOOST_MSVC) || (BOOST_MSVC >= 1300)
+
     template<typename Y>
     handle& operator=(handle<Y> const & r) // never throws
     {
@@ -94,6 +96,8 @@ class handle
         m_p = python::xincref(python::upcast<T>(r.get()));
         return *this;
     }
+
+#endif
 
     template <typename Y>
     handle(handle<Y> const& r)
@@ -155,6 +159,7 @@ typedef handle<PyTypeObject> type_handle;
 //
 // Compile-time introspection
 //
+# ifndef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
 template<typename T>
 class is_handle
 {
@@ -168,6 +173,28 @@ class is_handle<handle<T> >
  public:
     BOOST_STATIC_CONSTANT(bool, value = true);
 };
+# else
+namespace detail
+{
+  typedef char (&yes_handle_t)[1];
+  typedef char (&no_handle_t)[2];
+      
+  no_handle_t is_handle_test(...);
+
+  template<typename T>
+  yes_handle_t is_handle_test(boost::type< handle<T> >);
+}
+
+template<typename T>
+class is_handle
+{
+ public:
+    BOOST_STATIC_CONSTANT(
+        bool, value = (
+            sizeof(detail::is_handle_test(boost::type<T>()))
+            == sizeof(detail::yes_handle_t)));
+};
+# endif
 
 //
 // implementations

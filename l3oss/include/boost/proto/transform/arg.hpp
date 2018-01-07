@@ -9,12 +9,12 @@
 #ifndef BOOST_PROTO_TRANSFORM_ARG_HPP_EAN_11_01_2007
 #define BOOST_PROTO_TRANSFORM_ARG_HPP_EAN_11_01_2007
 
-#include <boost/mpl/if.hpp>
+#include <boost/proto/detail/prefix.hpp>
 #include <boost/proto/proto_fwd.hpp>
 #include <boost/proto/traits.hpp>
 #include <boost/proto/transform/impl.hpp>
 #include <boost/type_traits/is_array.hpp>
-#include <boost/proto/transform/env.hpp>
+#include <boost/proto/detail/suffix.hpp>
 
 namespace boost { namespace proto
 {
@@ -40,7 +40,11 @@ namespace boost { namespace proto
             /// \param e The current expression.
             /// \return \c e
             /// \throw nothrow
-            BOOST_PROTO_RETURN_TYPE_STRICT_LOOSE(result_type, typename impl::expr_param)
+            #ifdef BOOST_HAS_DECLTYPE
+            result_type
+            #else
+            typename impl::expr_param 
+            #endif
             operator()(
                 typename impl::expr_param e
               , typename impl::state_param
@@ -73,7 +77,11 @@ namespace boost { namespace proto
             /// \param s The current state.
             /// \return \c s
             /// \throw nothrow
-            BOOST_PROTO_RETURN_TYPE_STRICT_LOOSE(result_type, typename impl::state_param)
+            #ifdef BOOST_HAS_DECLTYPE
+            result_type
+            #else
+            typename impl::state_param 
+            #endif
             operator ()(
                 typename impl::expr_param
               , typename impl::state_param s
@@ -99,13 +107,28 @@ namespace boost { namespace proto
     struct _data : transform<_data>
     {
         template<typename Expr, typename State, typename Data>
-        struct impl
-          : mpl::if_c<
-                is_env<Data>::value
-              , _env_var<data_type>
-              , _env
-            >::type::template impl<Expr, State, Data>
-        {};
+        struct impl : transform_impl<Expr, State, Data>
+        {
+            typedef Data result_type;
+
+            /// Returns the current data.
+            /// \param d The current data.
+            /// \return \c d
+            /// \throw nothrow
+            #ifdef BOOST_HAS_DECLTYPE
+            result_type
+            #else
+            typename impl::data_param 
+            #endif
+            operator ()(
+                typename impl::expr_param
+              , typename impl::state_param
+              , typename impl::data_param d
+            ) const
+            {
+                return d;
+            }
+        };
     };
 
     /// \brief A PrimitiveTransform that returns N-th child of the current
@@ -129,11 +152,11 @@ namespace boost { namespace proto
             result_type;
 
             /// Returns the N-th child of \c e
-            /// \pre <tt>arity_of\<Expr\>::value \> N</tt> 
+            /// \pre <tt>arity_of\<Expr\>::::value \> N</tt> 
             /// \param e The current expression.
             /// \return <tt>proto::child_c\<N\>(e)</tt>
             /// \throw nothrow
-            #ifdef BOOST_PROTO_STRICT_RESULT_OF
+            #ifdef BOOST_HAS_DECLTYPE
             result_type
             #else
             typename result_of::child_c<typename impl::expr_param, N>::type
@@ -169,11 +192,11 @@ namespace boost { namespace proto
             result_type;
 
             /// Returns the value of the specified terminal expression.
-            /// \pre <tt>arity_of\<Expr\>::value == 0</tt>.
+            /// \pre <tt>arity_of\<Expr\>::::value == 0</tt>.
             /// \param e The current expression.
             /// \return <tt>proto::value(e)</tt>
             /// \throw nothrow
-            #ifdef BOOST_PROTO_STRICT_RESULT_OF
+            #ifdef BOOST_HAS_DECLTYPE
             typename mpl::if_c<is_array<result_type>::value, result_type &, result_type>::type
             #else
             typename result_of::value<typename impl::expr_param>::type
@@ -186,25 +209,6 @@ namespace boost { namespace proto
             {
                 return proto::value(e);
             }
-        };
-    };
-
-    /// \brief A PrimitiveTransform that does nothing
-    /// and returns void.
-    struct _void : transform<_void>
-    {
-        template<typename Expr, typename State, typename Data>
-        struct impl : transform_impl<Expr, State, Data>
-        {
-            typedef void result_type;
-
-            /// Does nothing and returns void
-            void operator ()(
-                typename impl::expr_param
-              , typename impl::state_param
-              , typename impl::data_param
-            ) const
-            {}
         };
     };
 

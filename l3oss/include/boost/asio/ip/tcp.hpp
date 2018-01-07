@@ -1,8 +1,8 @@
 //
-// ip/tcp.hpp
-// ~~~~~~~~~~
+// tcp.hpp
+// ~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,18 +15,17 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
+
 #include <boost/asio/basic_socket_acceptor.hpp>
 #include <boost/asio/basic_socket_iostream.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
-#include <boost/asio/detail/socket_option.hpp>
-#include <boost/asio/detail/socket_types.hpp>
 #include <boost/asio/ip/basic_endpoint.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/basic_resolver_iterator.hpp>
 #include <boost/asio/ip/basic_resolver_query.hpp>
-
-#include <boost/asio/detail/push_options.hpp>
+#include <boost/asio/detail/socket_option.hpp>
+#include <boost/asio/detail/socket_types.hpp>
 
 namespace boost {
 namespace asio {
@@ -49,28 +48,34 @@ public:
   /// The type of a TCP endpoint.
   typedef basic_endpoint<tcp> endpoint;
 
+  /// The type of a resolver query.
+  typedef basic_resolver_query<tcp> resolver_query;
+
+  /// The type of a resolver iterator.
+  typedef basic_resolver_iterator<tcp> resolver_iterator;
+
   /// Construct to represent the IPv4 TCP protocol.
   static tcp v4()
   {
-    return tcp(BOOST_ASIO_OS_DEF(AF_INET));
+    return tcp(PF_INET);
   }
 
   /// Construct to represent the IPv6 TCP protocol.
   static tcp v6()
   {
-    return tcp(BOOST_ASIO_OS_DEF(AF_INET6));
+    return tcp(PF_INET6);
   }
 
   /// Obtain an identifier for the type of the protocol.
   int type() const
   {
-    return BOOST_ASIO_OS_DEF(SOCK_STREAM);
+    return SOCK_STREAM;
   }
 
   /// Obtain an identifier for the protocol.
   int protocol() const
   {
-    return BOOST_ASIO_OS_DEF(IPPROTO_TCP);
+    return IPPROTO_TCP;
   }
 
   /// Obtain an identifier for the protocol family.
@@ -88,10 +93,8 @@ public:
   /// The TCP resolver type.
   typedef basic_resolver<tcp> resolver;
 
-#if !defined(BOOST_ASIO_NO_IOSTREAM)
   /// The TCP iostream type.
   typedef basic_socket_iostream<tcp> iostream;
-#endif // !defined(BOOST_ASIO_NO_IOSTREAM)
 
   /// Socket option for disabling the Nagle algorithm.
   /**
@@ -100,7 +103,7 @@ public:
    * @par Examples
    * Setting the option:
    * @code
-   * boost::asio::ip::tcp::socket socket(io_context); 
+   * boost::asio::ip::tcp::socket socket(io_service); 
    * ...
    * boost::asio::ip::tcp::no_delay option(true);
    * socket.set_option(option);
@@ -109,7 +112,7 @@ public:
    * @par
    * Getting the current option value:
    * @code
-   * boost::asio::ip::tcp::socket socket(io_context); 
+   * boost::asio::ip::tcp::socket socket(io_service); 
    * ...
    * boost::asio::ip::tcp::no_delay option;
    * socket.get_option(option);
@@ -123,7 +126,7 @@ public:
   typedef implementation_defined no_delay;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(IPPROTO_TCP), BOOST_ASIO_OS_DEF(TCP_NODELAY)> no_delay;
+    IPPROTO_TCP, TCP_NODELAY> no_delay;
 #endif
 
   /// Compare two protocols for equality.
@@ -140,8 +143,8 @@ public:
 
 private:
   // Construct with a specific family.
-  explicit tcp(int protocol_family)
-    : family_(protocol_family)
+  explicit tcp(int family)
+    : family_(family)
   {
   }
 

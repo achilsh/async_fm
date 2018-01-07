@@ -118,7 +118,7 @@ namespace boost {
        typename graph_traits<DistributedGraph>::vertex_descriptor s,
        ColorMap color,
        BFSVisitor vis,
-       boost::param_not_found,
+       error_property_not_found,
        VertexIndexMap vertex_index)
     {
       using boost::graph::parallel::process_group;
@@ -151,7 +151,8 @@ namespace boost {
        ColorMap color,
        BFSVisitor vis,
        const bgl_named_params<P, T, R>& params,
-       boost::mpl::true_)
+       BOOST_GRAPH_ENABLE_IF_MODELS(DistributedGraph, distributed_graph_tag,
+                                    void)*)
         {
             parallel_bfs_helper
         (g, s, color, vis, get_param(params, buffer_param_t()),

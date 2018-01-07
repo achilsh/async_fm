@@ -7,15 +7,13 @@
 #if !defined(BOOST_FUSION_SEQUENCE_EMPTY_IMPL_HPP_INCLUDED)
 #define BOOST_FUSION_SEQUENCE_EMPTY_IMPL_HPP_INCLUDED
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/type_traits/is_convertible.hpp>
-#include <boost/fusion/container/list/nil.hpp>
 
 namespace boost { namespace fusion
 {
     struct cons_tag;
 
-    struct nil_;
+    struct nil;
 
     template <typename Car, typename Cdr>
     struct cons;
@@ -30,7 +28,7 @@ namespace boost { namespace fusion
         {
             template <typename Sequence>
             struct apply
-                : boost::is_convertible<Sequence, nil_>
+                : boost::is_convertible<Sequence, nil>
             {};
         };
     }

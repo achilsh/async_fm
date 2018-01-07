@@ -1,5 +1,5 @@
 //  Copyright (c) 2001, Daniel C. Nuffer
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -51,12 +51,12 @@ namespace boost { namespace spirit { namespace iterator_policies
 
             void swap(unique& x)
             {
-                boost::swap(buf_id, x.buf_id);
+                spirit::detail::swap(buf_id, x.buf_id);
             }
 
             // called to verify that everything is ok.
             template <typename MultiPass>
-            static void docheck(MultiPass const& mp) 
+            static void check(MultiPass const& mp) 
             {
                 if (mp.buf_id != mp.shared()->shared_buf_id)
                     boost::throw_exception(illegal_backtracking());

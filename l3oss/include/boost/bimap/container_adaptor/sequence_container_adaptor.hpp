@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_CONTAINER_ADAPTOR_SEQUENCE_CONTAINER_ADAPTOR_HPP
 #define BOOST_BIMAP_CONTAINER_ADAPTOR_SEQUENCE_CONTAINER_ADAPTOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -26,7 +26,6 @@
 #include <boost/bimap/container_adaptor/detail/identity_converters.hpp>
 #include <boost/bimap/container_adaptor/container_adaptor.hpp>
 #include <boost/call_traits.hpp>
-#include <boost/operators.hpp>
 
 namespace boost {
 namespace bimaps {

@@ -109,7 +109,7 @@ namespace boost
       inline bool check_dist_and_x(const char* function, const RealType& alpha, const RealType& beta, RealType x, RealType* result, const Policy& pol)
       {
         return check_dist(function, alpha, beta, result, pol)
-          && beta_detail::check_x(function, x, result, pol);
+          && check_x(function, x, result, pol);
       } // bool check_dist_and_x
 
       template <class RealType, class Policy>
@@ -156,7 +156,7 @@ namespace boost
       typedef RealType value_type;
       typedef Policy policy_type;
 
-      beta_distribution(RealType l_alpha = 1, RealType l_beta = 1) : m_alpha(l_alpha), m_beta(l_beta)
+      beta_distribution(RealType alpha = 1, RealType beta = 1) : m_alpha(alpha), m_beta(beta)
       {
         RealType result;
         beta_detail::check_dist(
@@ -187,12 +187,13 @@ namespace boost
         RealType variance) // Expected value of variance.
       {
         static const char* function = "boost::math::beta_distribution<%1%>::find_alpha";
-        RealType result = 0; // of error checks.
+        RealType result; // of error checks.
         if(false ==
-            (
-              beta_detail::check_mean(function, mean, &result, Policy())
-              && beta_detail::check_variance(function, variance, &result, Policy())
-            )
+          beta_detail::check_mean(
+          function, mean, &result, Policy())
+          &&
+          beta_detail::check_variance(
+          function, variance, &result, Policy())
           )
         {
           return result;
@@ -205,13 +206,13 @@ namespace boost
         RealType variance) // Expected value of variance.
       {
         static const char* function = "boost::math::beta_distribution<%1%>::find_beta";
-        RealType result = 0; // of error checks.
+        RealType result; // of error checks.
         if(false ==
-            (
-              beta_detail::check_mean(function, mean, &result, Policy())
-              &&
-              beta_detail::check_variance(function, variance, &result, Policy())
-            )
+          beta_detail::check_mean(
+          function, mean, &result, Policy())
+          &&
+          beta_detail::check_variance(
+          function, variance, &result, Policy())
           )
         {
           return result;
@@ -228,15 +229,16 @@ namespace boost
         RealType probability) // cdf
       {
         static const char* function = "boost::math::beta_distribution<%1%>::find_alpha";
-        RealType result = 0; // of error checks.
+        RealType result; // of error checks.
         if(false ==
-            (
-             beta_detail::check_prob(function, probability, &result, Policy())
-             &&
-             beta_detail::check_beta(function, beta, &result, Policy())
-             &&
-             beta_detail::check_x(function, x, &result, Policy())
-            )
+          beta_detail::check_prob(
+          function, probability, &result, Policy())
+          &&
+          beta_detail::check_beta(
+          function, beta, &result, Policy())
+          &&
+          beta_detail::check_x(
+          function, x, &result, Policy())
           )
         {
           return result;
@@ -251,15 +253,16 @@ namespace boost
         RealType probability) // probability cdf.
       {
         static const char* function = "boost::math::beta_distribution<%1%>::find_beta";
-        RealType result = 0; // of error checks.
+        RealType result; // of error checks.
         if(false ==
-            (
-              beta_detail::check_prob(function, probability, &result, Policy())
-              &&
-              beta_detail::check_alpha(function, alpha, &result, Policy())
-              &&
-              beta_detail::check_x(function, x, &result, Policy())
-            )
+          beta_detail::check_prob(
+          function, probability, &result, Policy())
+          &&
+          beta_detail::check_alpha(
+          function, alpha, &result, Policy())
+          &&
+          beta_detail::check_x(
+          function, x, &result, Policy())
           )
         {
           return result;
@@ -276,14 +279,14 @@ namespace boost
     inline const std::pair<RealType, RealType> range(const beta_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable x.
       using boost::math::tools::max_value;
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return std::pair<RealType, RealType>(0, 1);
     }
 
     template <class RealType, class Policy>
     inline const std::pair<RealType, RealType> support(const beta_distribution<RealType, Policy>&  /* dist */)
     { // Range of supported values for random variable x.
       // This is range where cdf rises from 0 to 1, and outside it, the pdf is zero.
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return std::pair<RealType, RealType>(0, 1);
     }
 
     template <class RealType, class Policy>
@@ -373,7 +376,7 @@ namespace boost
       RealType b = dist.beta();
 
       // Argument checks:
-      RealType result = 0;
+      RealType result;
       if(false == beta_detail::check_dist_and_x(
         function,
         a, b, x,
@@ -396,7 +399,7 @@ namespace boost
       RealType b = dist.beta();
 
       // Argument checks:
-      RealType result = 0;
+      RealType result;
       if(false == beta_detail::check_dist_and_x(
         function,
         a, b, x,
@@ -430,7 +433,7 @@ namespace boost
       RealType b = dist.beta();
 
       // Argument checks:
-      RealType result = 0;
+      RealType result;
       if(false == beta_detail::check_dist_and_x(
         function,
         a, b, x,
@@ -465,7 +468,7 @@ namespace boost
 
       static const char* function = "boost::math::quantile(beta_distribution<%1%> const&, %1%)";
 
-      RealType result = 0; // of argument checks:
+      RealType result; // of argument checks:
       RealType a = dist.alpha();
       RealType b = dist.beta();
       if(false == beta_detail::check_dist_and_prob(
@@ -499,7 +502,7 @@ namespace boost
       // Error checks:
       RealType q = c.param;
       const beta_distribution<RealType, Policy>& dist = c.dist;
-      RealType result = 0;
+      RealType result;
       RealType a = dist.alpha();
       RealType b = dist.beta();
       if(false == beta_detail::check_dist_and_prob(

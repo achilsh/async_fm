@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
     Copyright (c) 2009 Francois Barel
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -16,7 +16,6 @@
 #include <boost/spirit/home/support/meta_compiler.hpp>
 #include <boost/spirit/home/support/nonterminal/locals.hpp>
 #include <boost/spirit/home/support/unused.hpp>
-#include <boost/spirit/home/support/common_terminals.hpp>
 
 #include <boost/function_types/is_function.hpp>
 #include <boost/function_types/parameter_types.hpp>
@@ -29,8 +28,6 @@
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/identity.hpp>
 #include <boost/mpl/if.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/and.hpp>
 #include <boost/mpl/placeholders.hpp>
 #include <boost/type_traits/is_same.hpp>
 
@@ -80,37 +77,14 @@ namespace boost { namespace spirit { namespace detail
     {};
 
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    struct make_function_type : mpl::identity<T()> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Types, typename Encoding, typename Domain>
+    template <typename Types>
     struct extract_sig
-    {
-        typedef typename
-            extract_param<
-                Types
-              , mpl::or_<
-                    function_types::is_function<mpl::_>
-                  , mpl::and_<
-                        mpl::not_<is_locals<mpl::_> >
-                      , mpl::not_<is_same<mpl::_, Encoding> >
-                      , mpl::not_<traits::matches<Domain, mpl::_> >
-                      , mpl::not_<is_same<mpl::_, unused_type> >
-                    >
-                >
-              , void()
-            >::type
-        attr_of_ftype;
-
-        typedef typename
-            mpl::eval_if<
-                function_types::is_function<attr_of_ftype>
-              , mpl::identity<attr_of_ftype>
-              , make_function_type<attr_of_ftype>
-            >::type
-        type;
-    };
+      : extract_param<
+            Types
+          , function_types::is_function<mpl::_>
+          , void()
+        >
+    {};
 
     template <typename Sig>
     struct attr_from_sig
@@ -133,16 +107,6 @@ namespace boost { namespace spirit { namespace detail
 
         typedef typename fusion::result_of::as_list<params>::type type;
     };
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Types>
-    struct extract_encoding
-      : extract_param<
-            Types
-          , is_char_encoding<mpl::_>
-          , unused_type
-        >
-    {};
 }}}
 
 #endif

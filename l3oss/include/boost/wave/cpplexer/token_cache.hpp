@@ -3,7 +3,7 @@
 
     http://www.boost.org/
 
-    Copyright (c) 2001-2012 Hartmut Kaiser. Distributed under the Boost
+    Copyright (c) 2001-2009 Hartmut Kaiser. Distributed under the Boost
     Software License, Version 1.0. (See accompanying file
     LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
@@ -32,12 +32,12 @@ namespace cpplexer {
 //  keywords, operators and other constant language elements.
 //
 //  This avoids repeated construction of these tokens, which is especially
-//  effective when used in conjunction with a copy on write string
+//  effective when used in conjunction with a copy on write string 
 //  implementation (COW string).
 //
 ///////////////////////////////////////////////////////////////////////////////
 template <typename StringT>
-class token_cache
+class token_cache 
 {
 public:
     token_cache()
@@ -60,7 +60,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-}   // namespace cpplexer
+}   // namespace cpplexer 
 }   // namespace wave
 }   // namespace boost
 

@@ -2,10 +2,10 @@
 #define DATE_TIME_C_TIME_HPP___
 
 /* Copyright (c) 2002,2003,2005 CrystalClear Software, Inc.
- * Use, modification and distribution is subject to the
+ * Use, modification and distribution is subject to the 
  * Boost Software License, Version 1.0. (See accompanying
  * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
- * Author: Jeff Garland, Bart Garst
+ * Author: Jeff Garland, Bart Garst 
  * $Date$
  */
 
@@ -38,11 +38,11 @@ namespace std { using ::time_t; using ::time; using ::localtime;
 namespace boost {
 namespace date_time {
   //! Provides a uniform interface to some 'ctime' functions
-  /*! Provides a uniform interface to some ctime functions and
-   * their '_r' counterparts. The '_r' functions require a pointer to a
-   * user created std::tm struct whereas the regular functions use a
-   * staticly created struct and return a pointer to that. These wrapper
-   * functions require the user to create a std::tm struct and send in a
+  /*! Provides a uniform interface to some ctime functions and 
+   * their '_r' counterparts. The '_r' functions require a pointer to a 
+   * user created std::tm struct whereas the regular functions use a 
+   * staticly created struct and return a pointer to that. These wrapper 
+   * functions require the user to create a std::tm struct and send in a 
    * pointer to it. This struct may be used to store the resulting time.
    * The returned pointer may or may not point to this struct, however,
    * it will point to the result of the corresponding function.
@@ -57,15 +57,7 @@ namespace date_time {
       static std::tm* localtime(const std::time_t* t, std::tm* result)
       {
         // localtime_r() not in namespace std???
-#if defined(__VMS) && __INITIAL_POINTER_SIZE == 64
-        std::tm tmp;
-        if(!localtime_r(t,&tmp))
-            result = 0;
-        else
-            *result = tmp;
-#else
         result = localtime_r(t, result);
-#endif
         if (!result)
           boost::throw_exception(std::runtime_error("could not convert calendar time to local time"));
         return result;
@@ -75,20 +67,12 @@ namespace date_time {
       static std::tm* gmtime(const std::time_t* t, std::tm* result)
       {
         // gmtime_r() not in namespace std???
-#if defined(__VMS) && __INITIAL_POINTER_SIZE == 64
-        std::tm tmp;
-        if(!gmtime_r(t,&tmp))
-          result = 0;
-        else
-          *result = tmp;
-#else
         result = gmtime_r(t, result);
-#endif
         if (!result)
           boost::throw_exception(std::runtime_error("could not convert calendar time to UTC time"));
         return result;
       }
-#else // BOOST_DATE_TIME_HAS_REENTRANT_STD_FUNCTIONS
+#else // BOOST_HAS_THREADS
 
 #if (defined(_MSC_VER) && (_MSC_VER >= 1400))
 #pragma warning(push) // preserve warning settings
@@ -116,8 +100,8 @@ namespace date_time {
 #pragma warning(pop) // restore warnings to previous state
 #endif // _MSC_VER >= 1400
 
-#endif // BOOST_DATE_TIME_HAS_REENTRANT_STD_FUNCTIONS
+#endif // BOOST_HAS_THREADS
   };
 }} // namespaces
-
+                
 #endif // DATE_TIME_C_TIME_HPP___

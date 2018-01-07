@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_DETAIL_BIMAP_CORE_HPP
 #define BOOST_BIMAP_DETAIL_BIMAP_CORE_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -92,24 +92,24 @@ class bimap_core
     typedef BOOST_DEDUCED_TYPENAME manage_bimap_key
     <
         RightSetType
-
+    
     >::type right_set_type;
 
-
+    
     private:
 
     typedef BOOST_DEDUCED_TYPENAME ::boost::bimaps::tags::support::default_tagged
-    <
+    < 
         BOOST_DEDUCED_TYPENAME left_set_type::user_type,
-        ::boost::bimaps::relation::member_at::left
-
+        ::boost::bimaps::relation::member_at::left 
+    
     >::type left_tagged_type;
 
     typedef BOOST_DEDUCED_TYPENAME ::boost::bimaps::tags::support::default_tagged
-    <
+    < 
         BOOST_DEDUCED_TYPENAME right_set_type::user_type,
         ::boost::bimaps::relation::member_at::right
-
+    
     >::type right_tagged_type;
 
     public:
@@ -425,6 +425,50 @@ class bimap_core
     typedef BOOST_DEDUCED_TYPENAME right_index::iterator       right_core_iterator;
     typedef BOOST_DEDUCED_TYPENAME right_index::const_iterator right_core_const_iterator;
 
+    // Map by {side} iterator metadata
+    // --------------------------------------------------------------------
+    public:
+
+    //@{
+
+        typedef ::boost::bimaps::detail::map_view_iterator
+        <
+            left_tag,
+            relation,
+            left_core_iterator
+
+        > left_iterator;
+
+        typedef ::boost::bimaps::detail::map_view_iterator
+        <
+            right_tag,
+            relation,
+            right_core_iterator
+
+        > right_iterator;
+
+    //@}
+
+    //@{
+
+        typedef ::boost::bimaps::detail::const_map_view_iterator
+        <
+            left_tag,
+            relation,
+            left_core_const_iterator
+
+        > left_const_iterator;
+
+        typedef ::boost::bimaps::detail::const_map_view_iterator
+        <
+            right_tag,
+            relation,
+            right_core_const_iterator
+
+        > right_const_iterator;
+
+    //@}
+
     // Relation set view
 
     typedef BOOST_DEDUCED_TYPENAME ::boost::multi_index::index
@@ -468,7 +512,6 @@ struct right_map_view_type
             BOOST_DEDUCED_TYPENAME BimapBaseType::right_tag, BimapBaseType
         >::type type;
 };
-
 
 } // namespace detail
 } // namespace bimaps

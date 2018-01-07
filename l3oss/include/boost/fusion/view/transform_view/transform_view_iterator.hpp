@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,6 @@
 #if !defined(FUSION_TRANSFORM_VIEW_ITERATOR_07162005_1033)
 #define FUSION_TRANSFORM_VIEW_ITERATOR_07162005_1033
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/iterator_base.hpp>
 #include <boost/fusion/support/category_of.hpp>
 #include <boost/fusion/iterator/mpl/convert_iterator.hpp>
@@ -35,9 +34,8 @@ namespace boost { namespace fusion
         typedef typename traits::category_of<first_type>::type category;
         typedef F transform_type;
 
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        transform_view_iterator(First const& in_first, F const& in_f)
-            : first(converter::call(in_first)), f(in_f) {}
+        transform_view_iterator(First const& first, F const& f)
+            : first(converter::call(first)), f(f) {}
 
         first_type first;
         transform_type f;
@@ -62,9 +60,8 @@ namespace boost { namespace fusion
         typedef typename traits::category_of<first1_type>::type category;
         typedef F transform_type;
 
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        transform_view_iterator2(First1 const& in_first1, First2 const& in_first2, F const& in_f)
-            : first1(converter1::call(in_first1)), first2(converter2::call(in_first2)), f(in_f) {}
+        transform_view_iterator2(First1 const& first1, First2 const& first2, F const& f)
+            : first1(converter1::call(first1)), first2(converter2::call(first2)), f(f) {}
 
         first1_type first1;
         first2_type first2;
@@ -75,18 +72,6 @@ namespace boost { namespace fusion
         transform_view_iterator2& operator= (transform_view_iterator2 const&);
     };
 }}
-
-#ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
-namespace std
-{
-    template <typename First, typename F>
-    struct iterator_traits< ::boost::fusion::transform_view_iterator<First, F> >
-    { };
-    template <typename First1, typename First2, typename F>
-    struct iterator_traits< ::boost::fusion::transform_view_iterator2<First1, First2, F> >
-    { };
-}
-#endif
 
 #endif
 

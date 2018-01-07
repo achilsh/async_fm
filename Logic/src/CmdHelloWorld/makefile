@@ -27,20 +27,25 @@ DIRS := $(SUB_DIRS)
 
 INC := $(INC) \
        -I .. \
-       -I $(PROTO_PATH)/src \
+       -I $(PROTO_PATH)/gen-cpp \
        -I $(STARSHIP_PATH)/include \
        -I $(LOSS_PATH)/src \
+       -I $(LOSS_PATH)/src/thrift_util \
        -I $(LIB3RD_PATH)/include/mysql \
+       -I $(LIB3RD_PATH)/include/thrift \
+       -I $(LIB3RD_PATH)/include/transport \
        -I $(LIB3RD_PATH)/include 
 
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
+           -L$(PROTO_PATH)/lib -lim_proto \
            -L$(STARSHIP_PATH)/lib -lstarship \
            -L$(LOSS_PATH)/lib -lloss \
            -L$(LOSS_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -lhiredis \
            -L$(LIB3RD_PATH)/lib -llog4cplus \
 					 -L$(LIB3RD_PATH)/lib -ljemalloc \
+					 -L$(LIB3RD_PATH)/lib -lthrift \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -L$(SYSTEM_LIB_PATH) -ldl -lrt
 

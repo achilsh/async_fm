@@ -89,7 +89,7 @@ namespace boost {
   
     template <typename ItemFirst,
               typename ItemSecond>
-    bool operator()(const ItemFirst&, const ItemSecond&) {
+    bool operator()(const ItemFirst& item1, const ItemSecond& item2) {
       return (true);
     }
   };
@@ -113,7 +113,7 @@ namespace boost {
     (const GraphFirst& graph1,
      const GraphSecond& graph2,
      CorrespondenceMapFirstToSecond correspondence_map_1_to_2,
-     CorrespondenceMapSecondToFirst /*correspondence_map_2_to_1*/,
+     CorrespondenceMapSecondToFirst correspondence_map_2_to_1,
      typename graph_traits<GraphFirst>::vertices_size_type subgraph_size,
      typename graph_traits<GraphFirst>::vertex_descriptor new_vertex1,
      typename graph_traits<GraphSecond>::vertex_descriptor new_vertex2,
@@ -121,6 +121,7 @@ namespace boost {
      VertexEquivalencePredicate vertices_equivalent,
      bool only_connected_subgraphs)
     {
+      typedef typename graph_traits<GraphFirst>::vertex_descriptor VertexFirst;
       typedef typename graph_traits<GraphSecond>::vertex_descriptor VertexSecond;
       
       typedef typename graph_traits<GraphFirst>::edge_descriptor EdgeFirst;
@@ -287,8 +288,8 @@ namespace boost {
       typename graph_traits<GraphSecond>::vertex_iterator
         vertex2_begin, vertex2_end, vertex2_iter;
   
-      boost::tie(vertex1_iter, vertex1_end) = vertices(graph1);
-      boost::tie(vertex2_begin, vertex2_end) = vertices(graph2);
+      tie(vertex1_iter, vertex1_end) = vertices(graph1);
+      tie(vertex2_begin, vertex2_end) = vertices(graph2);
       vertex2_iter = vertex2_begin;
   
       // Iterate until all vertices have been visited
@@ -327,11 +328,15 @@ namespace boost {
             put(correspondence_map_2_to_1, new_vertex2, new_vertex1);
             vertex_stack1.push(new_vertex1);
 
-            // Returning false from the callback will cancel iteration
-            if (!subgraph_callback(correspondence_map_1_to_2,
-                                   correspondence_map_2_to_1,
-                                   new_graph_size)) {
-              return (false);
+            // Only output sub-graphs larger than a single vertex
+            if (new_graph_size > 1) {
+            
+              // Returning false from the callback will cancel iteration
+              if (!subgraph_callback(correspondence_map_1_to_2,
+                                     correspondence_map_2_to_1,
+                                     new_graph_size)) {
+                return (false);
+              }
             }
       
             // Depth-first search into the state space of possible sub-graphs

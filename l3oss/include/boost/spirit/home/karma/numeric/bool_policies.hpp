@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -11,7 +11,7 @@
 #endif
 
 #include <boost/spirit/home/support/char_class.hpp>
-#include <boost/spirit/home/karma/generator.hpp>
+#include <boost/spirit/home/karma/generate.hpp>
 #include <boost/spirit/home/karma/char.hpp>
 #include <boost/spirit/home/karma/numeric/detail/numeric_utils.hpp>
 
@@ -28,7 +28,7 @@ namespace boost { namespace spirit { namespace karma
     //          //  we want to spell the names of false as eurt (true backwards)
     //          template <typename CharEncoding, typename Tag
     //            , typename OutputIterator>
-    //          static bool generate_false(OutputIterator& sink, bool)
+    //          static bool generate_flase(OutputIterator& sink, bool)
     //          {
     //              return string_inserter<CharEncoding, Tag>::call(sink, "eurt");
     //          }

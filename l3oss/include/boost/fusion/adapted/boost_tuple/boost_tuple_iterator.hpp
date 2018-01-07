@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,6 @@
 #if !defined(FUSION_BOOST_TUPLE_ITERATOR_09262006_1851)
 #define FUSION_BOOST_TUPLE_ITERATOR_09262006_1851
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/iterator/iterator_facade.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/add_const.hpp>
@@ -42,21 +41,14 @@ namespace boost { namespace fusion
         struct boost_tuple_is_empty<tuples::tuple<> const> : mpl::true_ {};
     }
 
-    template <typename Cons>
-    struct boost_tuple_iterator_identity;
-
     template <typename Cons = tuples::null_type>
     struct boost_tuple_iterator
         : iterator_facade<boost_tuple_iterator<Cons>, forward_traversal_tag>
     {
         typedef Cons cons_type;
 
-        typedef boost_tuple_iterator_identity<
-            typename add_const<Cons>::type> identity;
-
-        BOOST_FUSION_GPU_ENABLED
-        explicit boost_tuple_iterator(Cons& in_cons)
-            : cons(in_cons) {}
+        explicit boost_tuple_iterator(Cons& cons)
+            : cons(cons) {}
         Cons& cons;
 
         template <typename Iterator>
@@ -75,7 +67,6 @@ namespace boost { namespace fusion
                 >::type
             type;
 
-            BOOST_FUSION_GPU_ENABLED
             static type
             call(Iterator const& iter)
             {
@@ -97,14 +88,13 @@ namespace boost { namespace fusion
                 >::type>
             type;
 
-            BOOST_FUSION_GPU_ENABLED
             static type
             call(Iterator const& iter)
             {
                 return type(iter.cons.get_tail());
             }
         };
-
+        
         template <typename I1, typename I2>
         struct distance;
 
@@ -121,7 +111,7 @@ namespace boost { namespace fusion
                     >::type
                 >::type type;
         };
-
+        
         template <typename I1, typename I2>
         struct distance
         {
@@ -130,23 +120,13 @@ namespace boost { namespace fusion
                 mpl::int_<0>,
                 lazy_next_distance<I1, I2>
             >::type type;
-
-            BOOST_FUSION_GPU_ENABLED
+            
             static type
             call(I1 const&, I2 const&)
             {
                 return type();
             }
         };
-
-        template <typename I1, typename I2>
-        struct equal_to
-            : is_same<typename I1::identity, typename I2::identity>
-        {};
-
-    private:
-        // silence MSVC warning C4512: assignment operator could not be generated
-        boost_tuple_iterator& operator= (boost_tuple_iterator const&);
     };
 
     template <typename Null>
@@ -154,9 +134,6 @@ namespace boost { namespace fusion
         : iterator_facade<boost_tuple_iterator<Null>, forward_traversal_tag>
     {
         typedef Null cons_type;
-
-        typedef boost_tuple_iterator_identity<
-            typename add_const<Null>::type> identity;
 
         template <typename I1, typename I2>
         struct equal_to
@@ -175,7 +152,6 @@ namespace boost { namespace fusion
         : boost_tuple_null_iterator<tuples::null_type>
     {
         template <typename Cons>
-        BOOST_FUSION_GPU_ENABLED
         explicit boost_tuple_iterator(Cons const&) {}
     };
 
@@ -184,7 +160,6 @@ namespace boost { namespace fusion
         : boost_tuple_null_iterator<tuples::null_type const>
     {
         template <typename Cons>
-        BOOST_FUSION_GPU_ENABLED
         explicit boost_tuple_iterator(Cons const&) {}
     };
 
@@ -193,7 +168,6 @@ namespace boost { namespace fusion
         : boost_tuple_null_iterator<tuples::tuple<> >
     {
         template <typename Cons>
-        BOOST_FUSION_GPU_ENABLED
         explicit boost_tuple_iterator(Cons const&) {}
     };
 
@@ -202,19 +176,9 @@ namespace boost { namespace fusion
         : boost_tuple_null_iterator<tuples::tuple<> const>
     {
         template <typename Cons>
-        BOOST_FUSION_GPU_ENABLED
         explicit boost_tuple_iterator(Cons const&) {}
     };
 }}
-
-#ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
-namespace std
-{
-    template <typename Cons>
-    struct iterator_traits< ::boost::fusion::boost_tuple_iterator<Cons> >
-    { };
-}
-#endif
 
 #endif
 

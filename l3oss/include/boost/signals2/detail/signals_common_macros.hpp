@@ -13,7 +13,7 @@
 
 #include <boost/config.hpp>
 
-#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+#ifdef BOOST_NO_VARIADIC_TEMPLATES
 
 #ifndef BOOST_SIGNALS2_MAX_ARGS
 #define BOOST_SIGNALS2_MAX_ARGS 9
@@ -46,21 +46,18 @@
   typename BOOST_PP_CAT(prefix, R) BOOST_PP_COMMA_IF(arity) \
   BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), typename BOOST_PP_CAT(prefix, T))
 // typename R, typename T1, typename T2, ..., typename TN
-#define BOOST_SIGNALS2_SIGNATURE_TEMPLATE_DECL(arity) \
-  typename R BOOST_PP_COMMA_IF(arity) \
-  BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), typename T)
+#define BOOST_SIGNALS2_SIGNATURE_TEMPLATE_DECL(arity) BOOST_SIGNALS2_PREFIXED_SIGNATURE_TEMPLATE_DECL(arity,)
 // typename prefixT1, typename prefixT2, ..., typename prefixTN
 #define BOOST_SIGNALS2_PREFIXED_ARGS_TEMPLATE_DECL(arity, prefix) \
   BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), typename BOOST_PP_CAT(prefix, T))
 // typename T1, typename T2, ..., typename TN
-#define BOOST_SIGNALS2_ARGS_TEMPLATE_DECL(arity) \
-  BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), typename T)
+#define BOOST_SIGNALS2_ARGS_TEMPLATE_DECL(arity) BOOST_SIGNALS2_PREFIXED_ARGS_TEMPLATE_DECL(arity,)
 // prefixR, prefixT1, prefixT2, ..., prefixTN
 #define BOOST_SIGNALS2_PREFIXED_SIGNATURE_TEMPLATE_INSTANTIATION(arity, prefix) \
   BOOST_PP_CAT(prefix, R) BOOST_PP_COMMA_IF(arity) BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), BOOST_PP_CAT(prefix, T))
 // R, T1, T2, ..., TN
 #define BOOST_SIGNALS2_SIGNATURE_TEMPLATE_INSTANTIATION(arity) \
-  R BOOST_PP_COMMA_IF(arity) BOOST_PP_ENUM_SHIFTED_PARAMS(BOOST_PP_INC(arity), T)
+  BOOST_SIGNALS2_PREFIXED_SIGNATURE_TEMPLATE_INSTANTIATION(arity,)
 // boost::functionN<R, T1, T2, ..., TN>
 #define BOOST_SIGNALS2_FUNCTION_N_DECL(arity) BOOST_PP_CAT(boost::function, arity)<\
   BOOST_SIGNALS2_SIGNATURE_TEMPLATE_INSTANTIATION(arity) >
@@ -99,14 +96,8 @@
 // prefixT1 & arg1, prefixT2 & arg2, ..., prefixTn & argn
 #define BOOST_SIGNALS2_PREFIXED_FULL_REF_ARGS(arity, prefix) \
   BOOST_PP_ENUM(arity, BOOST_SIGNALS2_PREFIXED_FULL_REF_ARG, prefix)
-// Tn & argn
-#define BOOST_SIGNALS2_FULL_CREF_ARG(z, n, data) \
-  const BOOST_PP_CAT(T, BOOST_PP_INC(n)) & BOOST_SIGNALS2_SIGNATURE_ARG_NAME(~, n, ~)
-// const T1 & arg1, const T2 & arg2, ..., const Tn & argn
-#define BOOST_SIGNALS2_FULL_FORWARD_ARGS(arity) \
-  BOOST_PP_ENUM(arity, BOOST_SIGNALS2_FULL_CREF_ARG, ~)
-#define BOOST_SIGNALS2_FORWARDED_ARGS(arity) \
-  BOOST_SIGNALS2_SIGNATURE_ARG_NAMES(arity)
+// T1 & arg1, T2 & arg2, ..., Tn & argn
+#define BOOST_SIGNALS2_FULL_REF_ARGS(arity) BOOST_SIGNALS2_PREFIXED_FULL_REF_ARGS(arity,)
 // preprocessed_arg_typeN
 #define BOOST_SIGNALS2_PREPROCESSED_ARG_N_TYPE_CLASS_NAME(arity) BOOST_PP_CAT(preprocessed_arg_type, arity)
 
@@ -137,11 +128,11 @@
 #define BOOST_SIGNALS2_SIGNAL_TEMPLATE_SPECIALIZATION_DECL(arity) BOOST_SIGNALS2_SIGNAL_TEMPLATE_DECL(arity)
 #define BOOST_SIGNALS2_SIGNAL_TEMPLATE_SPECIALIZATION
 
-#define BOOST_SIGNALS2_STD_FUNCTIONAL_BASE std_functional_base
+#define BOOST_SIGNALS2_STD_FUNCTIONAL_BASE(result_type) std_functional_base
 
 #define BOOST_SIGNALS2_PP_COMMA_IF(arity) BOOST_PP_COMMA_IF(arity)
 
-#else // BOOST_NO_CXX11_VARIADIC_TEMPLATES
+#else // BOOST_NO_VARIADIC_TEMPLATES
 
 #define BOOST_SIGNALS2_SIGNAL_CLASS_NAME(arity) signal
 #define BOOST_SIGNALS2_WEAK_SIGNAL_CLASS_NAME(arity) weak_signal
@@ -151,8 +142,7 @@
 #define BOOST_SIGNALS2_SIGNATURE_TEMPLATE_INSTANTIATION(arity) R (Args...)
 #define BOOST_SIGNALS2_SIGNATURE_FUNCTION_TYPE(arity) R (Args...)
 #define BOOST_SIGNALS2_ARGS_TEMPLATE_DECL(arity) typename ... Args
-#define BOOST_SIGNALS2_FULL_FORWARD_ARGS(arity) Args && ... args
-#define BOOST_SIGNALS2_FORWARDED_ARGS(arity) std::forward<Args>(args)...
+#define BOOST_SIGNALS2_FULL_REF_ARGS(arity) Args & ... args
 #define BOOST_SIGNALS2_SLOT_CLASS_NAME(arity) slot
 #define BOOST_SIGNALS2_EXTENDED_SLOT_TYPE(arity) slot<R (const connection &, Args...), extended_slot_function_type>
 #define BOOST_SIGNALS2_BOUND_EXTENDED_SLOT_FUNCTION_N(arity) bound_extended_slot_function
@@ -163,6 +153,7 @@
 #define BOOST_SIGNALS2_SIGNATURE_FULL_ARGS(arity) Args ... args
 #define BOOST_SIGNALS2_SIGNATURE_ARG_NAMES(arity) args...
 #define BOOST_SIGNALS2_PORTABLE_SIGNATURE(arity, Signature) Signature
+#define BOOST_SIGNALS2_SLOT_CLASS_NAME(arity) slot
 
 #define BOOST_SIGNALS2_SLOT_TEMPLATE_SPECIALIZATION_DECL(arity) \
   typename SlotFunction, \
@@ -205,11 +196,11 @@
   ExtendedSlotFunction, \
   Mutex>
 
-#define BOOST_SIGNALS2_STD_FUNCTIONAL_BASE \
-  std_functional_base<Args...>
+#define BOOST_SIGNALS2_STD_FUNCTIONAL_BASE(result_type) \
+  std_functional_base<result_type , Args...>
 
 #define BOOST_SIGNALS2_PP_COMMA_IF(arity) ,
 
-#endif // BOOST_NO_CXX11_VARIADIC_TEMPLATES
+#endif // BOOST_NO_VARIADIC_TEMPLATES
 
 #endif // BOOST_SIGNALS2_SIGNALS_COMMON_MACROS_HPP

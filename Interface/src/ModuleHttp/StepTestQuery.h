@@ -28,7 +28,7 @@ namespace im {
      {
        return oss::STATUS_CMD_COMPLETED;
      }
-
+     static int m_Test;
      void SendAck(const std::string& sErr, const std::string &sData = "");
     private:
      oss::tagMsgShell m_stMsgShell;

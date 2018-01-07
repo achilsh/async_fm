@@ -54,7 +54,7 @@ namespace posix_time {
   //! Base time duration type
   /*! \ingroup time_basics
    */
-  class BOOST_SYMBOL_VISIBLE time_duration :
+  class time_duration :
     public date_time::time_duration<time_duration, time_res_traits>
   {
   public:
@@ -81,7 +81,7 @@ namespace posix_time {
     {}
     //Give duration access to ticks constructor -- hide from users
     friend class date_time::time_duration<time_duration, time_res_traits>;
-  protected:
+  private:
     explicit time_duration(impl_type tick_count) :
       date_time::time_duration<time_duration, time_res_traits>(tick_count)
     {}
@@ -134,7 +134,7 @@ namespace posix_time {
     }
   };
 
-  class BOOST_SYMBOL_VISIBLE posix_time_system_config
+  class posix_time_system_config
   {
    public:
     typedef simple_time_rep time_rep_type;

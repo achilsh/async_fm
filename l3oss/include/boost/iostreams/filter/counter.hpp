@@ -8,7 +8,7 @@
 #ifndef BOOST_IOSTREAMS_COUNTER_HPP_INCLUDED
 #define BOOST_IOSTREAMS_COUNTER_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -25,7 +25,7 @@ namespace boost { namespace iostreams {
 
 //
 // Template name: basic_counter.
-// Template parameters:
+// Template paramters:
 //      Ch - The character type.
 // Description: Filter which counts lines and characters.
 //

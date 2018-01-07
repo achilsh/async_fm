@@ -179,6 +179,7 @@ PBGL_DISTRIB_ADJLIST_TYPE
   typedef detail::parallel::redistributed_descriptor<edge_descriptor, 
                                                      edge_property_type>
     redistributed_edge;
+  typedef std::pair<vertices_size_type, edges_size_type> num_relocated_pair;
 
   vertex_iterator vi, vi_end;
   edge_iterator ei, ei_end;
@@ -202,7 +203,7 @@ PBGL_DISTRIB_ADJLIST_TYPE
 
   // Build the sets of relocated vertices for each process and then do
   // an all-to-all transfer.
-  for (boost::tie(vi, vi_end) = vertices(*this); vi != vi_end; ++vi) {
+  for (tie(vi, vi_end) = vertices(*this); vi != vi_end; ++vi) {
     if (!has_stable_descriptors
         || get(vertex_to_processor, *vi) != vi->owner) {
       redistributed_vertices[get(vertex_to_processor, *vi)]
@@ -229,15 +230,15 @@ PBGL_DISTRIB_ADJLIST_TYPE
 
   // Build the sets of relocated edges for each process and then do
   // an all-to-all transfer.
-  for (boost::tie(ei, ei_end) = edges(*this); ei != ei_end; ++ei) {
+  for (tie(ei, ei_end) = edges(*this); ei != ei_end; ++ei) {
     vertex_descriptor src = source(*ei, *this);
     vertex_descriptor tgt = target(*ei, *this);
     if (!has_stable_descriptors
         || get(vertex_to_processor, src) != src.owner
         || get(vertex_to_processor, tgt) != tgt.owner)
       redistributed_edges[get(vertex_to_processor, source(*ei, *this))]
-        .push_back(redistributed_edge(*ei, split_edge_property(get(edge_all_t(), base(),
-                                                                   ei->local))));
+        .push_back(redistributed_edge(*ei, get(edge_all_t(), base(),
+                                               ei->local)));
   }
   inplace_all_to_all(pg, redistributed_edges);
 
@@ -272,7 +273,7 @@ PBGL_DISTRIB_ADJLIST_TYPE
                            source_or_target_migrated(vertex_to_processor, *this));
 
     // Eliminate vertices that have migrated
-    for (boost::tie(vi, vi_end) = vertices(*this); vi != vi_end; /* in loop */) {
+    for (tie(vi, vi_end) = vertices(*this); vi != vi_end; /* in loop */) {
       if (get(vertex_to_processor, *vi) != vi->owner)
         remove_vertex((*vi++).local, base());
       else {

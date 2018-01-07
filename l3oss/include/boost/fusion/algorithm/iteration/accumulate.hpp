@@ -1,6 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2015 Kohei Takahashi
+    Copyright (c) 2001-2006 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -8,8 +7,6 @@
 #if !defined(FUSION_ACCUMULATE_09172005_1032)
 #define FUSION_ACCUMULATE_09172005_1032
 
-#include <boost/fusion/support/config.hpp>
-#include <boost/fusion/algorithm/iteration/accumulate_fwd.hpp>
 #include <boost/fusion/algorithm/iteration/fold.hpp>
 
 namespace boost { namespace fusion
@@ -25,16 +22,14 @@ namespace boost { namespace fusion
     }
 
     template <typename Sequence, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::accumulate<Sequence, State const, F>::type
+    inline typename result_of::accumulate<Sequence, State, F>::type
     accumulate(Sequence& seq, State const& state, F f)
     {
         return fusion::fold(seq, state, f);
     }
 
     template <typename Sequence, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::accumulate<Sequence const, State const, F>::type
+    inline typename result_of::accumulate<Sequence const, State, F>::type
     accumulate(Sequence const& seq, State const& state, F f)
     {
         return fusion::fold(seq, state, f);

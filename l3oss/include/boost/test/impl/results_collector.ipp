@@ -1,4 +1,4 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2005-2008.
 //  Distributed under the Boost Software License, Version 1.0.
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
@@ -16,14 +16,10 @@
 #define BOOST_TEST_RESULTS_COLLECTOR_IPP_021105GER
 
 // Boost.Test
+#include <boost/test/unit_test_suite_impl.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/results_collector.hpp>
 #include <boost/test/framework.hpp>
-
-#include <boost/test/tree/test_unit.hpp>
-#include <boost/test/tree/visitor.hpp>
-#include <boost/test/tree/test_case_counter.hpp>
-#include <boost/test/tree/traverse.hpp>
 
 // Boost
 #include <boost/cstdlib.hpp>
@@ -36,6 +32,7 @@
 //____________________________________________________________________________//
 
 namespace boost {
+
 namespace unit_test {
 
 // ************************************************************************** //
@@ -55,14 +52,7 @@ test_results::passed() const
     return  !p_skipped                                  &&
             p_test_cases_failed == 0                    &&
             p_assertions_failed <= p_expected_failures  &&
-            p_test_cases_skipped == 0                   &&
             !p_aborted;
-}
-
-bool
-test_results::aborted() const
-{
-    return  p_aborted;
 }
 
 //____________________________________________________________________________//
@@ -83,13 +73,10 @@ test_results::operator+=( test_results const& tr )
 {
     p_assertions_passed.value   += tr.p_assertions_passed;
     p_assertions_failed.value   += tr.p_assertions_failed;
-    p_warnings_failed.value     += tr.p_warnings_failed;
     p_test_cases_passed.value   += tr.p_test_cases_passed;
-    p_test_cases_warned.value   += tr.p_test_cases_warned;
     p_test_cases_failed.value   += tr.p_test_cases_failed;
     p_test_cases_skipped.value  += tr.p_test_cases_skipped;
     p_test_cases_aborted.value  += tr.p_test_cases_aborted;
-    p_duration_microseconds.value += tr.p_duration_microseconds;
 }
 
 //____________________________________________________________________________//
@@ -97,25 +84,24 @@ test_results::operator+=( test_results const& tr )
 void
 test_results::clear()
 {
-    p_assertions_passed.value   = 0;
-    p_assertions_failed.value   = 0;
-    p_warnings_failed.value     = 0;
-    p_expected_failures.value   = 0;
-    p_test_cases_passed.value   = 0;
-    p_test_cases_warned.value   = 0;
-    p_test_cases_failed.value   = 0;
-    p_test_cases_skipped.value  = 0;
-    p_test_cases_aborted.value  = 0;
-    p_duration_microseconds.value= 0;
-    p_aborted.value             = false;
-    p_skipped.value             = false;
+    p_assertions_passed.value    = 0;
+    p_assertions_failed.value    = 0;
+    p_expected_failures.value    = 0;
+    p_test_cases_passed.value    = 0;
+    p_test_cases_failed.value    = 0;
+    p_test_cases_skipped.value   = 0;
+    p_test_cases_aborted.value   = 0;
+    p_aborted.value              = false;
+    p_skipped.value              = true;
 }
 
 //____________________________________________________________________________//
-
+    
 // ************************************************************************** //
 // **************               results_collector              ************** //
 // ************************************************************************** //
+
+#if !BOOST_WORKAROUND(BOOST_MSVC, <1300)
 
 namespace {
 
@@ -126,6 +112,16 @@ struct results_collector_impl {
 results_collector_impl& s_rc_impl() { static results_collector_impl the_inst; return the_inst; }
 
 } // local namespace
+
+#else
+
+struct results_collector_impl {
+    std::map<test_unit_id,test_results> m_results_store;
+};
+
+static results_collector_impl& s_rc_impl() { static results_collector_impl the_inst; return the_inst; }
+
+#endif
 
 //____________________________________________________________________________//
 
@@ -138,14 +134,31 @@ results_collector_t::test_start( counter_t )
 //____________________________________________________________________________//
 
 void
+results_collector_t::test_finish()
+{
+    // do nothing
+}
+
+//____________________________________________________________________________//
+
+void
+results_collector_t::test_aborted()
+{
+    // do nothing
+}
+
+//____________________________________________________________________________//
+
+void
 results_collector_t::test_unit_start( test_unit const& tu )
 {
     // init test_results entry
     test_results& tr = s_rc_impl().m_results_store[tu.p_id];
 
     tr.clear();
-
-    tr.p_expected_failures.value = tu.p_expected_failures;
+    
+    tr.p_expected_failures.value    = tu.p_expected_failures;
+    tr.p_skipped.value              = false;
 }
 
 //____________________________________________________________________________//
@@ -159,18 +172,13 @@ public:
         test_results const& tr = results_collector.results( tc.p_id );
         m_tr += tr;
 
-        if( tr.passed() ) {
-            if( tr.p_warnings_failed )
-                m_tr.p_test_cases_warned.value++;
-            else
-                m_tr.p_test_cases_passed.value++;
-        }
+        if( tr.passed() )
+            m_tr.p_test_cases_passed.value++;
         else if( tr.p_skipped )
             m_tr.p_test_cases_skipped.value++;
         else {
             if( tr.p_aborted )
                 m_tr.p_test_cases_aborted.value++;
-
             m_tr.p_test_cases_failed.value++;
         }
     }
@@ -178,9 +186,10 @@ public:
     {
         if( m_ts.p_id == ts.p_id )
             return true;
-
-        m_tr += results_collector.results( ts.p_id );
-        return false;
+        else {
+            m_tr += results_collector.results( ts.p_id );
+            return false;
+        }
     }
 
 private:
@@ -192,58 +201,55 @@ private:
 //____________________________________________________________________________//
 
 void
-results_collector_t::test_unit_finish( test_unit const& tu, unsigned long elapsed_in_microseconds )
+results_collector_t::test_unit_finish( test_unit const& tu, unsigned long )
 {
-    if( tu.p_type == TUT_SUITE ) {
+    if( tu.p_type == tut_suite ) {
         results_collect_helper ch( s_rc_impl().m_results_store[tu.p_id], tu );
 
         traverse_test_tree( tu, ch );
     }
     else {
-        test_results & tr = s_rc_impl().m_results_store[tu.p_id];
-        tr.p_duration_microseconds.value = elapsed_in_microseconds;
-
+        test_results const& tr = s_rc_impl().m_results_store[tu.p_id];
+        
         bool num_failures_match = tr.p_aborted || tr.p_assertions_failed >= tr.p_expected_failures;
         if( !num_failures_match )
-            BOOST_TEST_FRAMEWORK_MESSAGE( "Test case " << tu.full_name() << " has fewer failures than expected" );
+            BOOST_TEST_MESSAGE( "Test case " << tu.p_name << " has fewer failures than expected" );
 
-        bool check_any_assertions = tr.p_aborted || (tr.p_assertions_failed != 0) || (tr.p_assertions_passed != 0);
-        if( !check_any_assertions )
-            BOOST_TEST_FRAMEWORK_MESSAGE( "Test case " << tu.full_name() << " did not check any assertions" );
+        bool run_any_assertions = tr.p_aborted || (tr.p_assertions_failed != 0) || (tr.p_assertions_passed != 0);
+        if( !run_any_assertions )
+            BOOST_TEST_MESSAGE( "Test case " << tu.p_name << " did not run any assertions" );
     }
 }
 
 //____________________________________________________________________________//
 
 void
-results_collector_t::test_unit_skipped( test_unit const& tu, const_string /*reason*/ )
+results_collector_t::test_unit_skipped( test_unit const& tu )
 {
-    test_results& tr = s_rc_impl().m_results_store[tu.p_id];
-
-    tr.clear();
-
-    tr.p_skipped.value = true;
-
-    if( tu.p_type == TUT_SUITE ) {
+    if( tu.p_type == tut_suite ) {
         test_case_counter tcc;
         traverse_test_tree( tu, tcc );
 
-        tr.p_test_cases_skipped.value = tcc.p_count;
+        test_results& tr = s_rc_impl().m_results_store[tu.p_id];
+
+        tr.clear();
+    
+        tr.p_skipped.value              = true;
+        tr.p_test_cases_skipped.value   = tcc.p_count;
     }
 }
 
 //____________________________________________________________________________//
 
 void
-results_collector_t::assertion_result( unit_test::assertion_result ar )
+results_collector_t::assertion_result( bool passed )
 {
-    test_results& tr = s_rc_impl().m_results_store[framework::current_test_case_id()];
+    test_results& tr = s_rc_impl().m_results_store[framework::current_test_case().p_id];
 
-    switch( ar ) {
-    case AR_PASSED: tr.p_assertions_passed.value++; break;
-    case AR_FAILED: tr.p_assertions_failed.value++; break;
-    case AR_TRIGGERED: tr.p_warnings_failed.value++; break;
-    }
+    if( passed )
+        tr.p_assertions_passed.value++;
+    else
+        tr.p_assertions_failed.value++;
 
     if( tr.p_assertions_failed == 1 )
         first_failed_assertion();
@@ -254,7 +260,7 @@ results_collector_t::assertion_result( unit_test::assertion_result ar )
 void
 results_collector_t::exception_caught( execution_exception const& )
 {
-    test_results& tr = s_rc_impl().m_results_store[framework::current_test_case_id()];
+    test_results& tr = s_rc_impl().m_results_store[framework::current_test_case().p_id];
 
     tr.p_assertions_failed.value++;
 }
@@ -278,7 +284,10 @@ results_collector_t::results( test_unit_id id ) const
 //____________________________________________________________________________//
 
 } // namespace unit_test
+
 } // namespace boost
+
+//____________________________________________________________________________//
 
 #include <boost/test/detail/enable_warnings.hpp>
 

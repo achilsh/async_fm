@@ -10,16 +10,14 @@
 #define BOOST_XPRESSIVE_REGEX_ERROR_HPP_EAN_10_04_2005
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
 #include <string>
 #include <stdexcept>
 #include <boost/throw_exception.hpp>
-#include <boost/current_function.hpp>
 #include <boost/exception/exception.hpp>
-#include <boost/exception/info.hpp>
 #include <boost/xpressive/regex_constants.hpp>
 
 //{{AFX_DOC_COMMENT
@@ -51,7 +49,6 @@ struct regex_error
 {
     /// Constructs an object of class regex_error.
     /// \param code The error_type this regex_error represents.
-    /// \param str The message string of this regex_error.
     /// \post code() == code
     explicit regex_error(regex_constants::error_type code, char const *str = "")
       : std::runtime_error(str)
@@ -93,7 +90,7 @@ namespace detail
         {
             #ifndef BOOST_EXCEPTION_DISABLE
             boost::throw_exception(
-                boost::xpressive::regex_error(code, msg)
+                boost::enable_error_info(boost::xpressive::regex_error(code, msg))
                     << boost::throw_function(fun)
                     << boost::throw_file(file)
                     << boost::throw_line((int)line)
@@ -107,7 +104,7 @@ namespace detail
 }
 
 #define BOOST_XPR_ENSURE_(pred, code, msg)                                                          \
-    boost::xpressive::detail::ensure_(!!(pred), code, msg, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__)  \
+    boost::xpressive::detail::ensure_(pred, code, msg, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__)  \
     /**/
 
 }} // namespace boost::xpressive

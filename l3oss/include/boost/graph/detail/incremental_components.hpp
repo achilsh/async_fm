@@ -60,7 +60,7 @@ namespace boost {
         return (*this);
       }
 
-      bool operator==(const self& other_iterator) const {
+      bool operator==(self& other_iterator) {
         return (m_current_index == *other_iterator);
       }
 

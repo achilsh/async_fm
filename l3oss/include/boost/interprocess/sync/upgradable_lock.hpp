@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -16,11 +16,7 @@
 #ifndef BOOST_INTERPROCESS_UPGRADABLE_LOCK_HPP
 #define BOOST_INTERPROCESS_UPGRADABLE_LOCK_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
@@ -32,7 +28,7 @@
 #include <boost/interprocess/detail/type_traits.hpp>
 
 #include <boost/interprocess/exceptions.hpp>
-#include <boost/move/utility_core.hpp>
+#include <boost/interprocess/detail/move.hpp>
 #include <boost/interprocess/detail/posix_time_types_wrk.hpp>
 
 //!\file
@@ -56,13 +52,13 @@ class upgradable_lock
 {
    public:
    typedef UpgradableMutex mutex_type;
-   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   /// @cond
    private:
    typedef upgradable_lock<UpgradableMutex> this_type;
    explicit upgradable_lock(scoped_lock<mutex_type>&);
    typedef bool this_type::*unspecified_bool_type;
-   BOOST_MOVABLE_BUT_NOT_COPYABLE(upgradable_lock)
-   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(upgradable_lock)
+   /// @endcond
    public:
 
    //!Effects: Default constructs a upgradable_lock.
@@ -89,7 +85,7 @@ class upgradable_lock
       : mp_mutex(&m), m_locked(true)
    {}
 
-   //!Effects: m.try_lock_upgradable().
+   //!Effects: m.try_lock_upgradable(). 
    //!Postconditions: mutex() == &m. owns() == the return value of the
    //!   m.try_lock_upgradable() executed within the constructor.
    //!Notes: The constructor will take upgradable-ownership of the mutex
@@ -101,7 +97,7 @@ class upgradable_lock
       : mp_mutex(&m), m_locked(false)
    {  m_locked = mp_mutex->try_lock_upgradable();   }
 
-   //!Effects: m.timed_lock_upgradable(abs_time)
+   //!Effects: m.timed_lock_upgradable(abs_time) 
    //!Postconditions: mutex() == &m. owns() == the return value of the
    //!   m.timed_lock_upgradable() executed within the constructor.
    //!Notes: The constructor will take upgradable-ownership of the mutex if it
@@ -121,13 +117,13 @@ class upgradable_lock
    //!   while unlocking upgr. If upgr is unlocked, then this upgradable_lock will
    //!   be unlocked as well. Only a moved upgradable_lock's will match this
    //!   signature. An non-moved upgradable_lock can be moved with the
-   //!   expression: "boost::move(lock);". This constructor does not alter the
+   //!   expression: "boost::interprocess::move(lock);". This constructor does not alter the
    //!   state of the mutex, only potentially who owns it.
-   upgradable_lock(BOOST_RV_REF(upgradable_lock<mutex_type>) upgr)
+   upgradable_lock(BOOST_INTERPROCESS_RV_REF(upgradable_lock<mutex_type>) upgr)
       : mp_mutex(0), m_locked(upgr.owns())
    {  mp_mutex = upgr.release(); }
 
-   //!Effects: If scop.owns(), m_.unlock_and_lock_upgradable().
+   //!Effects: If scop.owns(), m_.unlock_and_lock_upgradable(). 
    //!Postconditions: mutex() == the value scop.mutex() had before the construction.
    //!   scop.mutex() == 0. owns() == scop.owns() before the constructor. After the
    //!   construction, scop.owns() == false.
@@ -135,10 +131,10 @@ class upgradable_lock
    //!   to an upgradable-ownership of this upgradable_lock.
    //!   Only a moved sharable_lock's will match this
    //!   signature. An non-moved sharable_lock can be moved with the
-   //!   expression: "boost::move(lock);".
+   //!   expression: "boost::interprocess::move(lock);".
    template<class T>
-   upgradable_lock(BOOST_RV_REF(scoped_lock<T>) scop
-                  , typename ipcdetail::enable_if< ipcdetail::is_same<T, UpgradableMutex> >::type * = 0)
+   upgradable_lock(BOOST_INTERPROCESS_RV_REF(scoped_lock<T>) scop
+                  , typename detail::enable_if< detail::is_same<T, UpgradableMutex> >::type * = 0)
       : mp_mutex(0), m_locked(false)
    {
       scoped_lock<mutex_type> &u_lock = scop;
@@ -150,12 +146,12 @@ class upgradable_lock
    }
 
    //!Effects: If shar.owns() then calls try_unlock_sharable_and_lock_upgradable()
-   //!   on the referenced mutex.
+   //!   on the referenced mutex. 
    //!   a)if try_unlock_sharable_and_lock_upgradable() returns true then mutex()
-   //!      obtains the value from shar.release() and owns() is set to true.
+   //!      obtains the value from shar.release() and owns() is set to true. 
    //!   b)if try_unlock_sharable_and_lock_upgradable() returns false then shar is
    //!      unaffected and this upgradable_lock construction has the same
-   //!      effects as a default construction.
+   //!      effects as a default construction. 
    //!   c)Else shar.owns() is false. mutex() obtains the value from shar.release()
    //!      and owns() is set to false.
    //!Notes: This construction will not block. It will try to obtain mutex
@@ -165,8 +161,8 @@ class upgradable_lock
    //!   "upgradable lock". If the "read lock" is held, then mutex transfer
    //!   occurs only if it can do so in a non-blocking manner.
    template<class T>
-   upgradable_lock( BOOST_RV_REF(sharable_lock<T>) shar, try_to_lock_type
-                  , typename ipcdetail::enable_if< ipcdetail::is_same<T, UpgradableMutex> >::type * = 0)
+   upgradable_lock( BOOST_INTERPROCESS_RV_REF(sharable_lock<T>) shar, try_to_lock_type
+                  , typename detail::enable_if< detail::is_same<T, UpgradableMutex> >::type * = 0)
       : mp_mutex(0), m_locked(false)
    {
       sharable_lock<mutex_type> &s_lock = shar;
@@ -196,7 +192,7 @@ class upgradable_lock
    //!   mutex before the assignment. In this case, this will own the mutex
    //!   after the assignment (and upgr will not), but the mutex's upgradable lock
    //!   count will be decremented by one.
-   upgradable_lock &operator=(BOOST_RV_REF(upgradable_lock) upgr)
+   upgradable_lock &operator=(BOOST_INTERPROCESS_RV_REF(upgradable_lock) upgr)
    {
       if(this->owns())
          this->unlock();
@@ -211,7 +207,7 @@ class upgradable_lock
    //!Notes: The sharable_lock changes from a state of not owning the mutex,
    //!   to owning the mutex, blocking if necessary.
    void lock()
-   {
+   {  
       if(!mp_mutex || m_locked)
          throw lock_exception();
       mp_mutex->lock_upgradable();
@@ -227,7 +223,7 @@ class upgradable_lock
    //!   mutex_type does not support try_lock_upgradable(), this function will
    //!   fail at compile time if instantiated, but otherwise have no effect.
    bool try_lock()
-   {
+   {  
       if(!mp_mutex || m_locked)
          throw lock_exception();
       m_locked = mp_mutex->try_lock_upgradable();
@@ -244,7 +240,7 @@ class upgradable_lock
    //!   timed_lock_upgradable(abs_time), this function will fail at compile
    //!   time if instantiated, but otherwise have no effect.
    bool timed_lock(const boost::posix_time::ptime& abs_time)
-   {
+   {  
       if(!mp_mutex || m_locked)
          throw lock_exception();
       m_locked = mp_mutex->timed_lock_upgradable(abs_time);
@@ -290,19 +286,19 @@ class upgradable_lock
       return mut;
    }
 
-   //!Effects: Swaps state with moved lock.
+   //!Effects: Swaps state with moved lock. 
    //!Throws: Nothing.
    void swap(upgradable_lock<mutex_type> &other)
    {
-      (simple_swap)(mp_mutex, other.mp_mutex);
-      (simple_swap)(m_locked, other.m_locked);
+      std::swap(mp_mutex, other.mp_mutex);
+      std::swap(m_locked, other.m_locked);
    }
 
-   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   /// @cond
    private:
    mutex_type *mp_mutex;
    bool        m_locked;
-   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+   /// @endcond
 };
 
 } // namespace interprocess

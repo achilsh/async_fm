@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_EXTENDED_TYPE_INFO_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -19,13 +19,13 @@
 // for now, extended type info is part of the serialization libraries
 // this could change in the future.
 #include <cstdarg>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <cstddef> // NULL
 #include <boost/config.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/serialization/config.hpp>
 #include <boost/mpl/bool.hpp>
 
-#include <boost/serialization/config.hpp>
 #include <boost/config/abi_prefix.hpp> // must be the last header
 #ifdef BOOST_MSVC
 #  pragma warning(push)
@@ -41,7 +41,7 @@ namespace void_cast_detail{
     class void_caster;
 }
 
-class BOOST_SYMBOL_VISIBLE extended_type_info :
+class BOOST_SERIALIZATION_DECL(BOOST_PP_EMPTY()) extended_type_info :
     private boost::noncopyable
 {
 private:
@@ -56,52 +56,46 @@ private:
     const char * m_key;
 
 protected:
-    BOOST_SERIALIZATION_DECL void key_unregister() const;
-    BOOST_SERIALIZATION_DECL void key_register() const;
+    void key_unregister() const;
+    void key_register() const;
     // this class can't be used as is. It's just the 
     // common functionality for all type_info replacement
     // systems.  Hence, make these protected
-    BOOST_SERIALIZATION_DECL extended_type_info(
-        const unsigned int type_info_key,
-        const char * key
+    extended_type_info(
+    	const unsigned int type_info_key,
+    	const char * key
     );
-    virtual BOOST_SERIALIZATION_DECL ~extended_type_info();
+    // account for bogus gcc warning
+    #if defined(__GNUC__)
+    virtual
+    #endif
+    ~extended_type_info();
 public:
     const char * get_key() const {
         return m_key;
     }
     virtual const char * get_debug_info() const = 0;
-    BOOST_SERIALIZATION_DECL bool operator<(const extended_type_info &rhs) const;
-    BOOST_SERIALIZATION_DECL bool operator==(const extended_type_info &rhs) const;
+    bool operator<(const extended_type_info &rhs) const;
+    bool operator==(const extended_type_info &rhs) const;
     bool operator!=(const extended_type_info &rhs) const {
         return !(operator==(rhs));
     }
-    // note explicit "export" of static function to work around
-    // gcc 4.5 mingw error
-    static BOOST_SERIALIZATION_DECL const extended_type_info *
-    find(const char *key);
+    static const extended_type_info * find(const char *key);
     // for plugins
-    virtual void * construct(unsigned int /*count*/ = 0, ...) const = 0;
-    virtual void destroy(void const * const /*p*/) const = 0;
+    virtual void * construct(unsigned int /*count*/ = 0, ...) const {
+        assert(false); // must be implemented if used
+        return NULL;
+    };
+    virtual void destroy(void const * const /*p*/) const {
+        assert(false); // must be implemented if used
+    }
 };
 
 template<class T>
 struct guid_defined : boost::mpl::false_ {};
-
-namespace ext {
-    template <typename T>
-    struct guid_impl
-    {
-        static inline const char * call()
-        {
-            return NULL;
-        }
-    };
-}
-
 template<class T>
 inline const char * guid(){
-    return ext::guid_impl<T>::call();
+    return NULL;
 }
 
 } // namespace serialization 

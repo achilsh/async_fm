@@ -6,7 +6,6 @@
 #ifndef UUID_316FDA946C0D11DEA9CBAE5255D89593
 #define UUID_316FDA946C0D11DEA9CBAE5255D89593
 
-#include <boost/config.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/error_info.hpp>
 #include <boost/exception/exception.hpp>
@@ -24,4 +23,5 @@
 #include <boost/exception/errinfo_nested_exception.hpp>
 #include <boost/exception_ptr.hpp>
 #endif
+
 #endif

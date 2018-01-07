@@ -10,15 +10,12 @@
 #ifndef BOOST_GRAPH_GURSOY_ATUN_LAYOUT_HPP
 #define BOOST_GRAPH_GURSOY_ATUN_LAYOUT_HPP
 
-// Gürsoy-Atun graph layout, based on:
+// Gursoy-Atun graph layout, based on:
 // "Neighbourhood Preserving Load Balancing: A Self-Organizing Approach"
-// in 6th International Euro-Par Conference Munich, Germany, August 29 – September 1, 2000 Proceedings,
-// pp 234-241
-// http://dx.doi.org/10.1007/3-540-44520-X_32
+// in EuroPar 2000, p. 234 of LNCS 1900
+// http://springerlink.metapress.com/link.asp?id=pcu07ew5rhexp9yt
 
 #include <boost/config/no_tr1/cmath.hpp>
-#include <boost/throw_exception.hpp>
-#include <boost/assert.hpp>
 #include <vector>
 #include <exception>
 #include <algorithm>
@@ -75,7 +72,7 @@ struct update_position_visitor {
 #endif
 
     if (get(node_distance, v) > distance_limit)
-      BOOST_THROW_EXCEPTION(over_distance_limit());
+      throw over_distance_limit();
     Point old_position = get(position_map, v);
     double distance = get(node_distance, v);
     double fraction = 
@@ -171,7 +168,7 @@ gursoy_atun_step
     }
     min_distance_unset = false;
   }
-  BOOST_ASSERT (!min_distance_unset); // Graph must have at least one vertex
+  assert (!min_distance_unset); // Graph must have at least one vertex
   boost::detail::update_position_visitor<
       PositionMap, NodeDistanceMap, Topology,
       VertexListAndIncidenceGraph> 
@@ -209,6 +206,9 @@ void gursoy_atun_refine(const VertexListAndIncidenceGraph& graph,
 
   typedef typename graph_traits<VertexListAndIncidenceGraph>::vertex_iterator
     vertex_iterator;
+  typedef typename graph_traits<VertexListAndIncidenceGraph>::vertex_descriptor
+    vertex_descriptor;
+  typedef typename Topology::point_type point_type;
   vertex_iterator i, iend;
   double diameter_ratio = (double)diameter_final / diameter_initial;
   double learning_constant_ratio = 
@@ -228,7 +228,6 @@ void gursoy_atun_refine(const VertexListAndIncidenceGraph& graph,
                                 vertex_index_map);
   for (int round = 0; round < nsteps; ++round) {
     double part_done = (double)round / (nsteps - 1);
-    // fprintf(stderr, "%2d%% done\n", int(rint(part_done * 100.)));
     int diameter = (int)(diameter_initial * pow(diameter_ratio, part_done));
     double learning_constant = 
       learning_constant_initial * pow(learning_constant_ratio, part_done);

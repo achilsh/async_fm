@@ -2,7 +2,7 @@
 // serial_port_base.hpp
 // ~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2008 Rep Invariant Systems, Inc. (info@repinvariant.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -16,27 +16,40 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
+
+#include <boost/asio/detail/push_options.hpp>
+#include <stdexcept>
+#include <boost/config.hpp>
+#include <boost/detail/workaround.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio/detail/pop_options.hpp>
+
+#if !defined(BOOST_ASIO_DISABLE_SERIAL_PORT)
+# if defined(BOOST_ASIO_HAS_IOCP) \
+    || !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
+#  define BOOST_ASIO_HAS_SERIAL_PORT 1
+# endif // defined(BOOST_ASIO_HAS_IOCP)
+#endif // !defined(BOOST_ASIO_DISABLE_STREAM_HANDLE)
 
 #if defined(BOOST_ASIO_HAS_SERIAL_PORT) \
   || defined(GENERATING_DOCUMENTATION)
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
+# include <boost/asio/detail/push_options.hpp>
 # include <termios.h>
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+# include <boost/asio/detail/pop_options.hpp>
+#endif // !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
 #include <boost/asio/detail/socket_types.hpp>
-#include <boost/system/error_code.hpp>
 
 #if defined(GENERATING_DOCUMENTATION)
 # define BOOST_ASIO_OPTION_STORAGE implementation_defined
-#elif defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#elif defined(BOOST_WINDOWS) || defined(__CYGWIN__)
 # define BOOST_ASIO_OPTION_STORAGE DCB
 #else
 # define BOOST_ASIO_OPTION_STORAGE termios
 #endif
-
-#include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -55,11 +68,9 @@ public:
   public:
     explicit baud_rate(unsigned int rate = 0);
     unsigned int value() const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code store(BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code load(const BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec);
   private:
     unsigned int value_;
@@ -73,13 +84,11 @@ public:
   {
   public:
     enum type { none, software, hardware };
-    BOOST_ASIO_DECL explicit flow_control(type t = none);
+    explicit flow_control(type t = none);
     type value() const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code store(BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code load(const BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec);
   private:
     type value_;
@@ -93,13 +102,11 @@ public:
   {
   public:
     enum type { none, odd, even };
-    BOOST_ASIO_DECL explicit parity(type t = none);
+    explicit parity(type t = none);
     type value() const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code store(BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code load(const BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec);
   private:
     type value_;
@@ -113,13 +120,11 @@ public:
   {
   public:
     enum type { one, onepointfive, two };
-    BOOST_ASIO_DECL explicit stop_bits(type t = one);
+    explicit stop_bits(type t = one);
     type value() const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code store(BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code load(const BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec);
   private:
     type value_;
@@ -132,13 +137,11 @@ public:
   class character_size
   {
   public:
-    BOOST_ASIO_DECL explicit character_size(unsigned int t = 8);
+    explicit character_size(unsigned int t = 8);
     unsigned int value() const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code store(BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL BOOST_ASIO_SYNC_OP_VOID load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
+    boost::system::error_code load(const BOOST_ASIO_OPTION_STORAGE& storage,
         boost::system::error_code& ec);
   private:
     unsigned int value_;
@@ -149,21 +152,24 @@ protected:
   ~serial_port_base()
   {
   }
+
+#if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+private:
+  // Workaround to enable the empty base optimisation with Borland C++.
+  char dummy_;
+#endif
 };
 
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include <boost/asio/impl/serial_port_base.ipp>
 
 #undef BOOST_ASIO_OPTION_STORAGE
 
-#include <boost/asio/impl/serial_port_base.hpp>
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/impl/serial_port_base.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
-
 #endif // defined(BOOST_ASIO_HAS_SERIAL_PORT)
        //   || defined(GENERATING_DOCUMENTATION)
+
+#include <boost/asio/detail/pop_options.hpp>
 
 #endif // BOOST_ASIO_SERIAL_PORT_BASE_HPP

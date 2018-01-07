@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_CONTAINER_ADAPTOR_ASSOCIATIVE_CONTAINER_ADAPTOR_HPP
 #define BOOST_BIMAP_CONTAINER_ADAPTOR_ASSOCIATIVE_CONTAINER_ADAPTOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -178,7 +178,7 @@ class associative_container_adaptor :
     }
 
     template< class CompatibleKey >
-    BOOST_DEDUCED_TYPENAME base_::size_type count(const CompatibleKey & k) const
+    BOOST_DEDUCED_TYPENAME base_::size_type count(const CompatibleKey & k)
     {
         return this->base().count(
             this->template functor<key_to_base>()(k)

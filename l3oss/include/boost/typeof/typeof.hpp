@@ -13,17 +13,9 @@
 #   error both typeof emulation and native mode requested
 #endif
 
-#include <boost/config.hpp>
-
-#if !defined(BOOST_NO_CXX11_DECLTYPE) && !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES) && !defined(BOOST_TYPEOF_EMULATION)
-#   define BOOST_TYPEOF_DECLTYPE
-#   ifndef BOOST_TYPEOF_NATIVE
-#       define BOOST_TYPEOF_NATIVE
-#   endif
-
-#elif defined(__COMO__)
+#if defined(__COMO__)
 #   ifdef __GNUG__
-#       ifndef BOOST_TYPEOF_EMULATION
+#       ifndef(BOOST_TYPEOF_EMULATION)
 #           ifndef BOOST_TYPEOF_NATIVE
 #               define BOOST_TYPEOF_NATIVE
 #           endif
@@ -57,7 +49,7 @@
 #       endif
 #   endif
 
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__GNUC__)
 #   ifndef BOOST_TYPEOF_EMULATION
 #       ifndef BOOST_TYPEOF_NATIVE
 #           define BOOST_TYPEOF_NATIVE
@@ -73,7 +65,7 @@
 #           endif
 #           define BOOST_TYPEOF_KEYWORD __typeof__
 #       else
-#           define BOOST_TYPEOF_EMULATION_UNSUPPORTED
+#           error typeof emulation is not supported
 #       endif
 #   else // 9.x
 #       ifndef BOOST_TYPEOF_EMULATION
@@ -83,22 +75,7 @@
 #           define BOOST_TYPEOF_KEYWORD __typeof__
 #       endif
 #   endif
-#elif defined __CODEGEARC__
-#   ifndef BOOST_TYPEOF_EMULATION
-#       ifndef BOOST_TYPEOF_NATIVE
-#           define BOOST_TYPEOF_EMULATION_UNSUPPORTED
-#       endif
-#   else
-#       define BOOST_TYPEOF_EMULATION_UNSUPPORTED
-#   endif
-#elif defined __BORLANDC__
-#   ifndef BOOST_TYPEOF_EMULATION
-#       ifndef BOOST_TYPEOF_NATIVE
-#           define BOOST_TYPEOF_EMULATION_UNSUPPORTED
-#       endif
-#   else
-#       define BOOST_TYPEOF_EMULATION_UNSUPPORTED
-#   endif
+
 #elif defined __DMC__
 #   ifndef BOOST_TYPEOF_EMULATION
 #       ifndef BOOST_TYPEOF_NATIVE
@@ -108,21 +85,34 @@
 #       define MSVC_TYPEOF_HACK
 #   endif
 #elif defined(_MSC_VER)
-#   if (_MSC_VER >= 1310)  // 7.1 ->
+#   if (_MSC_VER <= 1300)  // 6.5, 7.0
 #       ifndef BOOST_TYPEOF_EMULATION
 #           ifndef BOOST_TYPEOF_NATIVE
-#               ifndef _MSC_EXTENSIONS
-#                   define BOOST_TYPEOF_EMULATION
-#               else
-#                   define BOOST_TYPEOF_NATIVE
-#               endif
+#               define BOOST_TYPEOF_NATIVE
 #           endif
+#           include <boost/typeof/msvc/typeof_impl.hpp>
+#           define MSVC_TYPEOF_HACK
+#       else
+#           error typeof emulation is not supported
 #       endif
-#       ifdef BOOST_TYPEOF_NATIVE
+#   elif (_MSC_VER >= 1310)  // 7.1, 8.0
+#       ifndef BOOST_TYPEOF_EMULATION
+#           ifndef BOOST_TYPEOF_NATIVE
+#               define BOOST_TYPEOF_NATIVE
+#           endif
 #           include <boost/typeof/msvc/typeof_impl.hpp>
 #           define MSVC_TYPEOF_HACK
 #       endif
+/*#   else // 8.0
+#       ifndef BOOST_TYPEOF_NATIVE
+#           ifndef BOOST_TYPEOF_EMULATION
+#               define BOOST_TYPEOF_EMULATION
+#           endif
+#       else
+#           error native typeof is not supported
+#       endif*/
 #   endif
+
 #elif defined(__HP_aCC)
 #   ifndef BOOST_TYPEOF_NATIVE
 #       ifndef BOOST_TYPEOF_EMULATION
@@ -153,29 +143,7 @@
 #   else
 #       error native typeof is not supported
 #   endif
-#elif defined(__SUNPRO_CC)
-#   if (__SUNPRO_CC < 0x590 )
-#     ifdef BOOST_TYPEOF_NATIVE
-#         error native typeof is not supported
-#     endif
-#     ifndef BOOST_TYPEOF_EMULATION
-#         define BOOST_TYPEOF_EMULATION
-#     endif
-#   else
-#     ifndef BOOST_TYPEOF_EMULATION
-#         ifndef BOOST_TYPEOF_NATIVE
-#             define BOOST_TYPEOF_NATIVE
-#         endif
-#         define BOOST_TYPEOF_KEYWORD __typeof__
-#     endif
-#   endif
-#elif defined(__IBM__TYPEOF__)
-#   ifndef BOOST_TYPEOF_EMULATION
-#       ifndef BOOST_TYPEOF_NATIVE
-#           define BOOST_TYPEOF_NATIVE
-#       endif
-#       define BOOST_TYPEOF_KEYWORD __typeof__
-#   endif
+
 #else //unknown compiler
 #   ifndef BOOST_TYPEOF_NATIVE
 #       ifndef BOOST_TYPEOF_EMULATION
@@ -195,9 +163,7 @@
 #define BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()\
      <boost/typeof/incr_registration_group.hpp>
 
-#ifdef BOOST_TYPEOF_EMULATION_UNSUPPORTED
-#   include <boost/typeof/unsupported.hpp>
-#elif defined BOOST_TYPEOF_EMULATION
+#ifdef BOOST_TYPEOF_EMULATION
 #   define BOOST_TYPEOF_TEXT "using typeof emulation"
 #   include <boost/typeof/message.hpp>
 #   include <boost/typeof/typeof_impl.hpp>
@@ -211,11 +177,7 @@
 #elif defined(BOOST_TYPEOF_NATIVE)
 #   define BOOST_TYPEOF_TEXT "using native typeof"
 #   include <boost/typeof/message.hpp>
-#   ifdef BOOST_TYPEOF_DECLTYPE
-#       include <boost/typeof/decltype.hpp>
-#   else
-#       include <boost/typeof/native.hpp>
-#   endif
+#   include <boost/typeof/native.hpp>
 #else
 #   error typeof configuration error
 #endif

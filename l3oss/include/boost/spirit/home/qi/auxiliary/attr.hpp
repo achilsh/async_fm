@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -18,10 +18,8 @@
 #include <boost/spirit/home/qi/detail/assign_to.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/type_traits/add_reference.hpp>
 #include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_const.hpp>
 
 namespace boost { namespace spirit
 {
@@ -30,27 +28,27 @@ namespace boost { namespace spirit
     ///////////////////////////////////////////////////////////////////////////
     template <typename A0>       // enables attr()
     struct use_terminal<
-            qi::domain, terminal_ex<tag::attr, fusion::vector1<A0> > >
+            qi::domain, terminal_ex<tag::attr, fusion::vector1<A0> > > 
       : mpl::true_ {};
 
     template <>                  // enables *lazy* attr()
-    struct use_lazy_terminal<qi::domain, tag::attr, 1>
+    struct use_lazy_terminal<qi::domain, tag::attr, 1> 
       : mpl::true_ {};
 
 }}
 
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::attr;
-#endif
-    using spirit::attr_type;
 
     template <typename Value>
     struct attr_parser : primitive_parser<attr_parser<Value> >
     {
         template <typename Context, typename Iterator>
-        struct attribute : remove_const<Value> {};
+        struct attribute
+        {
+            typedef Value type;
+        };
 
         attr_parser(typename add_reference<Value>::type value)
           : value_(value) {}
@@ -59,9 +57,9 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& /*first*/, Iterator const& /*last*/
           , Context& /*context*/, Skipper const& /*skipper*/
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
-            spirit::traits::assign_to(value_, attr_);
+            spirit::traits::assign_to(value_, attr);
             return true;        // never consume any input, succeed always
         }
 
@@ -95,14 +93,7 @@ namespace boost { namespace spirit { namespace qi
             return result_type(fusion::at_c<0>(term.args));
         }
     };
-}}}
 
-namespace boost { namespace spirit { namespace traits
-{
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T, typename Attr, typename Context, typename Iterator>
-    struct handles_container<qi::attr_parser<T>, Attr, Context, Iterator>
-      : traits::is_container<Attr> {}; 
 }}}
 
 #endif

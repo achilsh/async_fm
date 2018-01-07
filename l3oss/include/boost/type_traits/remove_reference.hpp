@@ -9,51 +9,42 @@
 #ifndef BOOST_TT_REMOVE_REFERENCE_HPP_INCLUDED
 #define BOOST_TT_REMOVE_REFERENCE_HPP_INCLUDED
 
+#include <boost/type_traits/broken_compiler_spec.hpp>
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
-namespace boost {
-
-
-namespace detail{
-//
-// We can't filter out rvalue_references at the same level as
-// references or we get ambiguities from msvc:
-//
-template <class T>
-struct remove_rvalue_ref
-{
-   typedef T type;
-};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-template <class T>
-struct remove_rvalue_ref<T&&>
-{
-   typedef T type;
-};
+#if BOOST_WORKAROUND(BOOST_MSVC,<=1300)
+#include <boost/type_traits/msvc/remove_reference.hpp>
 #endif
 
-} // namespace detail
+// should be the last #include
+#include <boost/type_traits/detail/type_trait_def.hpp>
 
-template <class T> struct remove_reference{ typedef typename boost::detail::remove_rvalue_ref<T>::type type; };
-template <class T> struct remove_reference<T&>{ typedef T type; };
+namespace boost {
+
+#ifndef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
+
+BOOST_TT_AUX_TYPE_TRAIT_DEF1(remove_reference,T,T)
+BOOST_TT_AUX_TYPE_TRAIT_PARTIAL_SPEC1_1(typename T,remove_reference,T&,T)
 
 #if defined(BOOST_ILLEGAL_CV_REFERENCES)
 // these are illegal specialisations; cv-qualifies applied to
 // references have no effect according to [8.3.2p1],
 // C++ Builder requires them though as it treats cv-qualified
 // references as distinct types...
-template <class T> struct remove_reference<T&const>{ typedef T type; };
-template <class T> struct remove_reference<T&volatile>{ typedef T type; };
-template <class T> struct remove_reference<T&const volatile>{ typedef T type; };
+BOOST_TT_AUX_TYPE_TRAIT_PARTIAL_SPEC1_1(typename T,remove_reference,T& const,T)
+BOOST_TT_AUX_TYPE_TRAIT_PARTIAL_SPEC1_1(typename T,remove_reference,T& volatile,T)
+BOOST_TT_AUX_TYPE_TRAIT_PARTIAL_SPEC1_1(typename T,remove_reference,T& const volatile,T)
 #endif
 
-#if !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES)
+#elif !BOOST_WORKAROUND(BOOST_MSVC,<=1300)
 
-   template <class T> using remove_reference_t = typename remove_reference<T>::type;
+BOOST_TT_AUX_TYPE_TRAIT_DEF1(remove_reference,T,typename boost::detail::remove_reference_impl<T>::type)
 
-#endif
+#endif // BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
 
 } // namespace boost
+
+#include <boost/type_traits/detail/type_trait_undef.hpp>
 
 #endif // BOOST_TT_REMOVE_REFERENCE_HPP_INCLUDED

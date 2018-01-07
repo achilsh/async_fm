@@ -41,7 +41,7 @@ bool ModuleHttp::AnyMessage(
     std::string sErr;
     m_tagMsgShell = stMsgShell;
     m_oInHttpMsg = oInHttpMsg; 
-    LOG4_INFO("method: %d ", oInHttpMsg.method());
+    LOG4_INFO("method: %d,======> ", oInHttpMsg.method());
     if (HTTP_POST != oInHttpMsg.method()) {
       LOG4_INFO("req not post method");
       sErr = "req not post method";
@@ -71,6 +71,7 @@ bool ModuleHttp::AnyMessage(
       SendAck(sErr);
       return false;
     }
+#if 1
     //
     pStepTQry =  new StepTestQuery(m_tagMsgShell, oInHttpMsg, sTestVal);
     if (false == RegisterCallback(pStepTQry)) {
@@ -84,6 +85,7 @@ bool ModuleHttp::AnyMessage(
       SendAck("run step query faild");
       return false;
     }
+#endif
     return true;
 }
 

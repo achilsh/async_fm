@@ -28,7 +28,7 @@ struct _ptr_serialization_support
     typedef int type;
 };
 
-#if defined(__SUNPRO_CC) && (__SUNPRO_CC < 0x5130)
+#ifdef __SUNPRO_CC
 
 template<int N>
 struct counter : counter<N-1> {};
@@ -54,12 +54,12 @@ void instantiate_ptr_serialization(Serializable*, counter<0>) {}
 
 #define BOOST_SERIALIZATION_REGISTER_ARCHIVE(Archive)                     \
 namespace boost { namespace archive { namespace detail {                  \
-    get_counter<Archive >::next adjust_counter(get_counter<Archive >::type);\
+    get_counter<Archive>::next adjust_counter(get_counter<Archive>::type);\
     template<class Serializable>                                          \
     void instantiate_ptr_serialization(Serializable* s,                   \
-        get_counter<Archive >::type) {                                    \
+        get_counter<Archive>::type) {                                     \
         ptr_serialization_support<Archive, Serializable> x;               \
-        instantiate_ptr_serialization(s, get_counter<Archive >::prior()); \
+        instantiate_ptr_serialization(s, get_counter<Archive>::prior());  \
     }\
 }}}
 
@@ -81,7 +81,7 @@ void instantiate_ptr_serialization(Serializable*, int, adl_tag ) {}
 namespace boost { namespace archive { namespace detail {                \
                                                                         \
 template <class Serializable>                                           \
-typename _ptr_serialization_support<Archive, Serializable>::type  \
+BOOST_DEDUCED_TYPENAME _ptr_serialization_support<Archive, Serializable>::type  \
 instantiate_ptr_serialization( Serializable*, Archive*, adl_tag );              \
                                                                         \
 }}}

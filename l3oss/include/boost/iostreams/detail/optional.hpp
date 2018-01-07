@@ -14,11 +14,11 @@
 #ifndef BOOST_IOSTREAMS_DETAIL_OPTIONAL_HPP_INCLUDED
 #define BOOST_IOSTREAMS_DETAIL_OPTIONAL_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
-#include <boost/assert.hpp>
+#include <cassert>
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/alignment_of.hpp>
@@ -52,32 +52,32 @@ public:
     ~optional() { reset(); }
     T& operator*() 
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return *static_cast<T*>(address()); 
     }
     const T& operator*() const
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return *static_cast<const T*>(address()); 
     }
     T* operator->() 
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return static_cast<T*>(address()); 
     }
     const T* operator->() const
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return static_cast<const T*>(address()); 
     }
     T* get() 
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return static_cast<T*>(address()); 
     }
     const T* get() const
     { 
-        BOOST_ASSERT(initialized_);
+        assert(initialized_);
         return static_cast<const T*>(address()); 
     }
     void reset() 

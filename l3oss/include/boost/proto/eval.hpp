@@ -9,8 +9,10 @@
 #ifndef BOOST_PROTO_EVAL_HPP_EAN_03_29_2007
 #define BOOST_PROTO_EVAL_HPP_EAN_03_29_2007
 
+#include <boost/proto/detail/prefix.hpp> // must be first include
 #include <boost/proto/proto_fwd.hpp> // BOOST_PROTO_CALLABLE
 #include <boost/type_traits/remove_reference.hpp>
+#include <boost/proto/detail/suffix.hpp> // must be last include
 
 namespace boost { namespace proto
 {
@@ -75,24 +77,6 @@ namespace boost { namespace proto
             {
                 return typename Context::template eval<Expr>()(e, ctx);
             }
-
-            /// \overload
-            ///
-            template<typename Expr, typename Context>
-            typename proto::result_of::eval<Expr const, Context>::type
-            operator ()(Expr const &e, Context &ctx) const
-            {
-                return typename Context::template eval<Expr const>()(e, ctx);
-            }
-
-            /// \overload
-            ///
-            template<typename Expr, typename Context>
-            typename proto::result_of::eval<Expr const, Context>::type
-            operator ()(Expr const &e, Context const &ctx) const
-            {
-                return typename Context::template eval<Expr const>()(e, ctx);
-            }
         };
     }
 
@@ -116,24 +100,6 @@ namespace boost { namespace proto
     eval(Expr &e, Context const &ctx)
     {
         return typename Context::template eval<Expr>()(e, ctx);
-    }
-
-    /// \overload
-    ///
-    template<typename Expr, typename Context>
-    typename proto::result_of::eval<Expr const, Context>::type
-    eval(Expr const &e, Context &ctx)
-    {
-        return typename Context::template eval<Expr const>()(e, ctx);
-    }
-
-    /// \overload
-    ///
-    template<typename Expr, typename Context>
-    typename proto::result_of::eval<Expr const, Context>::type
-    eval(Expr const &e, Context const &ctx)
-    {
-        return typename Context::template eval<Expr const>()(e, ctx);
     }
 }}
 

@@ -9,13 +9,12 @@
 #define BOOST_XPRESSIVE_DETAIL_CORE_ACCESS_HPP_EAN_10_04_2005
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <boost/proto/traits.hpp>
 #include <boost/xpressive/detail/detail_fwd.hpp>
 #include <boost/xpressive/detail/dynamic/matchable.hpp>
 #include <boost/xpressive/match_results.hpp> // for type_info_less
@@ -119,11 +118,6 @@ struct core_access
     static void set_base(match_results<BidiIter> &what, BidiIter base)
     {
         what.set_base_(base);
-    }
-
-    static BidiIter get_base(match_results<BidiIter> &what)
-    {
-        return *what.base_;
     }
 };
 

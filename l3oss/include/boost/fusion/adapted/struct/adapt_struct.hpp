@@ -1,125 +1,75 @@
 /*=============================================================================
     Copyright (c) 2001-2007 Joel de Guzman
-    Copyright (c) 2009-2011 Christopher Schmidt
-    Copyright (c) 2013-2014 Damien Buhl
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
+#if !defined(BOOST_FUSION_ADAPT_STRUCT_APRIL_2_2007_1158AM)
+#define BOOST_FUSION_ADAPT_STRUCT_APRIL_2_2007_1158AM
 
-#ifndef BOOST_FUSION_ADAPTED_STRUCT_ADAPT_STRUCT_HPP
-#define BOOST_FUSION_ADAPTED_STRUCT_ADAPT_STRUCT_HPP
-
-#include <boost/fusion/support/config.hpp>
-#include <boost/preprocessor/config/config.hpp>
-#include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/empty.hpp>
-#include <boost/preprocessor/control/iif.hpp>
-#include <boost/preprocessor/comparison/less.hpp>
-#include <boost/preprocessor/seq/seq.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
-#include <boost/type_traits/add_reference.hpp>
-#include <boost/type_traits/is_const.hpp>
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_const.hpp>
-
-#include <boost/fusion/adapted/struct/detail/extension.hpp>
-#include <boost/fusion/adapted/struct/detail/adapt_base.hpp>
-#include <boost/fusion/adapted/struct/detail/adapt_base_attr_filler.hpp>
-#include <boost/fusion/adapted/struct/detail/at_impl.hpp>
+#include <boost/fusion/support/tag_of_fwd.hpp>
+#include <boost/fusion/adapted/struct/extension.hpp>
+#include <boost/fusion/adapted/struct/struct_iterator.hpp>
 #include <boost/fusion/adapted/struct/detail/is_view_impl.hpp>
 #include <boost/fusion/adapted/struct/detail/is_sequence_impl.hpp>
-#include <boost/fusion/adapted/struct/detail/value_at_impl.hpp>
 #include <boost/fusion/adapted/struct/detail/category_of_impl.hpp>
-#include <boost/fusion/adapted/struct/detail/size_impl.hpp>
 #include <boost/fusion/adapted/struct/detail/begin_impl.hpp>
 #include <boost/fusion/adapted/struct/detail/end_impl.hpp>
-#include <boost/fusion/adapted/struct/detail/value_of_impl.hpp>
-#include <boost/fusion/adapted/struct/detail/deref_impl.hpp>
+#include <boost/fusion/adapted/struct/detail/size_impl.hpp>
+#include <boost/fusion/adapted/struct/detail/at_impl.hpp>
+#include <boost/fusion/adapted/struct/detail/value_at_impl.hpp>
 
-#define BOOST_FUSION_ADAPT_STRUCT_C(                                            \
-    TEMPLATE_PARAMS_SEQ, NAME_SEQ, IS_VIEW, I, ATTRIBUTE)                       \
-        BOOST_FUSION_ADAPT_STRUCT_C_BASE(                                       \
-            TEMPLATE_PARAMS_SEQ,                                                \
-            NAME_SEQ,                                                           \
-            IS_VIEW,                                                            \
-            I,                                                                  \
-            BOOST_PP_IIF(IS_VIEW, BOOST_FUSION_PROXY_PREFIX, BOOST_PP_EMPTY),   \
-            BOOST_FUSION_ADAPT_STRUCT_WRAPPEDATTR(ATTRIBUTE),                   \
-            BOOST_FUSION_ADAPT_STRUCT_WRAPPEDATTR_SIZE(ATTRIBUTE),              \
-            BOOST_PP_LESS(                                                      \
-                BOOST_FUSION_ADAPT_STRUCT_WRAPPEDATTR_SIZE(ATTRIBUTE), 2))
+#include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/punctuation/comma_if.hpp>
+#include <boost/preprocessor/seq/for_each_i.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/preprocessor/repetition/enum_params_with_a_default.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/cat.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/config/no_tr1/utility.hpp>
 
+#define BOOST_FUSION_ADAPT_STRUCT(name, bseq)                                   \
+    BOOST_FUSION_ADAPT_STRUCT_I(                                                \
+        name, BOOST_PP_CAT(BOOST_FUSION_ADAPT_STRUCT_X bseq, 0))                \
+    /***/
 
+#define BOOST_FUSION_ADAPT_STRUCT_X(x, y) ((x, y)) BOOST_FUSION_ADAPT_STRUCT_Y
+#define BOOST_FUSION_ADAPT_STRUCT_Y(x, y) ((x, y)) BOOST_FUSION_ADAPT_STRUCT_X
+#define BOOST_FUSION_ADAPT_STRUCT_X0
+#define BOOST_FUSION_ADAPT_STRUCT_Y0
 
-#if BOOST_PP_VARIADICS
+// BOOST_FUSION_ADAPT_STRUCT_I generates the overarching structure and uses
+// SEQ_FOR_EACH_I to generate the "linear" substructures.
+// Thanks to Paul Mensonides for the PP macro help
 
-#   define BOOST_FUSION_ADAPT_TPL_STRUCT(TEMPLATE_PARAMS_SEQ,NAME_SEQ, ...)     \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (1)TEMPLATE_PARAMS_SEQ,                                             \
-            (1)NAME_SEQ,                                                        \
-            struct_tag,                                                         \
-            0,                                                                  \
-            BOOST_FUSION_ADAPT_STRUCT_ATTRIBUTES_FILLER(                        \
-                BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)),                         \
-            BOOST_FUSION_ADAPT_STRUCT_C)
+#define BOOST_FUSION_ADAPT_STRUCT_I(name, seq)                                  \
+    namespace boost { namespace fusion { namespace traits                       \
+    {                                                                           \
+        template <>                                                             \
+        struct tag_of<name>                                                     \
+        {                                                                       \
+            typedef struct_tag type;                                            \
+        };                                                                      \
+    }}}                                                                         \
+    namespace boost { namespace fusion { namespace extension                    \
+    {                                                                           \
+        template <>                                                             \
+        struct struct_size<name> : mpl::int_<BOOST_PP_SEQ_SIZE(seq)> {};        \
+        BOOST_PP_SEQ_FOR_EACH_I(BOOST_FUSION_ADAPT_STRUCT_C, name, seq)         \
+    }}}                                                                         \
+    /***/
 
-#   define BOOST_FUSION_ADAPT_STRUCT(...)                                       \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (0),                                                                \
-            (0)(BOOST_PP_SEQ_HEAD(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))),      \
-            struct_tag,                                                         \
-            0,                                                                  \
-            BOOST_FUSION_ADAPT_STRUCT_ATTRIBUTES_FILLER(                        \
-              BOOST_PP_SEQ_TAIL(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))),        \
-            BOOST_FUSION_ADAPT_STRUCT_C)
-
-#   define BOOST_FUSION_ADAPT_STRUCT_AS_VIEW(...)                               \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (0),                                                                \
-            (0)(BOOST_PP_SEQ_HEAD(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))),      \
-            struct_tag,                                                         \
-            1,                                                                  \
-            BOOST_FUSION_ADAPT_STRUCT_ATTRIBUTES_FILLER(                        \
-              BOOST_PP_SEQ_TAIL(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))),        \
-            BOOST_FUSION_ADAPT_STRUCT_C)
-
-#else // BOOST_PP_VARIADICS
-
-#   define BOOST_FUSION_ADAPT_TPL_STRUCT(                                       \
-        TEMPLATE_PARAMS_SEQ,NAME_SEQ, ATTRIBUTES)                               \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (1)TEMPLATE_PARAMS_SEQ,                                             \
-            (1)NAME_SEQ,                                                        \
-            struct_tag,                                                         \
-            0,                                                                  \
-            BOOST_PP_CAT(                                                       \
-                BOOST_FUSION_ADAPT_STRUCT_FILLER_0(0,0)ATTRIBUTES,_END),        \
-            BOOST_FUSION_ADAPT_STRUCT_C)
-
-#   define BOOST_FUSION_ADAPT_STRUCT(NAME, ATTRIBUTES)                          \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (0),                                                                \
-            (0)(NAME),                                                          \
-            struct_tag,                                                         \
-            0,                                                                  \
-            BOOST_PP_CAT(                                                       \
-                BOOST_FUSION_ADAPT_STRUCT_FILLER_0(0,0)ATTRIBUTES,              \
-                _END),                                                          \
-            BOOST_FUSION_ADAPT_STRUCT_C)
-
-#   define BOOST_FUSION_ADAPT_STRUCT_AS_VIEW(NAME, ATTRIBUTES)                  \
-        BOOST_FUSION_ADAPT_STRUCT_BASE(                                         \
-            (0),                                                                \
-            (0)(NAME),                                                          \
-            struct_tag,                                                         \
-            1,                                                                  \
-            BOOST_PP_CAT(                                                       \
-                BOOST_FUSION_ADAPT_STRUCT_FILLER_0(0,0)ATTRIBUTES,              \
-                _END),                                                          \
-            BOOST_FUSION_ADAPT_STRUCT_C)
-
-
-#endif // BOOST_PP_VARIADICS
+#define BOOST_FUSION_ADAPT_STRUCT_C(r, name, i, xy)                             \
+    template <>                                                                 \
+    struct struct_member<name, i>                                               \
+    {                                                                           \
+        typedef BOOST_PP_TUPLE_ELEM(2, 0, xy) type;                             \
+        static type& call(name& struct_)                                        \
+        {                                                                       \
+            return struct_.BOOST_PP_TUPLE_ELEM(2, 1, xy);                       \
+        };                                                                      \
+    };                                                                          \
+    /***/
 
 #endif

@@ -1,7 +1,7 @@
 /* Boost interval/utility.hpp template implementation file
  *
  * Copyright 2000 Jens Maurer
- * Copyright 2002-2003 HervÃ© BrÃ¶nnimann, Guillaume Melquiond, Sylvain Pion
+ * Copyright 2002-2003 Hervé Brönnimann, Guillaume Melquiond, Sylvain Pion
  *
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or
@@ -144,8 +144,8 @@ bool overlap(const interval<T, Policies1>& x,
              const interval<T, Policies2>& y)
 {
   if (interval_lib::detail::test_input(x, y)) return false;
-  return (x.lower() <= y.lower() && y.lower() <= x.upper()) ||
-         (y.lower() <= x.lower() && x.lower() <= y.upper());
+  return x.lower() <= y.lower() && y.lower() <= x.upper() ||
+         y.lower() <= x.lower() && x.lower() <= y.upper();
 }
 
 template<class T, class Policies> inline
@@ -248,6 +248,7 @@ bisect(const interval<T, Policies>& x)
 template<class T, class Policies> inline
 T norm(const interval<T, Policies>& x)
 {
+  typedef interval<T, Policies> I;
   if (interval_lib::detail::test_input(x)) {
     typedef typename Policies::checking checking;
     return checking::nan();

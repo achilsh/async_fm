@@ -13,7 +13,6 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/adjacency_iterator.hpp>
-#include <boost/graph/detail/set_adaptor.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 
 namespace boost {
@@ -193,8 +192,11 @@ namespace boost {
     > edge_iterator;
     typedef typename Traits::edges_size_type           edges_size_type;
 
+    typedef typename ::boost::edge_property_type<Graph>::type   edge_property_type;
+    typedef typename ::boost::vertex_property_type<Graph>::type vertex_property_type;
     typedef filtered_graph_tag graph_tag;
 
+#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
     // Bundled properties support
     template<typename Descriptor>
     typename graph::detail::bundled_result<Graph, Descriptor>::type&
@@ -205,10 +207,11 @@ namespace boost {
     typename graph::detail::bundled_result<Graph, Descriptor>::type const&
     operator[](Descriptor x) const
     { return this->m_g[x]; }
+#endif // BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
     static vertex_descriptor null_vertex()
     {
-       return Traits::null_vertex();
+       return Graph::null_vertex();
     }
 
     //private:
@@ -216,25 +219,7 @@ namespace boost {
     VertexPredicate m_vertex_pred;
   };
 
-  // Do not instantiate these unless needed
-  template <typename Graph, 
-            typename EdgePredicate,
-            typename VertexPredicate>
-  struct vertex_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
-    vertex_property_type<Graph> {};
-
-  template <typename Graph, 
-            typename EdgePredicate,
-            typename VertexPredicate>
-  struct edge_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
-    edge_property_type<Graph> {};
-
-  template <typename Graph, 
-            typename EdgePredicate,
-            typename VertexPredicate>
-  struct graph_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
-    graph_property_type<Graph> {};
-
+#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
   template<typename Graph, typename EdgePredicate, typename VertexPredicate>
   struct vertex_bundle_type<filtered_graph<Graph, EdgePredicate, 
                                            VertexPredicate> > 
@@ -244,11 +229,7 @@ namespace boost {
   struct edge_bundle_type<filtered_graph<Graph, EdgePredicate, 
                                          VertexPredicate> > 
     : edge_bundle_type<Graph> { };
-
-  template<typename Graph, typename EdgePredicate, typename VertexPredicate>
-  struct graph_bundle_type<filtered_graph<Graph, EdgePredicate, 
-                                          VertexPredicate> > 
-    : graph_bundle_type<Graph> { };
+#endif // BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
   //===========================================================================
   // Non-member functions for the Filtered Edge Graph
@@ -283,7 +264,7 @@ namespace boost {
   {
     typedef filtered_graph<G, EP, VP> Graph;    
     typename graph_traits<G>::vertex_iterator f, l;
-    boost::tie(f, l) = vertices(g.m_g);
+    tie(f, l) = vertices(g.m_g);
     typedef typename Graph::vertex_iterator iter;
     return std::make_pair(iter(g.m_vertex_pred, f, l), 
                           iter(g.m_vertex_pred, l, l));
@@ -297,7 +278,7 @@ namespace boost {
     typedef filtered_graph<G, EP, VP> Graph;
     typename Graph::EdgePred pred(g.m_edge_pred, g.m_vertex_pred, g);
     typename graph_traits<G>::edge_iterator f, l;
-    boost::tie(f, l) = edges(g.m_g);
+    tie(f, l) = edges(g.m_g);
     typedef typename Graph::edge_iterator iter;
     return std::make_pair(iter(pred, f, l), iter(pred, l, l));
   }
@@ -312,7 +293,7 @@ namespace boost {
   //
   // However, the current solution is still unsatisfactory because
   // the following semantic constraints no longer hold:
-  // boost::tie(vi, viend) = vertices(g);
+  // tie(vi, viend) = vertices(g);
   // assert(std::distance(vi, viend) == num_vertices(g));
 
   template <typename G, typename EP, typename VP>  
@@ -353,7 +334,7 @@ namespace boost {
     typename Graph::OutEdgePred pred(g.m_edge_pred, g.m_vertex_pred, g);
     typedef typename Graph::out_edge_iterator iter;
     typename graph_traits<G>::out_edge_iterator f, l;
-    boost::tie(f, l) = out_edges(u, g.m_g);
+    tie(f, l) = out_edges(u, g.m_g);
     return std::make_pair(iter(pred, f, l), iter(pred, l, l));
   }
 
@@ -364,7 +345,7 @@ namespace boost {
   {
     typename filtered_graph<G, EP, VP>::degree_size_type n = 0;
     typename filtered_graph<G, EP, VP>::out_edge_iterator f, l;
-    for (boost::tie(f, l) = out_edges(u, g); f != l; ++f)
+    for (tie(f, l) = out_edges(u, g); f != l; ++f)
       ++n;
     return n;
   }
@@ -378,7 +359,7 @@ namespace boost {
     typedef filtered_graph<G, EP, VP> Graph;
     typedef typename Graph::adjacency_iterator adjacency_iterator;
     typename Graph::out_edge_iterator f, l;
-    boost::tie(f, l) = out_edges(u, g);
+    tie(f, l) = out_edges(u, g);
     return std::make_pair(adjacency_iterator(f, const_cast<Graph*>(&g)),
                           adjacency_iterator(l, const_cast<Graph*>(&g)));
   }
@@ -393,7 +374,7 @@ namespace boost {
     typename Graph::InEdgePred pred(g.m_edge_pred, g.m_vertex_pred, g);
     typedef typename Graph::in_edge_iterator iter;
     typename graph_traits<G>::in_edge_iterator f, l;
-    boost::tie(f, l) = in_edges(u, g.m_g);
+    tie(f, l) = in_edges(u, g.m_g);
     return std::make_pair(iter(pred, f, l), iter(pred, l, l));
   }
 
@@ -404,29 +385,9 @@ namespace boost {
   {
     typename filtered_graph<G, EP, VP>::degree_size_type n = 0;
     typename filtered_graph<G, EP, VP>::in_edge_iterator f, l;
-    for (boost::tie(f, l) = in_edges(u, g); f != l; ++f)
+    for (tie(f, l) = in_edges(u, g); f != l; ++f)
       ++n;
     return n;
-  }
-
-  template <typename G, typename EP, typename VP>
-  typename enable_if<typename is_directed_graph<G>::type,
-    typename filtered_graph<G, EP, VP>::degree_size_type
-  >::type
-  degree(typename filtered_graph<G, EP, VP>::vertex_descriptor u,
-          const filtered_graph<G, EP, VP>& g)
-  {
-    return out_degree(u, g) + in_degree(u, g);
-  }
-
-  template <typename G, typename EP, typename VP>
-  typename disable_if<typename is_directed_graph<G>::type,
-    typename filtered_graph<G, EP, VP>::degree_size_type
-  >::type
-  degree(typename filtered_graph<G, EP, VP>::vertex_descriptor u,
-          const filtered_graph<G, EP, VP>& g)
-  {
-    return out_degree(u, g);
   }
 
   template <typename G, typename EP, typename VP>
@@ -437,7 +398,7 @@ namespace boost {
   {
     typename graph_traits<G>::edge_descriptor e;
     bool exists;
-    boost::tie(e, exists) = edge(u, v, g.m_g);
+    tie(e, exists) = edge(u, v, g.m_g);
     return std::make_pair(e, exists && g.m_edge_pred(e));
   }
 
@@ -452,17 +413,34 @@ namespace boost {
     typename Graph::OutEdgePred pred(g.m_edge_pred, g.m_vertex_pred, g);
     typedef typename Graph::out_edge_iterator iter;
     typename graph_traits<G>::out_edge_iterator f, l;
-    boost::tie(f, l) = edge_range(u, v, g.m_g);
+    tie(f, l) = edge_range(u, v, g.m_g);
     return std::make_pair(iter(pred, f, l), iter(pred, l, l));
   }
 
 
   //===========================================================================
   // Property map
-  
-  template <typename G, typename EP, typename VP, typename Property>
-  struct property_map<filtered_graph<G, EP, VP>, Property>
-    : property_map<G, Property> {};
+
+  namespace detail {
+    struct filtered_graph_property_selector {
+      template <class FilteredGraph, class Property, class Tag>
+      struct bind_ {
+        typedef typename FilteredGraph::graph_type Graph;
+        typedef property_map<Graph, Tag> Map;
+        typedef typename Map::type type;
+        typedef typename Map::const_type const_type;
+      };
+    };    
+  } // namespace detail
+
+  template <>  
+  struct vertex_property_selector<filtered_graph_tag> {
+    typedef detail::filtered_graph_property_selector type;
+  };
+  template <>  
+  struct edge_property_selector<filtered_graph_tag> {
+    typedef detail::filtered_graph_property_selector type;
+  };
 
   template <typename G, typename EP, typename VP, typename Property>
   typename property_map<G, Property>::type
@@ -510,8 +488,6 @@ namespace boost {
     return Filter(g, keep_all(), p);
   }
 
-  // This is misspelled, but present for backwards compatibility; new code
-  // should use the version below that has the correct spelling.
   template <typename Graph, typename Set>
   struct vertex_subset_compliment_filter {
     typedef filtered_graph<Graph, keep_all, is_not_in_subset<Set> > type;
@@ -520,18 +496,6 @@ namespace boost {
   inline typename vertex_subset_compliment_filter<Graph, Set>::type
   make_vertex_subset_compliment_filter(Graph& g, const Set& s) {
     typedef typename vertex_subset_compliment_filter<Graph, Set>::type Filter;
-    is_not_in_subset<Set> p(s);
-    return Filter(g, keep_all(), p);
-  }
-
-  template <typename Graph, typename Set>
-  struct vertex_subset_complement_filter {
-    typedef filtered_graph<Graph, keep_all, is_not_in_subset<Set> > type;
-  };
-  template <typename Graph, typename Set>
-  inline typename vertex_subset_complement_filter<Graph, Set>::type
-  make_vertex_subset_complement_filter(Graph& g, const Set& s) {
-    typedef typename vertex_subset_complement_filter<Graph, Set>::type Filter;
     is_not_in_subset<Set> p(s);
     return Filter(g, keep_all(), p);
   }

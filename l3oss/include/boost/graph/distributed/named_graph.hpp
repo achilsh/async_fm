@@ -14,7 +14,6 @@
 #error "Parallel BGL files should not be included unless <boost/graph/use_mpi.hpp> has been included"
 #endif
 
-#include <boost/assert.hpp>
 #include <boost/graph/named_graph.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/variant.hpp>
@@ -267,8 +266,7 @@ public:
 
   /// Notify the named_graph that we are removing the given
   /// vertex. This is a no-op.
-  template <typename VertexIterStability>
-  void removing_vertex(Vertex, VertexIterStability) { }
+  void removing_vertex(Vertex) { }
 
   /// Notify the named_graph that we are clearing the graph
   void clearing_graph() { }
@@ -344,7 +342,7 @@ struct BGL_NAMED_GRAPH::lazy_add_vertex
   /// Transfer responsibility for adding the vertex from the source of
   /// the copy to the newly-constructed opbject.
   lazy_add_vertex(const lazy_add_vertex& other)
-    : self(other.self), name(other.name), committed(other.committed)
+    : self(self), name(other.name), committed(other.committed)
   {
     other.committed = true;
   }
@@ -395,7 +393,7 @@ typename BGL_NAMED_GRAPH::vertex_descriptor
 BGL_NAMED_GRAPH::lazy_add_vertex::commit() const
 {
   typedef typename BGL_NAMED_GRAPH::process_id_type process_id_type;
-  BOOST_ASSERT (!committed);
+  assert (!committed);
   committed = true;
 
   process_id_type owner = self.named_distribution()(name);
@@ -481,6 +479,8 @@ private:
 template<BGL_NAMED_GRAPH_PARAMS>
 BGL_NAMED_GRAPH::lazy_add_edge::~lazy_add_edge()
 {
+  typedef typename BGL_NAMED_GRAPH::process_id_type process_id_type;
+
   using boost::parallel::detail::make_untracked_pair;
 
   /// If this edge has already been created or will be created by
@@ -530,7 +530,7 @@ BGL_NAMED_GRAPH::lazy_add_edge::commit() const
   typedef typename BGL_NAMED_GRAPH::process_id_type process_id_type;
   using boost::parallel::detail::make_untracked_pair;
 
-  BOOST_ASSERT(!committed);
+  assert(!committed);
   committed = true;
 
   /// The result we will return, if we are sending a message to
@@ -677,6 +677,7 @@ private:
 template<BGL_NAMED_GRAPH_PARAMS>
 BGL_NAMED_GRAPH::lazy_add_edge_with_property::~lazy_add_edge_with_property()
 {
+  typedef typename BGL_NAMED_GRAPH::process_id_type process_id_type;
   using boost::detail::parallel::make_pair_with_property;
 
   /// If this edge has already been created or will be created by
@@ -728,7 +729,7 @@ BGL_NAMED_GRAPH::lazy_add_edge_with_property::commit() const
 {
   using boost::detail::parallel::make_pair_with_property;
   typedef typename BGL_NAMED_GRAPH::process_id_type process_id_type;
-  BOOST_ASSERT(!committed);
+  assert(!committed);
   committed = true;
 
   /// The result we will return, if we are sending a message to
@@ -804,7 +805,7 @@ BGL_NAMED_GRAPH::lazy_add_edge_with_property::commit() const
 /// Construct the named_graph with a particular process group
 template<BGL_NAMED_GRAPH_PARAMS>
 BGL_NAMED_GRAPH::named_graph(const process_group_type& pg)
-  : process_group_(pg, boost::parallel::attach_distributed_object()),
+  : process_group_(pg, parallel::attach_distributed_object()),
     distribution_(pg)
 {
   setup_triggers();
@@ -815,7 +816,7 @@ BGL_NAMED_GRAPH::named_graph(const process_group_type& pg)
 template<BGL_NAMED_GRAPH_PARAMS>
 BGL_NAMED_GRAPH::named_graph(const process_group_type& pg,
                              const base_distribution_type& distribution)
-  : process_group_(pg, boost::parallel::attach_distributed_object()),
+  : process_group_(pg, parallel::attach_distributed_object()),
     distribution_(pg, distribution)
 {
   setup_triggers();
@@ -1209,8 +1210,7 @@ public:
 
   /// Notify the named_graph that we are removing the given
   /// vertex. This is a no-op.
-  template <typename VertexIterStability>
-  void removing_vertex(Vertex, VertexIterStability) { }
+  void removing_vertex(Vertex) { }
 
   /// Notify the named_graph that we are clearing the graph
   void clearing_graph() { }

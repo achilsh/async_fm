@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Hartmut Kaiser
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -11,6 +11,7 @@
 #pragma once
 #endif
 
+#include <boost/spirit/home/qi/parser.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/not.hpp>
@@ -20,7 +21,7 @@
 namespace boost { namespace spirit { namespace traits
 {
     // finding out, whether a component contains a semantic action
-    template <typename T, typename Enable = void>
+    template <typename T>
     struct has_semantic_action
       : mpl::false_ {};
 
@@ -42,6 +43,7 @@ namespace boost { namespace spirit { namespace traits
               , typename mpl::end<Elements>::type
             > 
         > {};
+
 }}}
 
 #endif

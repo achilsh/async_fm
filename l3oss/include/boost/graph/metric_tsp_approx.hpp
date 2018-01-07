@@ -34,8 +34,7 @@
 #include <boost/graph/graph_as_tree.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
-#include <boost/graph/lookup_edge.hpp>
-#include <boost/throw_exception.hpp>
+
 
 namespace boost
 {
@@ -53,13 +52,13 @@ namespace boost
             Visitor vis(vis_);  // require copy construction
             Graph g(1);
             Vertex v(*vertices(g).first);
-            vis.visit_vertex(v, g); // require visit_vertex
+            vis_.visit_vertex(v, g); // require visit_vertex
         }
     };
 
     // Tree visitor that keeps track of a preorder traversal of a tree
     // TODO: Consider migrating this to the graph_as_tree header.
-    // TODO: Parameterize the underlying stores so it doesn't have to be a vector.
+    // TODO: Parameterize the underlying stores o it doesn't have to be a vector.
     template<typename Node, typename Tree> class PreorderTraverser
     {
     private:
@@ -69,11 +68,11 @@ namespace boost
 
         PreorderTraverser(std::vector<Node>& p) : path_(p) {}
 
-        void preorder(Node n, const Tree&)
+        void preorder(Node n, const Tree& t)
         { path_.push_back(n); }
 
-        void inorder(Node, const Tree&) const {}
-        void postorder(Node, const Tree&) const {}
+        void inorder(Node n, const Tree& t) const {}
+        void postorder(Node, const Tree& t) const {}
 
         const_iterator begin() const { return path_.begin(); }
         const_iterator end() const { return path_.end(); }
@@ -173,6 +172,7 @@ namespace boost
 
         // We build a custom graph in this algorithm.
         typedef adjacency_list <vecS, vecS, directedS, no_property, no_property > MSTImpl;
+        typedef graph_traits<MSTImpl>::edge_descriptor Edge;
         typedef graph_traits<MSTImpl>::vertex_descriptor Vertex;
         typedef graph_traits<MSTImpl>::vertex_iterator VItr;
 
@@ -215,7 +215,7 @@ namespace boost
         // Create tour using a preorder traversal of the mst
         vector<Node> tour;
         PreorderTraverser<Node, Tree> tvis(tour);
-        traverse_tree(indexmap[start], t, tvis);
+        traverse_tree(0, t, tvis);
 
         pair<GVItr, GVItr> g_verts(vertices(g));
         for(PreorderTraverser<Node, Tree>::const_iterator curr(tvis.begin());
@@ -227,7 +227,7 @@ namespace boost
         }
 
         // Connect back to the start of the tour
-        vis.visit_vertex(start, g);
+        vis.visit_vertex(*g_verts.first, g);
     }
 
     // Default tsp tour visitor that puts the tour in an OutputIterator
@@ -241,7 +241,7 @@ namespace boost
         { }
 
         template <typename Vertex, typename Graph>
-        void visit_vertex(Vertex v, const Graph&)
+        void visit_vertex(Vertex v, const Graph& g)
         {
             BOOST_CONCEPT_ASSERT((OutputIterator<OutItr, Vertex>));
             *itr_++ = v;
@@ -266,7 +266,7 @@ namespace boost
         { return graph_traits<Graph>::null_vertex(); }
 
     public:
-        tsp_tour_len_visitor(Graph const&, OutIter iter, Length& l, WeightMap& map)
+        tsp_tour_len_visitor(Graph const&, OutIter iter, Length& l, WeightMap map)
             : iter_(iter), tourlen_(l), wmap_(map), previous_(null())
         { }
 
@@ -284,9 +284,9 @@ namespace boost
                 // would require revisiting the core algorithm.
                 Edge e;
                 bool found;
-                boost::tie(e, found) = lookup_edge(previous_, v, g);
+                tie(e, found) = edge(previous_, v, g);
                 if(!found) {
-                    BOOST_THROW_EXCEPTION(not_complete());
+                    throw not_complete();
                 }
 
                 tourlen_ += wmap_[e];

@@ -8,7 +8,7 @@
 #ifndef BOOST_IOSTREAMS_STREAM_HPP_INCLUDED
 #define BOOST_IOSTREAMS_STREAM_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -31,7 +31,7 @@ struct stream_traits {
     typedef Tr                                                 traits_type;
     typedef typename category_of<Device>::type                 mode;
     typedef typename
-            iostreams::select< // Disambiguation required for Tru64.
+            iostreams::select< // Dismbiguation required for Tru64.
                 mpl::and_<
                     is_convertible<mode, input>,
                     is_convertible<mode, output>
@@ -43,7 +43,7 @@ struct stream_traits {
                 BOOST_IOSTREAMS_BASIC_OSTREAM(char_type, traits_type)
             >::type stream_type;
     typedef typename
-            iostreams::select< // Disambiguation required for Tru64.
+            iostreams::select< // Dismbiguation required for Tru64.
                 mpl::and_<
                     is_convertible<mode, input>,
                     is_convertible<mode, output>
@@ -57,7 +57,7 @@ struct stream_traits {
 };
 
 // By encapsulating initialization in a base, we can define the macro
-// BOOST_IOSTREAMS_DEFINE_FORWARDING_FUNCTIONS to generate constructors
+// BOOST_IOSTREAMS_DEFINE_FORWARDING_FUNCTIONS to generate constuctors
 // without base member initializer lists.
 template< typename Device,
           typename Tr =
@@ -96,7 +96,7 @@ namespace boost { namespace iostreams {
 // Template name: stream.
 // Description: A iostream which reads from and writes to an instance of a
 //      designated device type.
-// Template parameters:
+// Template paramters:
 //      Device - A device type.
 //      Alloc - The allocator type.
 //

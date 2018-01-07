@@ -33,15 +33,14 @@ namespace boost {
     typedef typename boost::property_traits<ReadablePropertyMap>::key_type K;
     typedef K first_argument_type;
     typedef K second_argument_type;
-    typedef bool result_type;
+    typedef T result_type;
     inline indirect_cmp(const ReadablePropertyMap& df, const Compare& c = Compare())
       : d(df), cmp(c) { }
 
     template <class A, class B>
     inline bool 
     operator()(const A& u, const B& v) const {
-      const T& du = get(d, u);
-      const T& dv = get(d, v);
+      T du = get(d, u), dv = get(d, v);
       return cmp(du, dv);
     }
   protected:
@@ -66,7 +65,7 @@ namespace boost {
     inline indirect_pmap(const ReadablePropertyMap& df)
       : d(df) { }
 
-    inline T operator()(const K& u) const {
+    inline bool operator()(const K& u) const {
       return get(d, u);
     }
   protected:

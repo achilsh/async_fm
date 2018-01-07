@@ -11,14 +11,13 @@
 #ifndef BOOST_SIGNALS2_LAST_VALUE_HPP
 #define BOOST_SIGNALS2_LAST_VALUE_HPP
 
-#include <boost/core/no_exceptions_support.hpp>
 #include <boost/optional.hpp>
-#include <boost/signals2/expired_slot.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 
 namespace boost {
   namespace signals2 {
+    class expired_slot;
 
     // no_slots_error is thrown when we are unable to generate a return value
     // due to no slots being connected to the signal.
@@ -43,12 +42,11 @@ namespace boost {
         optional<T> value;
         while (first != last)
         {
-          BOOST_TRY
+          try
           {
             value = *first;
           }
-          BOOST_CATCH(const expired_slot &) {}
-          BOOST_CATCH_END
+          catch(const expired_slot &) {}
           ++first;
         }
         if(value) return value.get();
@@ -65,12 +63,11 @@ namespace boost {
       {
         while (first != last)
         {
-          BOOST_TRY
+          try
           {
             *first;
           }
-          BOOST_CATCH(const expired_slot &) {}
-          BOOST_CATCH_END
+          catch(const expired_slot &) {}
           ++first;
         }
         return;

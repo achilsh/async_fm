@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -14,9 +14,7 @@
 #include <boost/spirit/home/qi/domain.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/parser.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
-#include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 
 namespace boost { namespace spirit
@@ -42,8 +40,8 @@ namespace boost { namespace spirit { namespace qi
             typedef unused_type type;
         };
 
-        not_predicate(Subject const& subject_)
-          : subject(subject_) {}
+        not_predicate(Subject const& subject)
+          : subject(subject) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
@@ -75,17 +73,9 @@ namespace boost { namespace spirit { namespace qi
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Subject>
     struct has_semantic_action<qi::not_predicate<Subject> >
       : unary_has_semantic_action<Subject> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Attribute, typename Context
-        , typename Iterator>
-    struct handles_container<qi::not_predicate<Subject>, Attribute
-        , Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
 }}}
 
 #endif

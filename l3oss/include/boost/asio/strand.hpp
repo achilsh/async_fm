@@ -2,7 +2,7 @@
 // strand.hpp
 // ~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,274 +15,174 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
-#include <boost/asio/detail/strand_executor_service.hpp>
-#include <boost/asio/detail/type_traits.hpp>
-
 #include <boost/asio/detail/push_options.hpp>
+
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/detail/strand_service.hpp>
+#include <boost/asio/detail/wrapped_handler.hpp>
 
 namespace boost {
 namespace asio {
 
-/// Provides serialised function invocation for any executor type.
-template <typename Executor>
-class strand
+/// Provides serialised handler execution.
+/**
+ * The io_service::strand class provides the ability to post and dispatch
+ * handlers with the guarantee that none of those handlers will execute
+ * concurrently.
+ *
+ * @par Thread Safety
+ * @e Distinct @e objects: Safe.@n
+ * @e Shared @e objects: Safe.
+ *
+ * @par Concepts:
+ * Dispatcher.
+ */
+class io_service::strand
 {
 public:
-  /// The type of the underlying executor.
-  typedef Executor inner_executor_type;
-
-  /// Default constructor.
+  /// Constructor.
   /**
-   * This constructor is only valid if the underlying executor type is default
-   * constructible.
+   * Constructs the strand.
+   *
+   * @param io_service The io_service object that the strand will use to
+   * dispatch handlers that are ready to be run.
    */
-  strand()
-    : executor_(),
-      impl_(use_service<detail::strand_executor_service>(
-            executor_.context()).create_implementation())
+  explicit strand(boost::asio::io_service& io_service)
+    : service_(boost::asio::use_service<
+        boost::asio::detail::strand_service>(io_service))
   {
+    service_.construct(impl_);
   }
-
-  /// Construct a strand for the specified executor.
-  explicit strand(const Executor& e)
-    : executor_(e),
-      impl_(use_service<detail::strand_executor_service>(
-            executor_.context()).create_implementation())
-  {
-  }
-
-  /// Copy constructor.
-  strand(const strand& other) BOOST_ASIO_NOEXCEPT
-    : executor_(other.executor_),
-      impl_(other.impl_)
-  {
-  }
-
-  /// Converting constructor.
-  /**
-   * This constructor is only valid if the @c OtherExecutor type is convertible
-   * to @c Executor.
-   */
-  template <class OtherExecutor>
-  strand(
-      const strand<OtherExecutor>& other) BOOST_ASIO_NOEXCEPT
-    : executor_(other.executor_),
-      impl_(other.impl_)
-  {
-  }
-
-  /// Assignment operator.
-  strand& operator=(const strand& other) BOOST_ASIO_NOEXCEPT
-  {
-    executor_ = other.executor_;
-    impl_ = other.impl_;
-    return *this;
-  }
-
-  /// Converting assignment operator.
-  /**
-   * This assignment operator is only valid if the @c OtherExecutor type is
-   * convertible to @c Executor.
-   */
-  template <class OtherExecutor>
-  strand& operator=(
-      const strand<OtherExecutor>& other) BOOST_ASIO_NOEXCEPT
-  {
-    executor_ = other.executor_;
-    impl_ = other.impl_;
-    return *this;
-  }
-
-#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
-  /// Move constructor.
-  strand(strand&& other) BOOST_ASIO_NOEXCEPT
-    : executor_(BOOST_ASIO_MOVE_CAST(Executor)(other.executor_)),
-      impl_(BOOST_ASIO_MOVE_CAST(implementation_type)(other.impl_))
-  {
-  }
-
-  /// Converting move constructor.
-  /**
-   * This constructor is only valid if the @c OtherExecutor type is convertible
-   * to @c Executor.
-   */
-  template <class OtherExecutor>
-  strand(strand<OtherExecutor>&& other) BOOST_ASIO_NOEXCEPT
-    : executor_(BOOST_ASIO_MOVE_CAST(OtherExecutor)(other)),
-      impl_(BOOST_ASIO_MOVE_CAST(implementation_type)(other.impl_))
-  {
-  }
-
-  /// Move assignment operator.
-  strand& operator=(strand&& other) BOOST_ASIO_NOEXCEPT
-  {
-    executor_ = BOOST_ASIO_MOVE_CAST(Executor)(other);
-    impl_ = BOOST_ASIO_MOVE_CAST(implementation_type)(other.impl_);
-    return *this;
-  }
-
-  /// Converting move assignment operator.
-  /**
-   * This assignment operator is only valid if the @c OtherExecutor type is
-   * convertible to @c Executor.
-   */
-  template <class OtherExecutor>
-  strand& operator=(
-      const strand<OtherExecutor>&& other) BOOST_ASIO_NOEXCEPT
-  {
-    executor_ = BOOST_ASIO_MOVE_CAST(OtherExecutor)(other);
-    impl_ = BOOST_ASIO_MOVE_CAST(implementation_type)(other.impl_);
-    return *this;
-  }
-#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destructor.
+  /**
+   * Destroys a strand.
+   *
+   * Handlers posted through the strand that have not yet been invoked will
+   * still be dispatched in a way that meets the guarantee of non-concurrency.
+   */
   ~strand()
   {
+    service_.destroy(impl_);
   }
 
-  /// Obtain the underlying executor.
-  inner_executor_type get_inner_executor() const BOOST_ASIO_NOEXCEPT
-  {
-    return executor_;
-  }
-
-  /// Obtain the underlying execution context.
-  execution_context& context() const BOOST_ASIO_NOEXCEPT
-  {
-    return executor_.context();
-  }
-
-  /// Inform the strand that it has some outstanding work to do.
+  /// (Deprecated: use get_io_service().) Get the io_service associated with
+  /// the strand.
   /**
-   * The strand delegates this call to its underlying executor.
-   */
-  void on_work_started() const BOOST_ASIO_NOEXCEPT
-  {
-    executor_.on_work_started();
-  }
-
-  /// Inform the strand that some work is no longer outstanding.
-  /**
-   * The strand delegates this call to its underlying executor.
-   */
-  void on_work_finished() const BOOST_ASIO_NOEXCEPT
-  {
-    executor_.on_work_finished();
-  }
-
-  /// Request the strand to invoke the given function object.
-  /**
-   * This function is used to ask the strand to execute the given function
-   * object on its underlying executor. The function object will be executed
-   * inside this function if the strand is not otherwise busy and if the
-   * underlying executor's @c dispatch() function is also able to execute the
-   * function before returning.
+   * This function may be used to obtain the io_service object that the strand
+   * uses to dispatch handlers for asynchronous operations.
    *
-   * @param f The function object to be called. The executor will make
-   * a copy of the handler object as required. The function signature of the
-   * function object must be: @code void function(); @endcode
-   *
-   * @param a An allocator that may be used by the executor to allocate the
-   * internal storage needed for function invocation.
+   * @return A reference to the io_service object that the strand will use to
+   * dispatch handlers. Ownership is not transferred to the caller.
    */
-  template <typename Function, typename Allocator>
-  void dispatch(BOOST_ASIO_MOVE_ARG(Function) f, const Allocator& a) const
+  boost::asio::io_service& io_service()
   {
-    detail::strand_executor_service::dispatch(impl_,
-        executor_, BOOST_ASIO_MOVE_CAST(Function)(f), a);
+    return service_.get_io_service();
   }
 
-  /// Request the strand to invoke the given function object.
+  /// Get the io_service associated with the strand.
   /**
-   * This function is used to ask the executor to execute the given function
-   * object. The function object will never be executed inside this function.
-   * Instead, it will be scheduled by the underlying executor's defer function.
+   * This function may be used to obtain the io_service object that the strand
+   * uses to dispatch handlers for asynchronous operations.
    *
-   * @param f The function object to be called. The executor will make
-   * a copy of the handler object as required. The function signature of the
-   * function object must be: @code void function(); @endcode
-   *
-   * @param a An allocator that may be used by the executor to allocate the
-   * internal storage needed for function invocation.
+   * @return A reference to the io_service object that the strand will use to
+   * dispatch handlers. Ownership is not transferred to the caller.
    */
-  template <typename Function, typename Allocator>
-  void post(BOOST_ASIO_MOVE_ARG(Function) f, const Allocator& a) const
+  boost::asio::io_service& get_io_service()
   {
-    detail::strand_executor_service::post(impl_,
-        executor_, BOOST_ASIO_MOVE_CAST(Function)(f), a);
+    return service_.get_io_service();
   }
 
-  /// Request the strand to invoke the given function object.
+  /// Request the strand to invoke the given handler.
   /**
-   * This function is used to ask the executor to execute the given function
-   * object. The function object will never be executed inside this function.
-   * Instead, it will be scheduled by the underlying executor's defer function.
+   * This function is used to ask the strand to execute the given handler.
    *
-   * @param f The function object to be called. The executor will make
-   * a copy of the handler object as required. The function signature of the
-   * function object must be: @code void function(); @endcode
+   * The strand object guarantees that handlers posted or dispatched through
+   * the strand will not be executed concurrently. The handler may be executed
+   * inside this function if the guarantee can be met. If this function is
+   * called from within a handler that was posted or dispatched through the same
+   * strand, then the new handler will be executed immediately.
    *
-   * @param a An allocator that may be used by the executor to allocate the
-   * internal storage needed for function invocation.
+   * The strand's guarantee is in addition to the guarantee provided by the
+   * underlying io_service. The io_service guarantees that the handler will only
+   * be called in a thread in which the io_service's run member function is
+   * currently being invoked.
+   *
+   * @param handler The handler to be called. The strand will make a copy of the
+   * handler object as required. The function signature of the handler must be:
+   * @code void handler(); @endcode
    */
-  template <typename Function, typename Allocator>
-  void defer(BOOST_ASIO_MOVE_ARG(Function) f, const Allocator& a) const
+  template <typename Handler>
+  void dispatch(Handler handler)
   {
-    detail::strand_executor_service::defer(impl_,
-        executor_, BOOST_ASIO_MOVE_CAST(Function)(f), a);
+    service_.dispatch(impl_, handler);
   }
 
-  /// Determine whether the strand is running in the current thread.
+  /// Request the strand to invoke the given handler and return
+  /// immediately.
   /**
-   * @return @c true if the current thread is executing a function that was
-   * submitted to the strand using post(), dispatch() or defer(). Otherwise
-   * returns @c false.
+   * This function is used to ask the strand to execute the given handler, but
+   * without allowing the strand to call the handler from inside this function.
+   *
+   * The strand object guarantees that handlers posted or dispatched through
+   * the strand will not be executed concurrently. The strand's guarantee is in
+   * addition to the guarantee provided by the underlying io_service. The
+   * io_service guarantees that the handler will only be called in a thread in
+   * which the io_service's run member function is currently being invoked.
+   *
+   * @param handler The handler to be called. The strand will make a copy of the
+   * handler object as required. The function signature of the handler must be:
+   * @code void handler(); @endcode
    */
-  bool running_in_this_thread() const BOOST_ASIO_NOEXCEPT
+  template <typename Handler>
+  void post(Handler handler)
   {
-    return detail::strand_executor_service::running_in_this_thread(impl_);
+    service_.post(impl_, handler);
   }
 
-  /// Compare two strands for equality.
+  /// Create a new handler that automatically dispatches the wrapped handler
+  /// on the strand.
   /**
-   * Two strands are equal if they refer to the same ordered, non-concurrent
-   * state.
+   * This function is used to create a new handler function object that, when
+   * invoked, will automatically pass the wrapped handler to the strand's
+   * dispatch function.
+   *
+   * @param handler The handler to be wrapped. The strand will make a copy of
+   * the handler object as required. The function signature of the handler must
+   * be: @code void handler(A1 a1, ... An an); @endcode
+   *
+   * @return A function object that, when invoked, passes the wrapped handler to
+   * the strand's dispatch function. Given a function object with the signature:
+   * @code R f(A1 a1, ... An an); @endcode
+   * If this function object is passed to the wrap function like so:
+   * @code strand.wrap(f); @endcode
+   * then the return value is a function object with the signature
+   * @code void g(A1 a1, ... An an); @endcode
+   * that, when invoked, executes code equivalent to:
+   * @code strand.dispatch(boost::bind(f, a1, ... an)); @endcode
    */
-  friend bool operator==(const strand& a, const strand& b) BOOST_ASIO_NOEXCEPT
+  template <typename Handler>
+#if defined(GENERATING_DOCUMENTATION)
+  unspecified
+#else
+  detail::wrapped_handler<strand, Handler>
+#endif
+  wrap(Handler handler)
   {
-    return a.impl_ == b.impl_;
-  }
-
-  /// Compare two strands for inequality.
-  /**
-   * Two strands are equal if they refer to the same ordered, non-concurrent
-   * state.
-   */
-  friend bool operator!=(const strand& a, const strand& b) BOOST_ASIO_NOEXCEPT
-  {
-    return a.impl_ != b.impl_;
+    return detail::wrapped_handler<io_service::strand, Handler>(*this, handler);
   }
 
 private:
-  Executor executor_;
-  typedef detail::strand_executor_service::implementation_type
-    implementation_type;
-  implementation_type impl_;
+  boost::asio::detail::strand_service& service_;
+  boost::asio::detail::strand_service::implementation_type impl_;
 };
+
+/// Typedef for backwards compatibility.
+typedef boost::asio::io_service::strand strand;
 
 } // namespace asio
 } // namespace boost
 
 #include <boost/asio/detail/pop_options.hpp>
-
-// If both io_context.hpp and strand.hpp have been included, automatically
-// include the header file needed for the io_context::strand class.
-#if !defined(BOOST_ASIO_NO_EXTENSIONS)
-# if defined(BOOST_ASIO_IO_CONTEXT_HPP)
-#  include <boost/asio/io_context_strand.hpp>
-# endif // defined(BOOST_ASIO_IO_CONTEXT_HPP)
-#endif // !defined(BOOST_ASIO_NO_EXTENSIONS)
 
 #endif // BOOST_ASIO_STRAND_HPP

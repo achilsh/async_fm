@@ -12,14 +12,13 @@
 #ifndef BOOST_BIMAP_RELATION_SUPPORT_DATA_EXTRACTOR_HPP
 #define BOOST_BIMAP_RELATION_SUPPORT_DATA_EXTRACTOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
 #include <boost/config.hpp>
 
 #include <boost/bimap/relation/detail/metadata_access_builder.hpp>
-#include <functional>
 
 /** \struct boost::bimaps::relation::support::data_extractor
 

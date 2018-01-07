@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Hartmut Kaiser
     http://spirit.sourceforge.net/
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -20,34 +20,14 @@
 namespace boost { namespace spirit { namespace traits
 {
     ///////////////////////////////////////////////////////////////////////////
-    //  We provide overloads for the assign_to_attribute_from_iterators
+    //  We provide overloads for the assign_to_attribute_from_iterators 
     //  customization point for all built in types
     ///////////////////////////////////////////////////////////////////////////
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<char, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const&, char& attr)
-        {
-            attr = *first;
-        }
-    };
-
-    template <typename Iterator>
-    struct assign_to_attribute_from_iterators<signed char, Iterator>
-    {
-        static void
-        call(Iterator const& first, Iterator const&, signed char& attr)
-        {
-            attr = *first;
-        }
-    };
-
-    template <typename Iterator>
-    struct assign_to_attribute_from_iterators<unsigned char, Iterator>
-    {
-        static void
-        call(Iterator const& first, Iterator const&, unsigned char& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, char& attr)
         {
             attr = *first;
         }
@@ -57,8 +37,8 @@ namespace boost { namespace spirit { namespace traits
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<wchar_t, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const&, wchar_t& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, wchar_t& attr)
         {
             attr = *first;
         }
@@ -69,8 +49,8 @@ namespace boost { namespace spirit { namespace traits
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<unsigned short, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const&, unsigned short& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, unsigned short& attr)
         {
             attr = *first;
         }
@@ -80,86 +60,86 @@ namespace boost { namespace spirit { namespace traits
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<bool, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const& last, bool& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, char& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, bool_type(), attr);
+            qi::parse(first_, last, bool_, attr);
         }
     };
 
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<short, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, short& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, short_type(), attr);
+            qi::parse(first_, last, short_, attr);
         }
     };
 
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<int, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, int& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, int_type(), attr);
+            qi::parse(first_, last, int_, attr);
         }
     };
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<unsigned int, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, unsigned int& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, uint_type(), attr);
+            qi::parse(first_, last, uint_, attr);
         }
     };
 
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<long, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, long& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, long_type(), attr);
+            qi::parse(first_, last, long_, attr);
         }
     };
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<unsigned long, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, unsigned long& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, ulong_type(), attr);
+            qi::parse(first_, last, ulong_, attr);
         }
     };
 
 #ifdef BOOST_HAS_LONG_LONG
     template <typename Iterator>
-    struct assign_to_attribute_from_iterators<boost::long_long_type, Iterator>
+    struct assign_to_attribute_from_iterators<long_long_type, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const& last, boost::long_long_type& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, long_long_type& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, long_long_type(), attr);
+            qi::parse(first_, last, long_long, attr);
         }
     };
     template <typename Iterator>
-    struct assign_to_attribute_from_iterators<boost::ulong_long_type, Iterator>
+    struct assign_to_attribute_from_iterators<ulong_long_type, Iterator>
     {
-        static void
-        call(Iterator const& first, Iterator const& last, boost::ulong_long_type& attr)
+        static void 
+        call(Iterator const& first, Iterator const& last, ulong_long_type& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, ulong_long_type(), attr);
+            qi::parse(first_, last, ulong_long, attr);
         }
     };
 #endif
@@ -167,33 +147,33 @@ namespace boost { namespace spirit { namespace traits
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<float, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, float& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, float_type(), attr);
+            qi::parse(first_, last, float_, attr);
         }
     };
 
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<double, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, double& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, double_type(), attr);
+            qi::parse(first_, last, double_, attr);
         }
     };
 
     template <typename Iterator>
     struct assign_to_attribute_from_iterators<long double, Iterator>
     {
-        static void
+        static void 
         call(Iterator const& first, Iterator const& last, long double& attr)
         {
             Iterator first_ = first;
-            qi::parse(first_, last, long_double_type(), attr);
+            qi::parse(first_, last, long_double, attr);
         }
     };
 

@@ -116,7 +116,6 @@ namespace date_time {
         
         break;
       }
-      default: break;
       }//switch
       pos++;
     }
@@ -154,10 +153,9 @@ namespace date_time {
         std::string& first,
         std::string& second)
   {
-    std::string::size_type sep_pos = s.find(sep);
+    int sep_pos = static_cast<int>(s.find(sep));
     first = s.substr(0,sep_pos);
-    if (sep_pos!=std::string::npos)
-        second = s.substr(sep_pos+1);
+    second = s.substr(sep_pos+1);
     return true;
   }
 
@@ -282,7 +280,6 @@ namespace date_time {
             
             break;
           }
-          default: break;
       };
       pos++;
     }

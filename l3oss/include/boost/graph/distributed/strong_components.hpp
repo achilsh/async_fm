@@ -16,7 +16,6 @@
 
 // #define PBGL_SCC_DEBUG
 
-#include <boost/assert.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/property_map/parallel/distributed_property_map.hpp>
 #include <boost/property_map/parallel/caching_property_map.hpp>
@@ -70,6 +69,8 @@ void
 marshal_set( std::vector<std::vector<typename graph_traits<Graph>::vertex_descriptor> > in,
              std::vector<typename graph_traits<Graph>::vertex_descriptor>& out )
 {
+  typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
+
   for( std::size_t i = 0; i < in.size(); ++i ) {
     out.insert( out.end(), graph_traits<Graph>::null_vertex() );
     out.insert( out.end(), in[i].begin(), in[i].end() );
@@ -83,6 +84,7 @@ unmarshal_set( std::vector<typename graph_traits<Graph>::vertex_descriptor> in,
                std::vector<std::vector<typename graph_traits<Graph>::vertex_descriptor> >& out )
 {
   typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
+  typedef typename graph_traits<Graph>::vertex_iterator vertex_iterator;
 
   while( !in.empty() ) {
     typename std::vector<vertex_descriptor>::iterator end 
@@ -207,7 +209,7 @@ namespace boost { namespace graph { namespace distributed {
 
       // Remove vertices that do not have at least one in edge and one out edge
       new_vertex_sets.push_back(std::vector<vertex_descriptor>());
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
         if( out_degree( get(fr, *vstart), gr) > 0 && out_degree(*vstart, g) > 0 )
           new_vertex_sets[0].push_back( *vstart );
 
@@ -232,7 +234,7 @@ namespace boost { namespace graph { namespace distributed {
         std::map<int, std::vector<vertex_descriptor> > local_comp_map;
         typedef typename graph_traits<local_subgraph<const Graph> >::vertex_iterator ls_vertex_iterator;
         ls_vertex_iterator vstart, vend;
-        for( boost::tie(vstart,vend) = vertices(ls); vstart != vend; vstart++ )
+        for( tie(vstart,vend) = vertices(ls); vstart != vend; vstart++ )
           local_comp_map[get(ls_component, *vstart)].push_back( *vstart );
 
         // Filter components that have no non-local edges
@@ -243,7 +245,7 @@ namespace boost { namespace graph { namespace distributed {
         for( std::size_t i = 0; i < num_comp; ++i ) {
           bool local = true;
           for( std::size_t j = 0; j < local_comp_map[i].size(); j++ ) {
-            for( boost::tie(abegin,aend) = adjacent_vertices(local_comp_map[i][j], g);
+            for( tie(abegin,aend) = adjacent_vertices(local_comp_map[i][j], g);
                  abegin != aend; abegin++ )
               if( get(owner, *abegin) != id ) {
                 local = false;
@@ -251,7 +253,7 @@ namespace boost { namespace graph { namespace distributed {
               }
 
             if( local )
-              for( boost::tie(rev_abegin,rev_aend) = adjacent_vertices(get(fr, local_comp_map[i][j]), gr);
+              for( tie(rev_abegin,rev_aend) = adjacent_vertices(get(fr, local_comp_map[i][j]), gr);
                    rev_abegin != rev_aend; rev_abegin++ )
                 if( get(owner, *rev_abegin) != id ) {
                   local = false;
@@ -474,24 +476,22 @@ namespace boost { namespace graph { namespace distributed {
         for (std::size_t i = 0; i < vertex_sets.size(); ++i)
           dest_map[vertex_sets[i][0]] = i % num_procs;
 
-        for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ ) {
+        for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ ) {
           vertex_descriptor v = get(succ_map, *vstart);
-          if( v != graph_traits<Graph>::null_vertex() ) {
+          if( v != graph_traits<Graph>::null_vertex() )
             if (dest_map[v] == id)
               set_map[v].succ.push_back(*vstart);
             else
               successors[dest_map[v]].push_back( std::make_pair(v, *vstart) );
-          }
         }
 
-        for( boost::tie(rev_vstart, rev_vend) = vertices(gr); rev_vstart != rev_vend; rev_vstart++ ) {
+        for( tie(rev_vstart, rev_vend) = vertices(gr); rev_vstart != rev_vend; rev_vstart++ ) {
           vertex_descriptor v = get(pred_map, *rev_vstart);
-          if( v != graph_traits<Graph>::null_vertex() ) {
+          if( v != graph_traits<Graph>::null_vertex() )
             if (dest_map[v] == id)
               set_map[v].pred.push_back(get(rf, *rev_vstart));
             else
               predecessors[dest_map[v]].push_back( std::make_pair(v, get(rf, *rev_vstart)) );
-          }
         }
 
         // Send predecessor and successor messages
@@ -509,7 +509,7 @@ namespace boost { namespace graph { namespace distributed {
 
         // Receive predecessor and successor messages and handle them
         while (optional<std::pair<process_id_type, int> > m = probe(pg)) {
-          BOOST_ASSERT(m->second == fhp_succ_size_msg || m->second == fhp_pred_size_msg);
+          assert(m->second == fhp_succ_size_msg || m->second == fhp_pred_size_msg);
           std::size_t num_requests;
           receive(pg, m->first, m->second, num_requests);
           VertexPairVec requests(num_requests);
@@ -684,13 +684,13 @@ namespace boost { namespace graph { namespace distributed {
          for (std::size_t j = 0; j < vertex_sets[i].size(); ++j) {
            vertex_descriptor v = vertex_sets[i][j];
            if (get(owner, v) == id) {
-             boost::tie(estart, eend) = out_edges(v, g);
+             tie(estart, eend) = out_edges(v, g);
              while (estart != eend && find(vertex_sets[i].begin(), vertex_sets[i].end(),
                                            target(*estart,g)) == vertex_sets[i].end()) estart++;
              if (estart != eend) {
-               boost::tie(restart, reend) = out_edges(get(fr, v), gr);
+               tie(restart, reend) = out_edges(get(fr, v), gr);
                while (restart != reend && find(vertex_sets[i].begin(), vertex_sets[i].end(),
-                                               get(rf, target(*restart,gr))) == vertex_sets[i].end()) restart++;
+                                               get(rf, target(*restart,g))) == vertex_sets[i].end()) restart++;
                if (restart != reend)
                  new_set.push_back(v);
              }
@@ -711,7 +711,7 @@ namespace boost { namespace graph { namespace distributed {
 
 
       // Label vertices not in a SCC as their own SCC
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
         if( get(c, *vstart) == graph_traits<Graph>::null_vertex() )
           put(c, *vstart, *vstart);
 
@@ -729,6 +729,8 @@ namespace boost { namespace graph { namespace distributed {
       typedef typename process_group_type::process_id_type process_id_type;
       typedef std::vector<std::pair<vertex_descriptor, vertex_descriptor> > VertexPairVec;
 
+      typedef typename graph_traits<Graph>::directed_category directed_category;
+
       typename property_map<Graph, vertex_owner_t>::const_type
         owner = get(vertex_owner, g);
 
@@ -741,7 +743,7 @@ namespace boost { namespace graph { namespace distributed {
 
       vertex_descriptor v;
       out_edge_iterator oestart, oeend;
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
         {
           v = add_vertex(gr);
           put(fr, *vstart, v);
@@ -759,8 +761,8 @@ namespace boost { namespace graph { namespace distributed {
 
       // Add edges to gr
       std::vector<std::pair<vertex_descriptor, vertex_descriptor> > new_edges;
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
-        for( boost::tie(oestart, oeend) = out_edges(*vstart, g); oestart != oeend; oestart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+        for( tie(oestart, oeend) = out_edges(*vstart, g); oestart != oeend; oestart++ )
           new_edges.push_back( std::make_pair(get(fr, target(*oestart,g)), get(fr, source(*oestart, g))) );
 
       std::vector<VertexPairVec> edge_requests(num_procs);
@@ -787,7 +789,7 @@ namespace boost { namespace graph { namespace distributed {
 
       // Receive edge addition requests and handle them
       while (optional<std::pair<process_id_type, int> > m = probe(pg)) {
-        BOOST_ASSERT(m->second == fhp_edges_size_msg);
+        assert(m->second == fhp_edges_size_msg);
         std::size_t num_requests;
         receive(pg, m->first, m->second, num_requests);
         VertexPairVec requests(num_requests);
@@ -810,7 +812,7 @@ namespace boost { namespace graph { namespace distributed {
       std::vector<vertex_descriptor> my_roots, all_roots;
       vertex_iterator vstart, vend;
 
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
         if( find( my_roots.begin(), my_roots.end(), get(r, *vstart) ) == my_roots.end() )
           my_roots.push_back( get(r, *vstart) );
 
@@ -826,7 +828,7 @@ namespace boost { namespace graph { namespace distributed {
           comp_numbers[all_roots[i]] = c_num++;
 
       // Broadcast component numbers
-      for( boost::tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
+      for( tie(vstart, vend) = vertices(g); vstart != vend; vstart++ )
         put( c, *vstart, comp_numbers[get(r,*vstart)] );
 
       // Broadcast number of components
@@ -857,6 +859,7 @@ namespace boost { namespace graph { namespace distributed {
        VertexIndexMap vertex_index_map,
        incidence_graph_tag)
     {
+      typedef typename graph_traits<Graph>::vertex_iterator vertex_iterator;
       typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
       typedef iterator_property_map<typename std::vector<vertex_descriptor>::iterator,
                                     VertexIndexMap> IsoMap;

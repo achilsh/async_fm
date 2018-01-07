@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,11 +11,7 @@
 #ifndef BOOST_INTERPROCESS_LOCK_OPTIONS_HPP
 #define BOOST_INTERPROCESS_LOCK_OPTIONS_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
@@ -27,12 +23,8 @@
 
 namespace boost {
 
-#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-
 namespace posix_time
 {  class ptime;   }
-
-#endif   //#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
 namespace interprocess {
 

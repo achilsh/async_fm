@@ -11,7 +11,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 #include <boost/spirit/home/classic/phoenix/actor.hpp>
-#include <boost/assert.hpp>
+#include <cassert>
 
 #ifdef PHOENIX_THREADSAFE
 #include <boost/thread/tss.hpp>
@@ -270,7 +270,7 @@ public:
     eval(TupleT const& /*args*/) const
     {
         using namespace std;
-        BOOST_ASSERT(frame.get() != 0);
+        assert(frame.get() != 0);
         return (*frame.get())[tuple_index<N>()];
     }
 
@@ -419,11 +419,7 @@ private:
     closure_frame_holder_ref(holder_t* holder_ = 0)
     {
 #ifdef PHOENIX_THREADSAFE
-#ifndef BOOST_THREAD_PROVIDES_ONCE_CXX11
         static boost::once_flag been_here = BOOST_ONCE_INIT;
-#else
-        static boost::once_flag been_here;
-#endif
         boost::call_once(been_here, tsp_frame_instance_init);
         boost::thread_specific_ptr<holder_t*> &tsp_frame = tsp_frame_instance();
         if (!tsp_frame.get())

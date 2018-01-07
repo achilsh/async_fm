@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -112,7 +112,7 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
     class static_lexer 
     {
     private:
-        struct dummy { void true_() {} };
+        struct dummy { void true_() {}; };
         typedef void (dummy::*safe_bool)();
 
     public:
@@ -138,18 +138,16 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
             typedef typename Functor::get_state_name_type get_state_name_type;
 
             iterator_data_type(next_token_functor next
-                  , semantic_actions_type const& actions
-                  , get_state_name_type get_state_name, std::size_t num_states
-                  , bool bol)
+              , semantic_actions_type const& actions
+              , get_state_name_type get_state_name, std::size_t num_states)
               : next_(next), actions_(actions), get_state_name_(get_state_name)
-              , num_states_(num_states), bol_(bol)
+              , num_states_(num_states)
             {}
 
             next_token_functor next_;
             semantic_actions_type const& actions_;
             get_state_name_type get_state_name_;
             std::size_t num_states_;
-            bool bol_;
 
         private:
             // silence MSVC warning C4512: assignment operator could not be generated
@@ -175,9 +173,8 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
           , char_type const* initial_state = 0) const
         { 
             iterator_data_type iterator_data( 
-                    &tables_type::template next<Iterator_>, actions_
-                  , &tables_type::state_name, tables_type::state_count()
-                  , tables_type::supports_bol
+                    &tables_type::template next<Iterator_>, actions_, 
+                    &tables_type::state_name, tables_type::state_count()
                 );
             return iterator_type(iterator_data, first, last, initial_state);
         }
@@ -195,13 +192,12 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
 
     public:
         // interface for token definition management
-        std::size_t add_token (char_type const*, char_type, std::size_t
-          , char_type const*) 
+        std::size_t add_token (char_type const*, char_type, std::size_t) 
         {
             return unique_id_++;
         }
         std::size_t add_token (char_type const*, string_type const&
-          , std::size_t, char_type const*) 
+          , std::size_t) 
         {
             return unique_id_++;
         }
@@ -230,7 +226,7 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
             actions_.add_action(unique_id, state, wrapper_type::call(act));
         }
 
-        bool init_dfa(bool minimize = false) const { return true; }
+        bool init_dfa() const { return true; }
 
     private:
         typename Functor::semantic_actions_type actions_;

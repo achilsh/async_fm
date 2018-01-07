@@ -296,6 +296,7 @@ namespace detail { namespace graph {
                                       ShortestPaths shortest_paths)
   {
     typedef typename graph_traits<Graph>::vertex_iterator vertex_iterator;
+    typedef typename graph_traits<Graph>::edge_iterator edge_iterator;
     typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
 
     // Initialize centrality
@@ -304,10 +305,10 @@ namespace detail { namespace graph {
 
     std::stack<vertex_descriptor> ordered_vertices;
     vertex_iterator s, s_end;
-    for (boost::tie(s, s_end) = vertices(g); s != s_end; ++s) {
+    for (tie(s, s_end) = vertices(g); s != s_end; ++s) {
       // Initialize for this iteration
       vertex_iterator w, w_end;
-      for (boost::tie(w, w_end) = vertices(g); w != w_end; ++w) {
+      for (tie(w, w_end) = vertices(g); w != w_end; ++w) {
         incoming[*w].clear();
         put(path_count, *w, 0);
         put(dependency, *w, 0);
@@ -420,6 +421,7 @@ namespace detail { namespace graph {
                                            VertexIndexMap vertex_index)
   {
     typedef typename graph_traits<Graph>::degree_size_type degree_size_type;
+    typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
     typedef typename graph_traits<Graph>::edge_descriptor edge_descriptor;
     typedef typename mpl::if_c<(is_same<CentralityMap, 
                                         dummy_property_map>::value),
@@ -455,6 +457,7 @@ namespace detail { namespace graph {
                                            VertexIndexMap vertex_index)
   {
     typedef typename graph_traits<Graph>::degree_size_type degree_size_type;
+    typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
     typedef typename graph_traits<Graph>::edge_descriptor edge_descriptor;
     typedef typename mpl::if_c<(is_same<CentralityMap, 
                                         dummy_property_map>::value),
@@ -495,14 +498,14 @@ namespace detail { namespace graph {
   };
 
   template<>
-  struct brandes_betweenness_centrality_dispatch1<param_not_found>
+  struct brandes_betweenness_centrality_dispatch1<error_property_not_found>
   {
     template<typename Graph, typename CentralityMap, 
              typename EdgeCentralityMap, typename VertexIndexMap>
     static void 
     run(const Graph& g, CentralityMap centrality, 
         EdgeCentralityMap edge_centrality_map, VertexIndexMap vertex_index,
-        param_not_found)
+        error_property_not_found)
     {
       brandes_betweenness_centrality_dispatch2(g, centrality, edge_centrality_map,
                                                vertex_index);
@@ -529,7 +532,7 @@ brandes_betweenness_centrality(const Graph& g,
 {
   typedef bgl_named_params<Param,Tag,Rest> named_params;
 
-  typedef typename get_param_type<edge_weight_t, named_params>::type ew;
+  typedef typename property_value<named_params, edge_weight_t>::type ew;
   detail::graph::brandes_betweenness_centrality_dispatch1<ew>::run(
     g, 
     choose_param(get_param(params, vertex_centrality), 
@@ -578,7 +581,7 @@ relative_betweenness_centrality(const Graph& g, CentralityMap centrality)
   typename graph_traits<Graph>::vertices_size_type n = num_vertices(g);
   centrality_type factor = centrality_type(2)/centrality_type(n*n - 3*n + 2);
   vertex_iterator v, v_end;
-  for (boost::tie(v, v_end) = vertices(g); v != v_end; ++v) {
+  for (tie(v, v_end) = vertices(g); v != v_end; ++v) {
     put(centrality, *v, factor * get(centrality, *v));
   }
 }
@@ -599,13 +602,13 @@ central_point_dominance(const Graph& g, CentralityMap centrality
   // Find max centrality
   centrality_type max_centrality(0);
   vertex_iterator v, v_end;
-  for (boost::tie(v, v_end) = vertices(g); v != v_end; ++v) {
+  for (tie(v, v_end) = vertices(g); v != v_end; ++v) {
     max_centrality = (max)(max_centrality, get(centrality, *v));
   }
 
   // Compute central point dominance
   centrality_type sum(0);
-  for (boost::tie(v, v_end) = vertices(g); v != v_end; ++v) {
+  for (tie(v, v_end) = vertices(g); v != v_end; ++v) {
     sum += (max_centrality - get(centrality, *v));
   }
   return sum/(n-1);

@@ -10,7 +10,7 @@
 #ifndef BOOST_IOSTREAMS_CODE_CONVERTER_HPP_INCLUDED
 #define BOOST_IOSTREAMS_CODE_CONVERTER_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -37,14 +37,13 @@
 #include <boost/iostreams/detail/execute.hpp>
 #include <boost/iostreams/detail/forward.hpp>
 #include <boost/iostreams/detail/functional.hpp>
-#include <boost/iostreams/detail/ios.hpp> // failure, openmode, int types, streamsize.
+#include <boost/iostreams/detail/ios.hpp> // failure, openmode, int types.
 #include <boost/iostreams/detail/optional.hpp>
 #include <boost/iostreams/detail/select.hpp>
 #include <boost/iostreams/traits.hpp>
 #include <boost/iostreams/operations.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/static_assert.hpp>
-#include <boost/throw_exception.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/type_traits/is_same.hpp>
 
@@ -153,14 +152,13 @@ struct code_converter_impl {
         } catch (...) { /* */ } 
     }
 
-    template <class T>
-    void open(const T& dev, std::streamsize buffer_size)
+    void open(const Device& dev, int buffer_size)
     {
         if (flags_ & f_open)
-            boost::throw_exception(BOOST_IOSTREAMS_FAILURE("already open"));
+            throw BOOST_IOSTREAMS_FAILURE("already open");
         if (buffer_size == -1)
             buffer_size = default_filter_buffer_size;
-        std::streamsize max_length = cvt_.get().max_length();
+        int max_length = cvt_.get().max_length();
         buffer_size = (std::max)(buffer_size, 2 * max_length);
         if (can_read::value) {
             buf_.first().resize(buffer_size);
@@ -223,7 +221,7 @@ struct code_converter_impl {
 
 //--------------Definition of converter---------------------------------------//
 
-#define BOOST_IOSTREAMS_CONVERTER_PARAMS() , std::streamsize buffer_size = -1
+#define BOOST_IOSTREAMS_CONVERTER_PARAMS() , int buffer_size = -1
 #define BOOST_IOSTREAMS_CONVERTER_ARGS() , buffer_size
 
 template<typename Device, typename Codecvt, typename Alloc>
@@ -264,6 +262,14 @@ public:
     ));
 public:
     code_converter() { }
+#if BOOST_WORKAROUND(__GNUC__, < 3)
+    code_converter(code_converter& rhs) 
+        : code_converter_base<Device, Codecvt, Alloc>(rhs)
+        { }
+    code_converter(const code_converter& rhs) 
+        : code_converter_base<Device, Codecvt, Alloc>(rhs)
+        { }
+#endif
     BOOST_IOSTREAMS_FORWARD( code_converter, open_impl, Device,
                              BOOST_IOSTREAMS_CONVERTER_PARAMS, 
                              BOOST_IOSTREAMS_CONVERTER_ARGS )
@@ -348,7 +354,7 @@ std::streamsize code_converter<Device, Codevt, Alloc>::read
         case std::codecvt_base::error:
         default:
             buf.state() = state_type();
-            boost::throw_exception(code_conversion_error());
+            throw code_conversion_error();
         }
 
     } while (total < n && status != EOF && status != WOULD_BLOCK);
@@ -385,8 +391,7 @@ std::streamsize code_converter<Device, Codevt, Alloc>::write
 
         switch (result) {
         case std::codecvt_base::partial:
-            partial = true;
-            BOOST_FALLTHROUGH;
+            partial = true; // Fall through.
         case std::codecvt_base::ok:
             total = static_cast<std::streamsize>(nint - s);
             break;
@@ -402,7 +407,7 @@ std::streamsize code_converter<Device, Codevt, Alloc>::write
         case std::codecvt_base::error:
         default:
             buf.state() = state_type();
-            boost::throw_exception(code_conversion_error());
+            throw code_conversion_error();
         }
     }
     return total;

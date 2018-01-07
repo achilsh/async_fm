@@ -1,14 +1,13 @@
 /*=============================================================================
-    Copyright (c) 2005-2013 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
 
-    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_MAP_END_IMPL_02042013_0857)
-#define BOOST_FUSION_MAP_END_IMPL_02042013_0857
+#if !defined(FUSION_END_IMPL_05222005_1108)
+#define FUSION_END_IMPL_05222005_1108
 
-#include <boost/fusion/support/config.hpp>
-#include <boost/fusion/container/map/map_iterator.hpp>
+#include <boost/fusion/sequence/intrinsic/end.hpp>
 
 namespace boost { namespace fusion
 {
@@ -16,21 +15,35 @@ namespace boost { namespace fusion
 
     namespace extension
     {
-        template<typename T>
+        template <typename Tag>
         struct end_impl;
 
-        template<>
+        template <>
         struct end_impl<map_tag>
         {
-            template<typename Sequence>
-            struct apply
+            template <typename Sequence>
+            struct apply 
             {
-                typedef map_iterator<Sequence, Sequence::size::value> type;
+                typedef typename 
+                    result_of::end<typename Sequence::storage_type>::type
+                iterator_type;
 
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-                static type call(Sequence& seq)
+                typedef typename 
+                    result_of::end<typename Sequence::storage_type const>::type
+                const_iterator_type;
+
+                typedef typename 
+                    mpl::eval_if<
+                        is_const<Sequence>
+                      , mpl::identity<const_iterator_type>
+                      , mpl::identity<iterator_type>
+                    >::type
+                type;
+    
+                static type
+                call(Sequence& m)
                 {
-                    return type(seq);
+                    return fusion::end(m.get_data());
                 }
             };
         };

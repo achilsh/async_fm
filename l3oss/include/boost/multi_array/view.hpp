@@ -24,7 +24,6 @@
 #include "boost/multi_array/subarray.hpp"
 #include "boost/multi_array/algorithm.hpp"
 #include "boost/type_traits/is_integral.hpp"
-#include "boost/utility/enable_if.hpp"
 #include "boost/array.hpp"
 #include "boost/limits.hpp"
 #include <algorithm>
@@ -82,7 +81,7 @@ public:
 #endif
   reindex(const BaseList& values) {
     boost::function_requires<
-      CollectionConcept<BaseList> >();
+      detail::multi_array::CollectionConcept<BaseList> >();
     boost::detail::multi_array::
       copy_n(values.begin(),num_dimensions(),index_base_list_.begin());
     origin_offset_ =
@@ -120,7 +119,7 @@ public:
   template <typename IndexList>
   const element& operator()(IndexList indices) const {
     boost::function_requires<
-      CollectionConcept<IndexList> >();
+      detail::multi_array::CollectionConcept<IndexList> >();
     return super_type::access_element(boost::type<const element&>(),
                                       indices,origin(),
                                       shape(),strides(),index_bases());
@@ -135,7 +134,11 @@ public:
   }
 
   // see generate_array_view in base.hpp
+#if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
   template <int NDims>
+#else
+  template <int NumDims, int NDims> // else ICE
+#endif // BOOST_MSVC
   typename const_array_view<NDims>::type 
   operator[](const boost::detail::multi_array::
              index_gen<NumDims,NDims>& indices)
@@ -294,7 +297,7 @@ public:
   template <typename ConstMultiArray>
   multi_array_view& operator=(const ConstMultiArray& other) {
     function_requires< 
-      boost::multi_array_concepts::
+      boost::detail::multi_array::
       ConstMultiArrayConcept<ConstMultiArray,NumDims> >();
 
     // make sure the dimensions agree
@@ -325,7 +328,7 @@ public:
   template <class IndexList>
   element& operator()(const IndexList& indices) {
     boost::function_requires<
-      CollectionConcept<IndexList> >();
+      detail::multi_array::CollectionConcept<IndexList> >();
     return super_type::access_element(boost::type<element&>(),
                                       indices,origin(),
                                       this->shape(),this->strides(),
@@ -342,7 +345,11 @@ public:
 
 
   // see generate_array_view in base.hpp
+#if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
   template <int NDims>
+#else
+  template <int NumDims, int NDims> // else ICE
+#endif // BOOST_MSVC
   typename array_view<NDims>::type 
   operator[](const boost::detail::multi_array::
              index_gen<NumDims,NDims>& indices) {
@@ -385,7 +392,7 @@ public:
   template <class IndexList>
   const element& operator()(const IndexList& indices) const {
     boost::function_requires<
-      CollectionConcept<IndexList> >();
+      detail::multi_array::CollectionConcept<IndexList> >();
     return super_type::operator()(indices);
   }
 
@@ -394,7 +401,11 @@ public:
   }
 
   // see generate_array_view in base.hpp
+#if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
   template <int NDims>
+#else
+  template <int NumDims, int NDims> // else ICE
+#endif // BOOST_MSVC
   typename const_array_view<NDims>::type 
   operator[](const boost::detail::multi_array::
              index_gen<NumDims,NDims>& indices)

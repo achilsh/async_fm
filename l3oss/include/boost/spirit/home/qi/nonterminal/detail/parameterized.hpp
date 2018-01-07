@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
     Copyright (c) 2009 Francois Barel
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -14,7 +14,6 @@
 
 #include <boost/ref.hpp>
 
-#include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/spirit/home/qi/parser.hpp>
 
 namespace boost { namespace spirit { namespace qi
@@ -27,8 +26,8 @@ namespace boost { namespace spirit { namespace qi
     struct parameterized_nonterminal
       : parser<parameterized_nonterminal<Subject, Params> >
     {
-        parameterized_nonterminal(Subject const& subject, Params const& params_)
-          : ref(subject), params(params_)
+        parameterized_nonterminal(Subject const& subject, Params const& params)
+          : ref(subject), params(params)
         {
         }
 
@@ -41,11 +40,11 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             // Forward to subject, passing the additional
             // params argument to parse.
-            return ref.get().parse(first, last, context, skipper, attr_, params);
+            return ref.get().parse(first, last, context, skipper, attr, params);
         }
 
         template <typename Context>
@@ -58,18 +57,6 @@ namespace boost { namespace spirit { namespace qi
         boost::reference_wrapper<Subject const> ref;
         Params params;
     };
-}}}
-
-namespace boost { namespace spirit { namespace traits
-{
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Params, typename Attribute
-      , typename Context, typename Iterator>
-    struct handles_container<qi::parameterized_nonterminal<Subject, Params>
-          , Attribute, Context, Iterator>
-      : handles_container<typename remove_const<Subject>::type
-        , Attribute, Context, Iterator> 
-    {};
 }}}
 
 #endif

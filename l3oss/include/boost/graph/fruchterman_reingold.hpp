@@ -78,7 +78,7 @@ struct all_force_pairs
   {
     typedef typename graph_traits<Graph>::vertex_iterator vertex_iterator;
     vertex_iterator v, end;
-    for (boost::tie(v, end) = vertices(g); v != end; ++v) {
+    for (tie(v, end) = vertices(g); v != end; ++v) {
       vertex_iterator u = v;
       for (++u; u != end; ++u) {
         apply_force(*u, *v);
@@ -116,7 +116,7 @@ struct grid_force_pairs
     std::size_t rows = std::size_t(topology.extent()[1] / two_k + 1.);
     buckets_t buckets(rows * columns);
     vertex_iterator v, v_end;
-    for (boost::tie(v, v_end) = vertices(g); v != v_end; ++v) {
+    for (tie(v, v_end) = vertices(g); v != v_end; ++v) {
       std::size_t column =
         std::size_t((get(position, *v)[0] + topology.extent()[0] / 2) / two_k);
       std::size_t row    =
@@ -282,6 +282,7 @@ fruchterman_reingold_force_directed_layout
   Cooling         cool,
   DisplacementMap displacement)
 {
+  typedef typename Topology::point_type Point;
   typedef typename graph_traits<Graph>::vertex_iterator   vertex_iterator;
   typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
   typedef typename graph_traits<Graph>::edge_iterator     edge_iterator;
@@ -298,13 +299,13 @@ fruchterman_reingold_force_directed_layout
   do {
     // Calculate repulsive forces
     vertex_iterator v, v_end;
-    for (boost::tie(v, v_end) = vertices(g); v != v_end; ++v)
+    for (tie(v, v_end) = vertices(g); v != v_end; ++v)
       put(displacement, *v, typename Topology::point_difference_type());
     force_pairs(g, apply_force);
 
     // Calculate attractive forces
     edge_iterator e, e_end;
-    for (boost::tie(e, e_end) = edges(g); e != e_end; ++e) {
+    for (tie(e, e_end) = edges(g); e != e_end; ++e) {
       vertex_descriptor v = source(*e, g);
       vertex_descriptor u = target(*e, g);
 
@@ -362,7 +363,7 @@ namespace detail {
   };
 
   template<>
-  struct fr_force_directed_layout<param_not_found>
+  struct fr_force_directed_layout<error_property_not_found>
   {
     template<typename Topology, typename Graph, typename PositionMap, 
              typename AttractiveForce, typename RepulsiveForce,
@@ -376,7 +377,7 @@ namespace detail {
         RepulsiveForce  repulsive_force,
         ForcePairs      force_pairs,
         Cooling         cool,
-        param_not_found,
+        error_property_not_found,
         const bgl_named_params<Param, Tag, Rest>& params)
     {
       typedef typename Topology::point_difference_type PointDiff;
@@ -403,7 +404,8 @@ fruchterman_reingold_force_directed_layout
    const Topology& topology,
    const bgl_named_params<Param, Tag, Rest>& params)
 {
-  typedef typename get_param_type<vertex_displacement_t, bgl_named_params<Param,Tag,Rest> >::type D;
+  typedef typename property_value<bgl_named_params<Param,Tag,Rest>,
+                                  vertex_displacement_t>::type D;
 
   detail::fr_force_directed_layout<D>::run
     (g, position, topology, 

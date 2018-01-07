@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
     Copyright (c) 2005-2006 Dan Marsden
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -8,7 +8,6 @@
 #if !defined(FUSION_CONVERT_IMPL_09232005_1215)
 #define FUSION_CONVERT_IMPL_09232005_1215
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/container/list/cons.hpp>
 #include <boost/fusion/container/list/detail/build_cons.hpp>
 #include <boost/fusion/sequence/intrinsic/empty.hpp>
@@ -39,7 +38,6 @@ namespace boost { namespace fusion
 
                 typedef typename build_cons::type type;
 
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
                 static type
                 call(Sequence& seq)
                 {

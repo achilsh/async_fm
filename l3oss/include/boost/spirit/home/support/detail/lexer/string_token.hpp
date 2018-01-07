@@ -10,7 +10,6 @@
 #include "size_t.hpp"
 #include "consts.hpp" // num_chars, num_wchar_ts
 #include <string>
-#include <limits>
 
 namespace boost
 {
@@ -56,7 +55,11 @@ struct basic_string_token
         if (_charset.length () == max_chars_)
         {
             _negated = !_negated;
+#if defined _MSC_VER && _MSC_VER <= 1200
+            _charset.erase ();
+#else
             _charset.clear ();
+#endif
         }
         else if (_charset.length () > max_chars_ / 2)
         {
@@ -68,7 +71,7 @@ struct basic_string_token
     {
         const std::size_t max_chars_ = sizeof (CharT) == 1 ?
             num_chars : num_wchar_ts;
-        CharT curr_char_ = (std::numeric_limits<CharT>::min)();
+        CharT curr_char_ = sizeof (CharT) == 1 ? -128 : 0;
         string temp_;
         const CharT *curr_ = _charset.c_str ();
         const CharT *chars_end_ = curr_ + _charset.size ();
@@ -123,7 +126,11 @@ struct basic_string_token
     void clear ()
     {
         _negated = false;
-        _charset.clear ();
+#if defined _MSC_VER && _MSC_VER <= 1200
+            _charset.erase ();
+#else
+            _charset.clear ();
+#endif
     }
 
     void intersect (basic_string_token &rhs_, basic_string_token &overlap_)
@@ -136,82 +143,6 @@ struct basic_string_token
         else
         {
             intersect_diff_types (rhs_, overlap_);
-        }
-    }
-
-    static void escape_char (const CharT ch_, string &out_)
-    {
-        switch (ch_)
-        {
-            case '\0':
-                out_ += '\\';
-                out_ += '0';
-                break;
-            case '\a':
-                out_ += '\\';
-                out_ += 'a';
-                break;
-            case '\b':
-                out_ += '\\';
-                out_ += 'b';
-                break;
-            case 27:
-                out_ += '\\';
-                out_ += 'x';
-                out_ += '1';
-                out_ += 'b';
-                break;
-            case '\f':
-                out_ += '\\';
-                out_ += 'f';
-                break;
-            case '\n':
-                out_ += '\\';
-                out_ += 'n';
-                break;
-            case '\r':
-                out_ += '\\';
-                out_ += 'r';
-                break;
-            case '\t':
-                out_ += '\\';
-                out_ += 't';
-                break;
-            case '\v':
-                out_ += '\\';
-                out_ += 'v';
-                break;
-            case '\\':
-                out_ += '\\';
-                out_ += '\\';
-                break;
-            case '"':
-                out_ += '\\';
-                out_ += '"';
-                break;
-            case '\'':
-                out_ += '\\';
-                out_ += '\'';
-                break;
-            default:
-            {
-                if (ch_ < 32 && ch_ >= 0)
-                {
-                    std::basic_stringstream<CharT> ss_;
-
-                    out_ += '\\';
-                    out_ += 'x';
-                    ss_ << std::hex <<
-                        static_cast<std::size_t> (ch_);
-                    out_ += ss_.str ();
-                }
-                else
-                {
-                    out_ += ch_;
-                }
-
-                break;
-            }
         }
     }
 

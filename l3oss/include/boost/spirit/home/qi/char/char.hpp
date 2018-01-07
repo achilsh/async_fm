@@ -1,7 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c)      2010 Bryce Lelbach
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -22,13 +20,10 @@
 #include <boost/spirit/home/qi/char/char_class.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/auxiliary/lazy.hpp>
-#include <boost/spirit/home/qi/detail/enable_lit.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/assert.hpp>
-#include <boost/mpl/identity.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/remove_const.hpp>
 #include <string>
 
 #if defined(_MSC_VER)
@@ -92,21 +87,11 @@ namespace boost { namespace spirit
     template <>
     struct use_terminal<qi::domain, wchar_t[2]>         // enables L"x"
       : mpl::true_ {};
-
-    // enables lit(...)
-    template <typename A0>
-    struct use_terminal<qi::domain
-          , terminal_ex<tag::lit, fusion::vector1<A0> >
-          , typename enable_if<traits::is_char<A0> >::type>
-      : mpl::true_ {};
 }}
 
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::lit; // lit('x') is equivalent to 'x'
-#endif
-    using spirit::lit_type;
 
     ///////////////////////////////////////////////////////////////////////////
     // Parser for a single character
@@ -123,8 +108,8 @@ namespace boost { namespace spirit { namespace qi
         typedef CharEncoding char_encoding;
 
         template <typename Char>
-        literal_char(Char ch_)
-          : ch(static_cast<char_type>(ch_)) {}
+        literal_char(Char ch)
+          : ch(static_cast<char_type>(ch)) {}
 
         template <typename Context, typename Iterator>
         struct attribute
@@ -137,7 +122,7 @@ namespace boost { namespace spirit { namespace qi
         template <typename CharParam, typename Context>
         bool test(CharParam ch_, Context&) const
         {
-            return traits::ischar<CharParam, char_encoding>::call(ch_) &&
+            return traits::ischar<CharParam, char_encoding>::call(ch_) && 
                    ch == char_type(ch_);
         }
 
@@ -201,8 +186,8 @@ namespace boost { namespace spirit { namespace qi
         typedef typename CharEncoding::char_type char_type;
         typedef CharEncoding char_encoding;
 
-        char_range(char_type from_, char_type to_)
-          : from(from_), to(to_) {}
+        char_range(char_type from, char_type to)
+          : from(from), to(to) {}
 
         template <typename CharParam, typename Context>
         bool test(CharParam ch_, Context&) const
@@ -267,11 +252,9 @@ namespace boost { namespace spirit { namespace qi
     ///////////////////////////////////////////////////////////////////////////
     // Parser for a character set
     ///////////////////////////////////////////////////////////////////////////
-    template <typename CharEncoding, bool no_attribute, bool no_case = false>
+    template <typename CharEncoding, bool no_case = false>
     struct char_set
-      : char_parser<char_set<CharEncoding, no_attribute, false>
-          , typename mpl::if_c<no_attribute, unused_type
-              , typename CharEncoding::char_type>::type>
+      : char_parser<char_set<CharEncoding, false>, typename CharEncoding::char_type>
     {
         typedef typename CharEncoding::char_type char_type;
         typedef CharEncoding char_encoding;
@@ -279,41 +262,32 @@ namespace boost { namespace spirit { namespace qi
         template <typename String>
         char_set(String const& str)
         {
-            using spirit::detail::cast_char;
-
-            typedef typename
-                remove_const<
-                    typename traits::char_type_of<String>::type
-                >::type
-            in_type;
+            typedef typename traits::char_type_of<String>::type in_type;
 
             BOOST_SPIRIT_ASSERT_MSG((
-                (sizeof(char_type) >= sizeof(in_type))
+                (sizeof(char_type) == sizeof(in_type))
             ), cannot_convert_string, (String));
 
-            in_type const* definition =
-                (in_type const*)traits::get_c_string(str);
-            in_type ch = *definition++;
+            char_type const* definition =
+                (char_type const*)traits::get_c_string(str);
+            char_type ch = *definition++;
             while (ch)
             {
-                in_type next = *definition++;
+                char_type next = *definition++;
                 if (next == '-')
                 {
                     next = *definition++;
                     if (next == 0)
                     {
-                        chset.set(cast_char<char_type>(ch));
+                        chset.set(ch);
                         chset.set('-');
                         break;
                     }
-                    chset.set(
-                        cast_char<char_type>(ch),
-                        cast_char<char_type>(next)
-                    );
+                    chset.set(ch, next);
                 }
                 else
                 {
-                    chset.set(cast_char<char_type>(ch));
+                    chset.set(ch);
                 }
                 ch = next;
             }
@@ -322,7 +296,7 @@ namespace boost { namespace spirit { namespace qi
         template <typename CharParam, typename Context>
         bool test(CharParam ch, Context&) const
         {
-            return traits::ischar<CharParam, char_encoding>::call(ch) &&
+            return traits::ischar<CharParam, char_encoding>::call(ch) && 
                    chset.test(char_type(ch));
         }
 
@@ -335,11 +309,9 @@ namespace boost { namespace spirit { namespace qi
         support::detail::basic_chset<char_type> chset;
     };
 
-    template <typename CharEncoding, bool no_attribute>
-    struct char_set<CharEncoding, no_attribute, true> // case insensitive
-      : char_parser<char_set<CharEncoding, no_attribute, true>
-          , typename mpl::if_c<no_attribute, unused_type
-              , typename CharEncoding::char_type>::type>
+    template <typename CharEncoding>
+    struct char_set<CharEncoding, true> // case insensitive
+      : char_parser<char_set<CharEncoding, true>, typename CharEncoding::char_type>
     {
         typedef typename CharEncoding::char_type char_type;
         typedef CharEncoding char_encoding;
@@ -386,7 +358,7 @@ namespace boost { namespace spirit { namespace qi
         template <typename CharParam, typename Context>
         bool test(CharParam ch, Context&) const
         {
-            return traits::ischar<CharParam, char_encoding>::call(ch) &&
+            return traits::ischar<CharParam, char_encoding>::call(ch) && 
                    chset.test(char_type(ch));
         }
 
@@ -420,7 +392,7 @@ namespace boost { namespace spirit { namespace qi
                 >::value;
 
             typedef literal_char<
-                typename spirit::detail::get_encoding_with_case<
+                typename spirit::detail::get_encoding<
                     Modifiers, Encoding, no_case>::type
               , no_attr
               , no_case>
@@ -460,11 +432,7 @@ namespace boost { namespace spirit { namespace qi
     struct make_primitive<
         terminal<tag::char_code<tag::char_, CharEncoding> >, Modifiers>
     {
-        typedef typename
-            spirit::detail::get_encoding<Modifiers, CharEncoding>::type
-        char_encoding;
-
-        typedef tag::char_code<tag::char_, char_encoding> tag;
+        typedef tag::char_code<tag::char_, CharEncoding> tag;
         typedef char_class<tag> result_type;
         result_type operator()(unused_type, unused_type) const
         {
@@ -472,27 +440,25 @@ namespace boost { namespace spirit { namespace qi
         }
     };
 
-    ///////////////////////////////////////////////////////////////////////////
-    // char_('x')
     template <typename CharEncoding, typename Modifiers, typename A0>
     struct make_primitive<
         terminal_ex<
             tag::char_code<tag::char_, CharEncoding>
-          , fusion::vector1<A0> >
+          , fusion::vector1<A0>
+        >
       , Modifiers>
     {
         static bool const no_case =
-            has_modifier<Modifiers, tag::char_code_base<tag::no_case> >::value;
-
-        typedef typename
-            spirit::detail::get_encoding<Modifiers, CharEncoding>::type
-        char_encoding;
+            has_modifier<
+                Modifiers
+              , tag::char_code<tag::no_case, CharEncoding>
+            >::value;
 
         typedef typename
             mpl::if_<
                 traits::is_string<A0>
-              , char_set<char_encoding, false, no_case>
-              , literal_char<char_encoding, false, no_case>
+              , char_set<CharEncoding, no_case>
+              , literal_char<CharEncoding, false, no_case>
             >::type
         result_type;
 
@@ -503,36 +469,6 @@ namespace boost { namespace spirit { namespace qi
         }
     };
 
-    // lit('x')
-    template <typename Modifiers, typename A0>
-    struct make_primitive<
-        terminal_ex<tag::lit, fusion::vector1<A0> >
-      , Modifiers
-      , typename enable_if<traits::is_char<A0> >::type>
-    {
-        static bool const no_case =
-            has_modifier<
-                Modifiers
-              , tag::char_code_base<tag::no_case>
-            >::value;
-
-        typedef typename traits::char_encoding_from_char<
-                typename traits::char_type_of<A0>::type>::type encoding;
-
-        typedef literal_char<
-            typename spirit::detail::get_encoding_with_case<
-                Modifiers, encoding, no_case>::type
-          , true, no_case>
-        result_type;
-
-        template <typename Terminal>
-        result_type operator()(Terminal const& term, unused_type) const
-        {
-            return result_type(fusion::at_c<0>(term.args));
-        }
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
     template <typename CharEncoding, typename Modifiers, typename Char>
     struct make_primitive<
         terminal_ex<
@@ -542,13 +478,12 @@ namespace boost { namespace spirit { namespace qi
       , Modifiers>
     {
         static bool const no_case =
-            has_modifier<Modifiers, tag::char_code_base<tag::no_case> >::value;
+            has_modifier<
+                Modifiers
+              , tag::char_code<tag::no_case, CharEncoding>
+            >::value;
 
-        typedef typename
-            spirit::detail::get_encoding<Modifiers, CharEncoding>::type
-        char_encoding;
-
-        typedef literal_char<char_encoding, false, no_case> result_type;
+        typedef literal_char<CharEncoding, false, no_case> result_type;
 
         template <typename Terminal>
         result_type operator()(Terminal const& term, unused_type) const
@@ -566,13 +501,12 @@ namespace boost { namespace spirit { namespace qi
       , Modifiers>
     {
         static bool const no_case =
-            has_modifier<Modifiers, tag::char_code_base<tag::no_case> >::value;
+            has_modifier<
+                Modifiers
+              , tag::char_code<tag::no_case, CharEncoding>
+            >::value;
 
-        typedef typename
-            spirit::detail::get_encoding<Modifiers, CharEncoding>::type
-        char_encoding;
-
-        typedef char_range<char_encoding, no_case> result_type;
+        typedef char_range<CharEncoding, no_case> result_type;
 
         template <typename Terminal>
         result_type operator()(Terminal const& term, unused_type) const
@@ -580,33 +514,6 @@ namespace boost { namespace spirit { namespace qi
             return result_type(
                 fusion::at_c<0>(term.args)
               , fusion::at_c<1>(term.args)
-            );
-        }
-    };
-
-    template <typename CharEncoding, typename Modifiers, typename Char>
-    struct make_primitive<
-        terminal_ex<
-            tag::char_code<tag::char_, CharEncoding>
-          , fusion::vector2<Char(&)[2], Char(&)[2]> // For single char strings
-        >
-      , Modifiers>
-    {
-        static bool const no_case =
-            has_modifier<Modifiers, tag::char_code_base<tag::no_case> >::value;
-
-        typedef typename
-            spirit::detail::get_encoding<Modifiers, CharEncoding>::type
-        char_encoding;
-
-        typedef char_range<char_encoding, no_case> result_type;
-
-        template <typename Terminal>
-        result_type operator()(Terminal const& term, unused_type) const
-        {
-            return result_type(
-                fusion::at_c<0>(term.args)[0]
-              , fusion::at_c<1>(term.args)[0]
             );
         }
     };

@@ -13,8 +13,7 @@
 #ifndef BOOST_VARIANT_DETAIL_BACKUP_HOLDER_HPP
 #define BOOST_VARIANT_DETAIL_BACKUP_HOLDER_HPP
 
-#include <boost/config.hpp>
-#include <boost/assert.hpp>
+#include "boost/assert.hpp"
 
 namespace boost {
 namespace detail { namespace variant {
@@ -28,12 +27,12 @@ private: // representation
 
 public: // structors
 
-    ~backup_holder() BOOST_NOEXCEPT
+    ~backup_holder()
     {
         delete backup_;
     }
 
-    explicit backup_holder(T* backup) BOOST_NOEXCEPT
+    explicit backup_holder(T* backup)
         : backup_(backup)
     {
     }
@@ -54,7 +53,7 @@ public: // modifiers
         return *this;
     }
 
-    void swap(backup_holder& rhs) BOOST_NOEXCEPT
+    void swap(backup_holder& rhs)
     {
         T* tmp = rhs.backup_;
         rhs.backup_ = this->backup_;
@@ -63,12 +62,12 @@ public: // modifiers
 
 public: // queries
 
-    T& get() BOOST_NOEXCEPT
+    T& get()
     {
         return *backup_;
     }
 
-    const T& get() const BOOST_NOEXCEPT
+    const T& get() const
     {
         return *backup_;
     }
@@ -84,7 +83,7 @@ backup_holder<T>::backup_holder(const backup_holder&)
 }
 
 template <typename T>
-void swap(backup_holder<T>& lhs, backup_holder<T>& rhs) BOOST_NOEXCEPT
+void swap(backup_holder<T>& lhs, backup_holder<T>& rhs)
 {
     lhs.swap(rhs);
 }

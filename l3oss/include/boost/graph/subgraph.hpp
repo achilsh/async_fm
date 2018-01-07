@@ -16,17 +16,14 @@
 #include <list>
 #include <vector>
 #include <map>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graph_mutability_traits.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 
 #include <boost/static_assert.hpp>
-#include <boost/assert.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/or.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 namespace boost {
 
@@ -81,12 +78,12 @@ class subgraph {
     typedef graph_traits<Graph> Traits;
     typedef std::list<subgraph<Graph>*> ChildrenList;
 public:
-    // Graph requirements
-    typedef typename Traits::vertex_descriptor         vertex_descriptor;
-    typedef typename Traits::edge_descriptor           edge_descriptor;
-    typedef typename Traits::directed_category         directed_category;
-    typedef typename Traits::edge_parallel_category    edge_parallel_category;
-    typedef typename Traits::traversal_category        traversal_category;
+// Graph requirements
+typedef typename Traits::vertex_descriptor         vertex_descriptor;
+typedef typename Traits::edge_descriptor           edge_descriptor;
+typedef typename Traits::directed_category         directed_category;
+typedef typename Traits::edge_parallel_category    edge_parallel_category;
+typedef typename Traits::traversal_category        traversal_category;
 
     // IncidenceGraph requirements
     typedef typename Traits::out_edge_iterator         out_edge_iterator;
@@ -105,11 +102,13 @@ public:
 
     typedef typename Traits::in_edge_iterator          in_edge_iterator;
 
-    typedef typename edge_property_type<Graph>::type   edge_property_type;
-    typedef typename vertex_property_type<Graph>::type vertex_property_type;
+    typedef typename Graph::edge_property_type         edge_property_type;
+    typedef typename Graph::vertex_property_type       vertex_property_type;
+    typedef typename Graph::vertex_bundled             vertex_bundled;
+    typedef typename Graph::edge_bundled               edge_bundled;
     typedef subgraph_tag                               graph_tag;
     typedef Graph                                      graph_type;
-    typedef typename graph_property_type<Graph>::type  graph_property_type;
+    typedef typename Graph::graph_property_type        graph_property_type;
 
     // Create the main graph, the root of the subgraph tree
     subgraph()
@@ -125,35 +124,21 @@ public:
     {
         typename Graph::vertex_iterator v, v_end;
         vertices_size_type i = 0;
-        for(boost::tie(v, v_end) = vertices(m_graph); v != v_end; ++v)
+        for(tie(v, v_end) = vertices(m_graph); v != v_end; ++v)
             m_global_vertex[i++] = *v;
     }
 
     // copy constructor
     subgraph(const subgraph& x)
-        : m_parent(x.m_parent), m_edge_counter(x.m_edge_counter)
+        : m_graph(x.m_graph), m_parent(x.m_parent), m_edge_counter(x.m_edge_counter)
         , m_global_vertex(x.m_global_vertex), m_global_edge(x.m_global_edge)
     {
-        if(x.is_root())
-        {
-         m_graph = x.m_graph;
-        }
         // Do a deep copy (recursive).
-        // Only the root graph is copied, the subgraphs contain
-        // only references to the global vertices they own.
-        typename subgraph<Graph>::children_iterator i,i_end;
-        boost::tie(i,i_end) = x.children();
-        for(; i != i_end; ++i)
-        {         
-         subgraph<Graph> child = this->create_subgraph();
-         child = *i;
-         vertex_iterator vi,vi_end;   
-         boost::tie(vi,vi_end) = vertices(*i);
-         for (;vi!=vi_end;++vi)  
-         {
-          add_vertex(*vi,child);
-         }
-       }
+        for(typename ChildrenList::const_iterator i = x.m_children.begin();
+            i != x.m_children.end(); ++i)
+        {
+            m_children.push_back(new subgraph<Graph>( **i ));
+        }
     }
 
 
@@ -190,41 +175,29 @@ public:
 
     // local <-> global descriptor conversion functions
     vertex_descriptor local_to_global(vertex_descriptor u_local) const
-    { return is_root() ? u_local : m_global_vertex[u_local]; }
+    { return m_global_vertex[u_local]; }
 
     vertex_descriptor global_to_local(vertex_descriptor u_global) const {
         vertex_descriptor u_local; bool in_subgraph;
-        if (is_root()) return u_global;
-        boost::tie(u_local, in_subgraph) = this->find_vertex(u_global);
-        BOOST_ASSERT(in_subgraph == true);
+        tie(u_local, in_subgraph) = this->find_vertex(u_global);
+        assert(in_subgraph == true);
         return u_local;
     }
 
     edge_descriptor local_to_global(edge_descriptor e_local) const
-    { return is_root() ? e_local : m_global_edge[get(get(edge_index, m_graph), e_local)]; }
+    { return m_global_edge[get(get(edge_index, m_graph), e_local)]; }
 
     edge_descriptor global_to_local(edge_descriptor e_global) const
-    { return is_root() ? e_global : (*m_local_edge.find(get(get(edge_index, root().m_graph), e_global))).second; }
+    { return (*m_local_edge.find(get(get(edge_index, root().m_graph), e_global))).second; }
 
     // Is vertex u (of the root graph) contained in this subgraph?
     // If so, return the matching local vertex.
     std::pair<vertex_descriptor, bool>
     find_vertex(vertex_descriptor u_global) const {
-        if (is_root()) return std::make_pair(u_global, true);
-        typename LocalVertexMap::const_iterator i = m_local_vertex.find(u_global);
+        typename std::map<vertex_descriptor, vertex_descriptor>::const_iterator
+            i = m_local_vertex.find(u_global);
         bool valid = i != m_local_vertex.end();
         return std::make_pair((valid ? (*i).second : null_vertex()), valid);
-    }
-
-    // Is edge e (of the root graph) contained in this subgraph?
-    // If so, return the matching local edge.
-    std::pair<edge_descriptor, bool>
-    find_edge(edge_descriptor e_global) const {
-        if (is_root()) return std::make_pair(e_global, true);
-        typename LocalEdgeMap::const_iterator i =
-          m_local_edge.find(get(get(edge_index, root().m_graph), e_global));
-        bool valid = i != m_local_edge.end();
-        return std::make_pair((valid ? (*i).second : edge_descriptor()), valid);
     }
 
     // Return the parent graph.
@@ -340,7 +313,7 @@ public: // Probably shouldn't be public....
     {
         edge_descriptor e_local;
         bool inserted;
-        boost::tie(e_local, inserted) = add_edge(u_local, v_local, m_graph);
+        tie(e_local, inserted) = add_edge(u_local, v_local, m_graph);
         put(edge_index, m_graph, e_local, m_edge_counter++);
         m_global_edge.push_back(e_global);
         m_local_edge[get(get(edge_index, this->root()), e_global)] = e_local;
@@ -348,6 +321,9 @@ public: // Probably shouldn't be public....
     }
 };
 
+#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
+// TODO: I don't think these are required since the default metafunction
+// returns Graph::vertex_bundled.
 template <typename Graph>
 struct vertex_bundle_type<subgraph<Graph> >
     : vertex_bundle_type<Graph>
@@ -357,11 +333,7 @@ template<typename Graph>
 struct edge_bundle_type<subgraph<Graph> >
     : edge_bundle_type<Graph>
 { };
-
-template<typename Graph>
-struct graph_bundle_type<subgraph<Graph> >
-    : graph_bundle_type<Graph>
-{ };
+#endif // BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
 //===========================================================================
 // Functions special to the Subgraph Class
@@ -371,8 +343,8 @@ typename subgraph<G>::vertex_descriptor
 add_vertex(typename subgraph<G>::vertex_descriptor u_global,
            subgraph<G>& g)
 {
-    BOOST_ASSERT(!g.is_root());
-    typename subgraph<G>::vertex_descriptor u_local, v_global;
+    assert(!g.is_root());
+    typename subgraph<G>::vertex_descriptor u_local, v_global, uu_global;
     typename subgraph<G>::edge_descriptor e_global;
 
     u_local = add_vertex(g.m_graph);
@@ -384,7 +356,7 @@ add_vertex(typename subgraph<G>::vertex_descriptor u_global,
     // remember edge global and local maps
     {
         typename subgraph<G>::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = out_edges(u_global, r);
+        for (tie(ei, ei_end) = out_edges(u_global, r);
             ei != ei_end; ++ei) {
             e_global = *ei;
             v_global = target(e_global, r);
@@ -395,15 +367,13 @@ add_vertex(typename subgraph<G>::vertex_descriptor u_global,
     if (is_directed(g)) { // not necessary for undirected graph
         typename subgraph<G>::vertex_iterator vi, vi_end;
         typename subgraph<G>::out_edge_iterator ei, ei_end;
-        for(boost::tie(vi, vi_end) = vertices(r); vi != vi_end; ++vi) {
+        for(tie(vi, vi_end) = vertices(r); vi != vi_end; ++vi) {
             v_global = *vi;
-            if (v_global == u_global)
-                continue; // don't insert self loops twice!
-            if (!g.find_vertex(v_global).second)
-                continue; // not a subgraph vertex => try next one
-            for(boost::tie(ei, ei_end) = out_edges(*vi, r); ei != ei_end; ++ei) {
+            if(g.find_vertex(v_global).second)
+            for(tie(ei, ei_end) = out_edges(*vi, r); ei != ei_end; ++ei) {
                 e_global = *ei;
-                if(target(e_global, r) == u_global) {
+                uu_global = target(e_global, r);
+                if(uu_global == u_global && g.find_vertex(v_global).second) {
                     g.local_add_edge(g.global_to_local(v_global), u_local, e_global);
                 }
             }
@@ -535,8 +505,8 @@ namespace detail {
             // add local edge only if u_global and v_global are in subgraph g
             Vertex u_local, v_local;
             bool u_in_subgraph, v_in_subgraph;
-            boost::tie(u_local, u_in_subgraph) = g.find_vertex(u_global);
-            boost::tie(v_local, v_in_subgraph) = g.find_vertex(v_global);
+            tie(u_local, u_in_subgraph) = g.find_vertex(u_global);
+            tie(v_local, v_in_subgraph) = g.find_vertex(v_global);
             if(u_in_subgraph && v_in_subgraph) {
                 g.local_add_edge(u_local, v_local, e_global);
             }
@@ -553,7 +523,7 @@ namespace detail {
         if(g.is_root()) {
             typename subgraph<Graph>::edge_descriptor e_global;
             bool inserted;
-            boost::tie(e_global, inserted) = add_edge(u_global, v_global, ep, g.m_graph);
+            tie(e_global, inserted) = add_edge(u_global, v_global, ep, g.m_graph);
             put(edge_index, g.m_graph, e_global, g.m_edge_counter++);
             g.m_global_edge.push_back(e_global);
             children_add_edge(u_global, v_global, e_global, g.m_children, orig);
@@ -582,7 +552,7 @@ add_edge(typename subgraph<G>::vertex_descriptor u,
     } else {
         typename subgraph<G>::edge_descriptor e_local, e_global;
         bool inserted;
-        boost::tie(e_global, inserted) =
+        tie(e_global, inserted) =
             detail::add_edge_recur_up(g.local_to_global(u),
                                       g.local_to_global(v),
                                       ep, g, &g);
@@ -643,18 +613,38 @@ namespace detail {
 
     //-------------------------------------------------------------------------
     // implementation of remove_edge(e,g)
+    template <typename Edge, typename Graph>
+    void remove_edge_recur_down(Edge e_global, subgraph<Graph>& g);
 
-    template <typename G, typename Edge, typename Children>
+    template <typename Edge, typename Children>
     void children_remove_edge(Edge e_global, Children& c)
     {
         for(typename Children::iterator i = c.begin(); i != c.end(); ++i) {
-            std::pair<typename subgraph<G>::edge_descriptor, bool> found =
-              (*i)->find_edge(e_global);
-            if (!found.second) {
-              continue;
+            if((*i)->find_vertex(source(e_global, **i)).second &&
+               (*i)->find_vertex(target(e_global, **i)).second)
+            {
+                remove_edge_recur_down(source(e_global, **i),
+                                       target(e_global, **i),
+                                       **i);
             }
-            children_remove_edge<G>(e_global, (*i)->m_children);
-            remove_edge(found.first, (*i)->m_graph);
+        }
+    }
+
+    template <typename Edge, typename Graph>
+    void remove_edge_recur_down(Edge e_global, subgraph<Graph>& g)
+    {
+        remove_edge(g.global_to_local(e_global), g.m_graph);
+        children_remove_edge(e_global, g.m_children);
+    }
+
+    template <typename Edge, typename Graph>
+    void remove_edge_recur_up(Edge e_global, subgraph<Graph>& g)
+    {
+        if (g.is_root()) {
+            remove_edge(e_global, g.m_graph);
+            children_remove_edge(e_global, g.m_children);
+        } else {
+            remove_edge_recur_up(e_global, *g.m_parent);
         }
     }
 
@@ -678,45 +668,24 @@ template <typename G>
 void
 remove_edge(typename subgraph<G>::edge_descriptor e, subgraph<G>& g)
 {
-    typename subgraph<G>::edge_descriptor e_global = g.local_to_global(e);
-#ifndef NDEBUG
-    std::pair<typename subgraph<G>::edge_descriptor, bool> fe = g.find_edge(e_global);
-    BOOST_ASSERT(fe.second && fe.first == e);
-#endif //NDEBUG
-    subgraph<G> &root = g.root(); // chase to root
-    detail::children_remove_edge<G>(e_global, root.m_children);
-    remove_edge(e_global, root.m_graph); // kick edge from root
+    if(g.is_root()) {
+        detail::remove_edge_recur_up(e, g);
+    } else {
+        detail::remove_edge_recur_up(g.local_to_global(e), g);
+    }
 }
 
-// This is slow, but there may not be a good way to do it safely otherwise
+// TODO: This is wrong...
 template <typename Predicate, typename G>
 void
-remove_edge_if(Predicate p, subgraph<G>& g) {
-  while (true) {
-    bool any_removed = false;
-    typedef typename subgraph<G>::edge_iterator ei_type;
-    for (std::pair<ei_type, ei_type> ep = edges(g);
-         ep.first != ep.second; ++ep.first) {
-      if (p(*ep.first)) {
-        any_removed = true;
-        remove_edge(*ep.first, g);
-        break; /* Since iterators may be invalidated */
-      }
-    }
-    if (!any_removed) break;
-  }
-}
+remove_edge_if(Predicate p, subgraph<G>& g)
+{ remove_edge_if(p, g.m_graph); }
 
+// TODO: Ths is wrong
 template <typename G>
 void
-clear_vertex(typename subgraph<G>::vertex_descriptor v, subgraph<G>& g) {
-  while (true) {
-    typedef typename subgraph<G>::out_edge_iterator oei_type;
-    std::pair<oei_type, oei_type> p = out_edges(v, g);
-    if (p.first == p.second) break;
-    remove_edge(*p.first, g);
-  }
-}
+clear_vertex(typename subgraph<G>::vertex_descriptor v, subgraph<G>& g)
+{ clear_vertex(v, g.m_graph); }
 
 namespace detail {
     template <typename G>
@@ -756,12 +725,10 @@ add_vertex(subgraph<G>& g)
 }
 
 
-#if 0
 // TODO: Under Construction
 template <typename G>
 void remove_vertex(typename subgraph<G>::vertex_descriptor u, subgraph<G>& g)
-{ BOOST_ASSERT(false); }
-#endif
+{ assert(false); }
 
 //===========================================================================
 // Functions required by the PropertyGraph concept
@@ -779,10 +746,7 @@ class subgraph_global_property_map
 {
     typedef property_traits<PropertyMap> Traits;
 public:
-    typedef typename mpl::if_<is_const<typename remove_pointer<GraphPtr>::type>,
-                              readable_property_map_tag,
-                              typename Traits::category>::type
-      category;
+    typedef typename Traits::category category;
     typedef typename Traits::value_type value_type;
     typedef typename Traits::key_type key_type;
     typedef typename Traits::reference reference;
@@ -790,19 +754,18 @@ public:
     subgraph_global_property_map()
     { }
 
-    subgraph_global_property_map(GraphPtr g, Tag tag)
-        : m_g(g), m_tag(tag)
+    subgraph_global_property_map(GraphPtr g)
+        : m_g(g)
     { }
 
     reference operator[](key_type e) const {
-        PropertyMap pmap = get(m_tag, m_g->root().m_graph);
+        PropertyMap pmap = get(Tag(), m_g->root().m_graph);
         return m_g->is_root()
             ? pmap[e]
             : pmap[m_g->local_to_global(e)];
     }
 
     GraphPtr m_g;
-    Tag m_tag;
 };
 
 /**
@@ -818,10 +781,7 @@ class subgraph_local_property_map
 {
     typedef property_traits<PropertyMap> Traits;
 public:
-    typedef typename mpl::if_<is_const<typename remove_pointer<GraphPtr>::type>,
-                              readable_property_map_tag,
-                              typename Traits::category>::type
-      category;
+    typedef typename Traits::category category;
     typedef typename Traits::value_type value_type;
     typedef typename Traits::key_type key_type;
     typedef typename Traits::reference reference;
@@ -832,18 +792,17 @@ public:
     subgraph_local_property_map()
     { }
 
-    subgraph_local_property_map(GraphPtr g, Tag tag)
-        : m_g(g), m_tag(tag)
+    subgraph_local_property_map(GraphPtr g)
+        : m_g(g)
     { }
 
     reference operator[](key_type e) const {
         // Get property map on the underlying graph.
-        PropertyMap pmap = get(m_tag, m_g->m_graph);
+        PropertyMap pmap = get(Tag(), m_g->m_graph);
         return pmap[e];
     }
 
     GraphPtr m_g;
-    Tag m_tag;
 };
 
 namespace detail {
@@ -958,37 +917,139 @@ struct edge_property_selector<subgraph_tag> {
     typedef detail::subgraph_property_generator type;
 };
 
+#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
+/** @internal
+ * This property map implements local or global bundled property access on
+ * an underlying graph. The LocalGlobal template template parameter must be
+ * one of the local_property or global_property templates.
+ */
+template <
+    typename Graph, typename Descriptor, typename Bundle, typename T,
+    template <typename> class LocalGlobal>
+struct subgraph_lg_bundle_property_map
+    : put_get_helper<
+        T&,
+        subgraph_lg_bundle_property_map<Graph, Descriptor, Bundle, T, LocalGlobal>
+    >
+{
+private:
+    typedef LocalGlobal<Descriptor> Wrap;
+public:
+    typedef Descriptor key_type;
+    typedef typename remove_const<T>::type value_type;
+    typedef T& reference;
+    typedef lvalue_property_map_tag category;
+
+    subgraph_lg_bundle_property_map()
+    { }
+
+    subgraph_lg_bundle_property_map(Graph* g, T Bundle::* p)
+        : m_g(g), m_prop(p)
+    { }
+
+    reference operator[](key_type k) const
+    { return (*m_g)[Wrap(k)].*m_prop; }
+
+private:
+    Graph* m_g;
+    T Bundle::* m_prop;
+};
+
+// Specialize the property map template to generate bundled property maps.
+// NOTE: I'm cheating (actually double-dipping) with the local/global subgraph
+// property templates. I'm not using them store descriptors, just specialize
+// the property map template for specific lookups.
+namespace graph_detail {
+    // Help decoding some of the types required for property map definitions.
+    template <typename Graph, typename T, typename Bundle>
+    struct bundled_subgraph_pmap_helper {
+        typedef subgraph<Graph> Subgraph;
+        typedef graph_traits<Subgraph> Traits;
+        typedef typename Subgraph::vertex_bundled VertBundled;
+        typedef typename Subgraph::edge_bundled EdgeBundled;
+
+        // Deduce the descriptor from the template params
+        typedef typename mpl::if_<
+            detail::is_vertex_bundle<VertBundled, EdgeBundled, Bundle>,
+            typename Traits::vertex_descriptor, typename Traits::edge_descriptor
+        >::type Desc;
+
+        // Deduce the bundled property type
+        typedef typename mpl::if_<
+            detail::is_vertex_bundle<VertBundled, EdgeBundled, Bundle>,
+            VertBundled, EdgeBundled
+        >::type Prop;
+    };
+} // namespace graph_detail
+
+template <typename Graph, typename T, typename Bundle>
+struct property_map<subgraph<Graph>, local_property<T Bundle::*> >
+    : graph_detail::bundled_subgraph_pmap_helper<Graph, T, Bundle>
+{
+private:
+    typedef graph_detail::bundled_subgraph_pmap_helper<Graph, T, Bundle> Base;
+    typedef typename Base::Subgraph Subgraph;
+    typedef typename Base::Desc Desc;
+    typedef typename Base::Prop Prop;
+public:
+    typedef subgraph_lg_bundle_property_map<
+        Subgraph, Desc, Prop, T, local_property
+    > type;
+    typedef subgraph_lg_bundle_property_map<
+        Subgraph const, Desc, Prop, T const, local_property
+    > const_type;
+};
+
+template <typename Graph, typename T, typename Bundle>
+struct property_map<subgraph<Graph>, global_property<T Bundle::*> >
+    : graph_detail::bundled_subgraph_pmap_helper<Graph, T, Bundle>
+{
+private:
+    typedef graph_detail::bundled_subgraph_pmap_helper<Graph, T, Bundle> Base;
+    typedef typename Base::Subgraph Subgraph;
+    typedef typename Base::Desc Desc;
+    typedef typename Base::Prop Prop;
+public:
+    typedef subgraph_lg_bundle_property_map<
+        Subgraph, Desc, Prop, T, global_property
+    > type;
+    typedef subgraph_lg_bundle_property_map<
+        Subgraph const, Desc, Prop, T const, global_property
+    > const_type;
+};
+#endif
+
 // ==================================================
 // get(p, g), get(p, g, k), and put(p, g, k, v)
 // ==================================================
 template <typename G, typename Property>
 typename property_map<subgraph<G>, Property>::type
-get(Property p, subgraph<G>& g) {
+get(Property, subgraph<G>& g) {
     typedef typename property_map< subgraph<G>, Property>::type PMap;
-    return PMap(&g, p);
+    return PMap(&g);
 }
 
 template <typename G, typename Property>
 typename property_map<subgraph<G>, Property>::const_type
-get(Property p, const subgraph<G>& g) {
+get(Property, const subgraph<G>& g) {
     typedef typename property_map< subgraph<G>, Property>::const_type PMap;
-    return PMap(&g, p);
+    return PMap(&g);
 }
 
 template <typename G, typename Property, typename Key>
 typename property_traits<
     typename property_map<subgraph<G>, Property>::const_type
 >::value_type
-get(Property p, const subgraph<G>& g, const Key& k) {
+get(Property, const subgraph<G>& g, const Key& k) {
     typedef typename property_map< subgraph<G>, Property>::const_type PMap;
-    PMap pmap(&g, p);
+    PMap pmap(&g);
     return pmap[k];
 }
 
 template <typename G, typename Property, typename Key, typename Value>
-void put(Property p, subgraph<G>& g, const Key& k, const Value& val) {
+void put(Property, subgraph<G>& g, const Key& k, const Value& val) {
     typedef typename property_map< subgraph<G>, Property>::type PMap;
-    PMap pmap(&g, p);
+    PMap pmap(&g);
     pmap[k] = val;
 }
 
@@ -998,20 +1059,20 @@ void put(Property p, subgraph<G>& g, const Key& k, const Value& val) {
 // ==================================================
 template <typename G, typename Property>
 typename property_map<subgraph<G>, global_property<Property> >::type
-get(global_property<Property> p, subgraph<G>& g) {
+get(global_property<Property>, subgraph<G>& g) {
     typedef typename property_map<
         subgraph<G>, global_property<Property>
     >::type Map;
-    return Map(&g, p.value);
+    return Map(&g);
 }
 
 template <typename G, typename Property>
 typename property_map<subgraph<G>, global_property<Property> >::const_type
-get(global_property<Property> p, const subgraph<G>& g) {
+get(global_property<Property>, const subgraph<G>& g) {
     typedef typename property_map<
         subgraph<G>, global_property<Property>
     >::const_type Map;
-    return Map(&g, p.value);
+    return Map(&g);
 }
 
 // ==================================================
@@ -1020,21 +1081,111 @@ get(global_property<Property> p, const subgraph<G>& g) {
 // ==================================================
 template <typename G, typename Property>
 typename property_map<subgraph<G>, local_property<Property> >::type
-get(local_property<Property> p, subgraph<G>& g) {
+get(local_property<Property>, subgraph<G>& g) {
     typedef typename property_map<
         subgraph<G>, local_property<Property>
     >::type Map;
-    return Map(&g, p.value);
+    return Map(&g);
 }
 
 template <typename G, typename Property>
 typename property_map<subgraph<G>, local_property<Property> >::const_type
-get(local_property<Property> p, const subgraph<G>& g) {
+get(local_property<Property>, const subgraph<G>& g) {
     typedef typename property_map<
         subgraph<G>, local_property<Property>
     >::const_type Map;
+    return Map(&g);
+}
+
+#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
+// ==================================================
+// get(bundle(p), g)
+// ==================================================
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<subgraph<G>, T Bundle::*>::type
+get(T Bundle::* p, subgraph<G>& g) {
+    typedef typename property_map<subgraph<G>, T Bundle::*>::type Map;
+    return Map(&g, p);
+}
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<subgraph<G>, T Bundle::*>::const_type
+get(T Bundle::* p, subgraph<G> const& g) {
+    typedef typename property_map<subgraph<G>, T Bundle::*>::const_type Map;
+    return Map(&g, p);
+}
+
+template <typename Graph, typename Type, typename Bundle, typename Key>
+inline Type get(Type Bundle::* p, subgraph<Graph> const& g, Key const& k)
+{ return get(get(p, g), k); }
+
+template <typename Graph, typename Type, typename Bundle, typename Key,
+          typename Value>
+inline void put(Type Bundle::* p, Graph& g, Key const& k, Value const& v)
+{ put(get(p, g), k, v); }
+
+// =========================================================
+// Local bundled, get
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<
+    subgraph<G>, local_property<T Bundle::*>
+>::type
+get(local_property<T Bundle::*> p, subgraph<G>& g) {
+    typedef typename property_map<
+        subgraph<G>, local_property<T Bundle::*>
+    >::type Map;
     return Map(&g, p.value);
 }
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<
+    subgraph<G>, local_property<T Bundle::*>
+>::const_type
+get(local_property<T Bundle::*> p, subgraph<G> const& g) {
+    typedef typename property_map<
+        subgraph<G>, local_property<T Bundle::*>
+    >::const_type Map;
+    return Map(&g, p.value);
+}
+
+template <typename Graph, typename Type, typename Bundle, typename Key>
+inline Type get(local_property<Type Bundle::*> p, subgraph<Graph> const& g,
+                Key const& k)
+{ return get(get(p, g), k); }
+
+// =========================================================
+// Global bundled, get
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<
+    subgraph<G>, global_property<T Bundle::*>
+>::type
+get(global_property<T Bundle::*> p, subgraph<G>& g) {
+    typedef typename property_map<
+        subgraph<G>, global_property<T Bundle::*>
+    >::type Map;
+    return Map(&g, p.value);
+}
+
+template<typename G, typename T, typename Bundle>
+inline typename property_map<
+    subgraph<G>, global_property<T Bundle::*>
+>::const_type
+get(global_property<T Bundle::*> p, subgraph<G> const& g) {
+    typedef typename property_map<
+        subgraph<G>, global_property<T Bundle::*>
+    >::const_type Map;
+    return Map(&g, p.value);
+}
+
+template <typename Graph, typename Type, typename Bundle, typename Key>
+inline Type get(global_property<Type Bundle::*> p, subgraph<Graph> const& g,
+                Key const& k)
+{ return get(get(p, g), k); }
+
+#endif
 
 template <typename G, typename Tag>
 inline typename graph_property<G, Tag>::type&

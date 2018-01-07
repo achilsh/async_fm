@@ -33,7 +33,11 @@
 
 namespace boost { namespace python { namespace objects { 
 
-#define BOOST_PYTHON_UNFORWARD_LOCAL(z, n, _) BOOST_PP_COMMA_IF(n) objects::do_unforward(a##n,0)
+#  if BOOST_WORKAROUND(__GNUC__, == 2)
+#   define BOOST_PYTHON_UNFORWARD_LOCAL(z, n, _) BOOST_PP_COMMA_IF(n) (typename unforward<A##n>::type)objects::do_unforward(a##n,0)
+#  else
+#   define BOOST_PYTHON_UNFORWARD_LOCAL(z, n, _) BOOST_PP_COMMA_IF(n) objects::do_unforward(a##n,0)
+#  endif 
 
 template <class Value>
 struct value_holder : instance_holder

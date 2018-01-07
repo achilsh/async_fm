@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_TEXT_IPRIMITIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -24,6 +24,7 @@
 // in such cases.   So we can't use basic_ostream<IStream::char_type> but rather
 // use two template parameters
 
+#include <cassert>
 #include <locale>
 #include <cstddef> // size_t
 
@@ -37,17 +38,17 @@ namespace std{
 } // namespace std
 #endif
 
-#include <boost/io/ios_state.hpp>
-#include <boost/static_assert.hpp>
-
 #include <boost/detail/workaround.hpp>
 #if BOOST_WORKAROUND(BOOST_DINKUMWARE_STDLIB, == 1)
 #include <boost/archive/dinkumware.hpp>
 #endif
+
+#include <boost/limits.hpp>
+#include <boost/io/ios_state.hpp>
+#include <boost/scoped_ptr.hpp>
+
 #include <boost/serialization/throw_exception.hpp>
-#include <boost/archive/codecvt_null.hpp>
 #include <boost/archive/archive_exception.hpp>
-#include <boost/archive/basic_streambuf_locale_saver.hpp>
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 namespace boost {
@@ -55,84 +56,84 @@ namespace archive {
 
 /////////////////////////////////////////////////////////////////////////
 // class basic_text_iarchive - load serialized objects from a input text stream
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4244 4267 )
-#endif
-
 template<class IStream>
-class BOOST_SYMBOL_VISIBLE basic_text_iprimitive {
+class basic_text_iprimitive
+{
+#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 protected:
+#else
+public:
+#endif
     IStream &is;
     io::ios_flags_saver flags_saver;
     io::ios_precision_saver precision_saver;
 
     #ifndef BOOST_NO_STD_LOCALE
-    // note order! - if you change this, libstd++ will fail!
-    // a) create new locale with new codecvt facet
-    // b) save current locale
-    // c) change locale to new one
-    // d) use stream buffer
-    // e) change locale back to original
-    // f) destroy new codecvt facet
-    boost::archive::codecvt_null<typename IStream::char_type> codecvt_null_facet;
-    std::locale archive_locale;
-    basic_istream_locale_saver<
-        typename IStream::char_type,
-        typename IStream::traits_type
+    boost::scoped_ptr<std::locale> archive_locale;
+    io::basic_ios_locale_saver<
+        BOOST_DEDUCED_TYPENAME IStream::char_type, BOOST_DEDUCED_TYPENAME IStream::traits_type
     > locale_saver;
     #endif
 
     template<class T>
     void load(T & t)
     {
-        if(is >> t)
-            return;
-        boost::serialization::throw_exception(
-            archive_exception(archive_exception::input_stream_error)
-        );
-    }
-
-    void load(char & t)
-    {
-        short int i;
-        load(i);
-        t = i;
-    }
-    void load(signed char & t)
-    {
-        short int i;
-        load(i);
-        t = i;
+        if(is.fail())
+            boost::serialization::throw_exception(
+                archive_exception(archive_exception::stream_error)
+            );
+        is >> t;
     }
     void load(unsigned char & t)
     {
+        if(is.fail())
+            boost::serialization::throw_exception(
+                archive_exception(archive_exception::stream_error)
+            );
         unsigned short int i;
-        load(i);
-        t = i;
+        is >> i;
+        t = static_cast<unsigned char>(i);
     }
-
+    void load(signed char & t)
+    {
+        if(is.fail())
+            boost::serialization::throw_exception(
+                archive_exception(archive_exception::stream_error)
+            );
+        signed short int i;
+        is >> i;
+        t = static_cast<signed char>(i);
+    }
+    void load(char & t)
+    {
+        if(is.fail())
+            boost::serialization::throw_exception(
+                archive_exception(archive_exception::stream_error)
+            );
+        short int i;
+        is >> i;
+        t = static_cast<char>(i);
+    }
     #ifndef BOOST_NO_INTRINSIC_WCHAR_T
     void load(wchar_t & t)
     {
-        BOOST_STATIC_ASSERT(sizeof(wchar_t) <= sizeof(int));
-        int i;
-        load(i);
-        t = i;
+        if(is.fail())
+            boost::serialization::throw_exception(
+                archive_exception(archive_exception::stream_error)
+            );
+        unsigned i;
+        is >> i;
+        t = static_cast<wchar_t>(i);
     }
     #endif
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
     basic_text_iprimitive(IStream  &is, bool no_codecvt);
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
     ~basic_text_iprimitive();
 public:
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     load_binary(void *address, std::size_t count);
 };
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
 
 } // namespace archive
 } // namespace boost

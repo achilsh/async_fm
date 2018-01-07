@@ -8,18 +8,13 @@
 
 #ifdef _MSC_VER
 #pragma once
-#pragma warning(push)
-#pragma warning(disable:4702) // Unreachable code (release mode only warning)
 #endif
 
-#include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/tools/rational.hpp>
-#include <boost/math/tools/series.hpp>
 #include <boost/math/tools/promotion.hpp>
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/mpl/comparison.hpp>
-#include <boost/math/tools/big_constant.hpp>
 
 namespace boost{
 namespace math{
@@ -30,8 +25,7 @@ namespace detail{
 //
 inline unsigned digamma_large_lim(const mpl::int_<0>*)
 {  return 20;  }
-inline unsigned digamma_large_lim(const mpl::int_<113>*)
-{  return 20;  }
+
 inline unsigned digamma_large_lim(const void*)
 {  return 10;  }
 //
@@ -45,27 +39,27 @@ inline unsigned digamma_large_lim(const void*)
 // This first one gives 34-digit precision for x >= 20:
 //
 template <class T>
-inline T digamma_imp_large(T x, const mpl::int_<113>*)
+inline T digamma_imp_large(T x, const mpl::int_<0>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.003968253968253968253968253968253968253968253968254),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.0041666666666666666666666666666666666666666666666667),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.0075757575757575757575757575757575757575757575757576),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.021092796092796092796092796092796092796092796092796),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.44325980392156862745098039215686274509803921568627),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 3.0539543302701197438039543302701197438039543302701),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -26.456212121212121212121212121212121212121212121212),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 281.4601449275362318840579710144927536231884057971),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -3607.510546398046398046398046398046398046398046398),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 54827.583333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -974936.82385057471264367816091954022988505747126437),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 20052695.796688078946143462272494530559046688078946),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -472384867.72162990196078431372549019607843137254902),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 12635724795.916666666666666666666666666666666666667)
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.0083333333333333333333333333333333333333333333333333L,
+      0.003968253968253968253968253968253968253968253968254L,
+      -0.0041666666666666666666666666666666666666666666666667L,
+      0.0075757575757575757575757575757575757575757575757576L,
+      -0.021092796092796092796092796092796092796092796092796L,
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.44325980392156862745098039215686274509803921568627L,
+      3.0539543302701197438039543302701197438039543302701L,
+      -26.456212121212121212121212121212121212121212121212L,
+      281.4601449275362318840579710144927536231884057971L,
+      -3607.510546398046398046398046398046398046398046398L,
+      54827.583333333333333333333333333333333333333333333L,
+      -974936.82385057471264367816091954022988505747126437L,
+      20052695.796688078946143462272494530559046688078946L,
+      -472384867.72162990196078431372549019607843137254902L,
+      12635724795.916666666666666666666666666666666666667L
    };
    x -= 1;
    T result = log(x);
@@ -82,17 +76,17 @@ inline T digamma_imp_large(T x, const mpl::int_<64>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.003968253968253968253968253968253968253968253968254),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.0041666666666666666666666666666666666666666666666667),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.0075757575757575757575757575757575757575757575757576),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.021092796092796092796092796092796092796092796092796),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.44325980392156862745098039215686274509803921568627),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 3.0539543302701197438039543302701197438039543302701),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -26.456212121212121212121212121212121212121212121212),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 281.4601449275362318840579710144927536231884057971),
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.0083333333333333333333333333333333333333333333333333L,
+      0.003968253968253968253968253968253968253968253968254L,
+      -0.0041666666666666666666666666666666666666666666666667L,
+      0.0075757575757575757575757575757575757575757575757576L,
+      -0.021092796092796092796092796092796092796092796092796L,
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.44325980392156862745098039215686274509803921568627L,
+      3.0539543302701197438039543302701197438039543302701L,
+      -26.456212121212121212121212121212121212121212121212L,
+      281.4601449275362318840579710144927536231884057971L,
    };
    x -= 1;
    T result = log(x);
@@ -109,14 +103,14 @@ inline T digamma_imp_large(T x, const mpl::int_<53>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.003968253968253968253968253968253968253968253968254),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.0041666666666666666666666666666666666666666666666667),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.0075757575757575757575757575757575757575757575757576),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.021092796092796092796092796092796092796092796092796),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.44325980392156862745098039215686274509803921568627)
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.0083333333333333333333333333333333333333333333333333L,
+      0.003968253968253968253968253968253968253968253968254L,
+      -0.0041666666666666666666666666666666666666666666666667L,
+      0.0075757575757575757575757575757575757575757575757576L,
+      -0.021092796092796092796092796092796092796092796092796L,
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.44325980392156862745098039215686274509803921568627L
    };
    x -= 1;
    T result = log(x);
@@ -133,9 +127,9 @@ inline T digamma_imp_large(T x, const mpl::int_<24>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 24, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 24, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 24, 0.003968253968253968253968253968253968253968253968254)
+      0.083333333333333333333333333333333333333333333333333L,
+      -0.0083333333333333333333333333333333333333333333333333L,
+      0.003968253968253968253968253968253968253968253968254L
    };
    x -= 1;
    T result = log(x);
@@ -145,47 +139,12 @@ inline T digamma_imp_large(T x, const mpl::int_<24>*)
    return result;
 }
 //
-// Fully generic asymptotic expansion in terms of Bernoulli numbers, see:
-// http://functions.wolfram.com/06.14.06.0012.01
-//
-template <class T>
-struct digamma_series_func
-{
-private:
-   int k;
-   T xx;
-   T term;
-public:
-   digamma_series_func(T x) : k(1), xx(x * x), term(1 / (x * x)) {}
-   T operator()()
-   {
-      T result = term * boost::math::bernoulli_b2n<T>(k) / (2 * k);
-      term /= xx;
-      ++k;
-      return result;
-   }
-   typedef T result_type;
-};
-
-template <class T, class Policy>
-inline T digamma_imp_large(T x, const Policy& pol, const mpl::int_<0>*)
-{
-   BOOST_MATH_STD_USING
-   digamma_series_func<T> s(x);
-   T result = log(x) - 1 / (2 * x);
-   boost::uintmax_t max_iter = policies::get_max_series_iterations<Policy>();
-   result = boost::math::tools::sum_series(s, boost::math::policies::get_epsilon<T, Policy>(), max_iter, -result);
-   result = -result;
-   policies::check_series_iterations<T>("boost::math::digamma<%1%>(%1%)", max_iter, pol);
-   return result;
-}
-//
 // Now follow rational approximations over the range [1,2].
 //
 // 35-digit precision:
 //
 template <class T>
-T digamma_imp_1_2(T x, const mpl::int_<113>*)
+T digamma_imp_1_2(T x, const mpl::int_<0>*)
 {
    //
    // Now the approximation, we use the form:
@@ -201,44 +160,44 @@ T digamma_imp_1_2(T x, const mpl::int_<113>*)
    //
    static const float Y = 0.99558162689208984375F;
 
-   static const T root1 = T(1569415565) / 1073741824uL;
-   static const T root2 = (T(381566830) / 1073741824uL) / 1073741824uL;
-   static const T root3 = ((T(111616537) / 1073741824uL) / 1073741824uL) / 1073741824uL;
-   static const T root4 = (((T(503992070) / 1073741824uL) / 1073741824uL) / 1073741824uL) / 1073741824uL;
-   static const T root5 = BOOST_MATH_BIG_CONSTANT(T, 113, 0.52112228569249997894452490385577338504019838794544e-36);
+   static const T root1 = 1569415565.0 / 1073741824uL;
+   static const T root2 = (381566830.0 / 1073741824uL) / 1073741824uL;
+   static const T root3 = ((111616537.0 / 1073741824uL) / 1073741824uL) / 1073741824uL;
+   static const T root4 = (((503992070.0 / 1073741824uL) / 1073741824uL) / 1073741824uL) / 1073741824uL;
+   static const T root5 = 0.52112228569249997894452490385577338504019838794544e-36L;
 
    static const T P[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.25479851061131551526977464225335883769),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.18684290534374944114622235683619897417),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.80360876047931768958995775910991929922),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.67227342794829064330498117008564270136),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.26569010991230617151285010695543858005),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.05775672694575986971640757748003553385),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.0071432147823164975485922555833274240665),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.00048740753910766168912364555706064993274),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.16454996865214115723416538844975174761e-4),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.20327832297631728077731148515093164955e-6)
+      0.25479851061131551526977464225335883769L,
+      -0.18684290534374944114622235683619897417L,
+      -0.80360876047931768958995775910991929922L,
+      -0.67227342794829064330498117008564270136L,
+      -0.26569010991230617151285010695543858005L,
+      -0.05775672694575986971640757748003553385L,
+      -0.0071432147823164975485922555833274240665L,
+      -0.00048740753910766168912364555706064993274L,
+      -0.16454996865214115723416538844975174761e-4L,
+      -0.20327832297631728077731148515093164955e-6L
    };
    static const T Q[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 113, 1.0),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 2.6210924610812025425088411043163287646),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 2.6850757078559596612621337395886392594),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 1.4320913706209965531250495490639289418),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.4410872083455009362557012239501953402),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.081385727399251729505165509278152487225),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.0089478633066857163432104815183858149496),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.00055861622855066424871506755481997374154),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.1760168552357342401304462967950178554e-4),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.20585454493572473724556649516040874384e-6),
-      BOOST_MATH_BIG_CONSTANT(T, 113, -0.90745971844439990284514121823069162795e-11),
-      BOOST_MATH_BIG_CONSTANT(T, 113, 0.48857673606545846774761343500033283272e-13),
+      1,
+      2.6210924610812025425088411043163287646L,
+      2.6850757078559596612621337395886392594L,
+      1.4320913706209965531250495490639289418L,
+      0.4410872083455009362557012239501953402L,
+      0.081385727399251729505165509278152487225L,
+      0.0089478633066857163432104815183858149496L,
+      0.00055861622855066424871506755481997374154L,
+      0.1760168552357342401304462967950178554e-4L,
+      0.20585454493572473724556649516040874384e-6L,
+      -0.90745971844439990284514121823069162795e-11L,
+      0.48857673606545846774761343500033283272e-13L,
    };
    T g = x - root1;
    g -= root2;
    g -= root3;
    g -= root4;
    g -= root5;
-   T r = tools::evaluate_polynomial(P, T(x-1)) / tools::evaluate_polynomial(Q, T(x-1));
+   T r = tools::evaluate_polynomial(P, x-1) / tools::evaluate_polynomial(Q, x-1);
    T result = g * Y + g * r;
 
    return result;
@@ -263,32 +222,32 @@ T digamma_imp_1_2(T x, const mpl::int_<64>*)
    //
    static const float Y = 0.99558162689208984375F;
 
-   static const T root1 = T(1569415565) / 1073741824uL;
-   static const T root2 = (T(381566830) / 1073741824uL) / 1073741824uL;
-   static const T root3 = BOOST_MATH_BIG_CONSTANT(T, 64, 0.9016312093258695918615325266959189453125e-19);
+   static const T root1 = 1569415565.0 / 1073741824uL;
+   static const T root2 = (381566830.0 / 1073741824uL) / 1073741824uL;
+   static const T root3 = 0.9016312093258695918615325266959189453125e-19L;
 
    static const T P[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.254798510611315515235),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.314628554532916496608),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.665836341559876230295),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.314767657147375752913),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.0541156266153505273939),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.00289268368333918761452)
+      0.254798510611315515235L,
+      -0.314628554532916496608L,
+      -0.665836341559876230295L,
+      -0.314767657147375752913L,
+      -0.0541156266153505273939L,
+      -0.00289268368333918761452L
    };
    static const T Q[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 64, 1.0),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 2.1195759927055347547),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 1.54350554664961128724),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.486986018231042975162),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.0660481487173569812846),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.00298999662592323990972),
-      BOOST_MATH_BIG_CONSTANT(T, 64, -0.165079794012604905639e-5),
-      BOOST_MATH_BIG_CONSTANT(T, 64, 0.317940243105952177571e-7)
+      1,
+      2.1195759927055347547L,
+      1.54350554664961128724L,
+      0.486986018231042975162L,
+      0.0660481487173569812846L,
+      0.00298999662592323990972L,
+      -0.165079794012604905639e-5L,
+      0.317940243105952177571e-7L
    };
    T g = x - root1;
    g -= root2;
    g -= root3;
-   T r = tools::evaluate_polynomial(P, T(x-1)) / tools::evaluate_polynomial(Q, T(x-1));
+   T r = tools::evaluate_polynomial(P, x-1) / tools::evaluate_polynomial(Q, x-1);
    T result = g * Y + g * r;
 
    return result;
@@ -313,31 +272,31 @@ T digamma_imp_1_2(T x, const mpl::int_<53>*)
    //
    static const float Y = 0.99558162689208984F;
 
-   static const T root1 = T(1569415565) / 1073741824uL;
-   static const T root2 = (T(381566830) / 1073741824uL) / 1073741824uL;
-   static const T root3 = BOOST_MATH_BIG_CONSTANT(T, 53, 0.9016312093258695918615325266959189453125e-19);
+   static const T root1 = 1569415565.0 / 1073741824uL;
+   static const T root2 = (381566830.0 / 1073741824uL) / 1073741824uL;
+   static const T root3 = 0.9016312093258695918615325266959189453125e-19L;
 
    static const T P[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.25479851061131551),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.32555031186804491),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.65031853770896507),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.28919126444774784),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.045251321448739056),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.0020713321167745952)
+      0.25479851061131551L,
+      -0.32555031186804491L,
+      -0.65031853770896507L,
+      -0.28919126444774784L,
+      -0.045251321448739056L,
+      -0.0020713321167745952L
    };
    static const T Q[] = {    
-      BOOST_MATH_BIG_CONSTANT(T, 53, 1.0),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 2.0767117023730469),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 1.4606242909763515),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.43593529692665969),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.054151797245674225),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.0021284987017821144),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.55789841321675513e-6)
+      1L,
+      2.0767117023730469L,
+      1.4606242909763515L,
+      0.43593529692665969L,
+      0.054151797245674225L,
+      0.0021284987017821144L,
+      -0.55789841321675513e-6L
    };
    T g = x - root1;
    g -= root2;
    g -= root3;
-   T r = tools::evaluate_polynomial(P, T(x-1)) / tools::evaluate_polynomial(Q, T(x-1));
+   T r = tools::evaluate_polynomial(P, x-1) / tools::evaluate_polynomial(Q, x-1);
    T result = g * Y + g * r;
 
    return result;
@@ -364,20 +323,20 @@ inline T digamma_imp_1_2(T x, const mpl::int_<24>*)
    static const T root = 1532632.0f / 1048576;
    static const T root_minor = static_cast<T>(0.3700660185912626595423257213284682051735604e-6L);
    static const T P[] = {    
-      0.25479851023250261e0f,
-      -0.44981331915268368e0f,
-      -0.43916936919946835e0f,
-      -0.61041765350579073e-1f
+      0.25479851023250261e0,
+      -0.44981331915268368e0,
+      -0.43916936919946835e0,
+      -0.61041765350579073e-1
    };
    static const T Q[] = {    
       0.1e1,
-      0.15890202430554952e1f,
-      0.65341249856146947e0f,
-      0.63851690523355715e-1f
+      0.15890202430554952e1,
+      0.65341249856146947e0,
+      0.63851690523355715e-1
    };
    T g = x - root;
    g -= root_minor;
-   T r = tools::evaluate_polynomial(P, T(x-1)) / tools::evaluate_polynomial(Q, T(x-1));
+   T r = tools::evaluate_polynomial(P, x-1) / tools::evaluate_polynomial(Q, x-1);
    T result = g * Y + g * r;
 
    return result;
@@ -396,7 +355,7 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
    //
    // Check for negative arguments and use reflection:
    //
-   if(x <= -1)
+   if(x < 0)
    {
       // Reflect:
       x = 1 - x;
@@ -416,8 +375,6 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
       }
       result = constants::pi<T>() / tan(constants::pi<T>() * remainder);
    }
-   if(x == 0)
-      return policies::raise_pole_error<T>("boost::math::digamma<%1%>(%1%)", 0, x, pol);
    //
    // If we're above the lower-limit for the
    // asymptotic expansion then use it:
@@ -439,9 +396,9 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
       //
       // If x < 1 use recurrance to shift to > 1:
       //
-      while(x < 1)
+      if(x < 1)
       {
-         result -= 1/x;
+         result = -1/x;
          x += 1;
       }
       result += digamma_imp_1_2(x, t);
@@ -449,134 +406,11 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
    return result;
 }
 
-template <class T, class Policy>
-T digamma_imp(T x, const mpl::int_<0>* t, const Policy& pol)
-{
-   //
-   // This handles reflection of negative arguments, and all our
-   // error handling, then forwards to the T-specific approximation.
-   //
-   BOOST_MATH_STD_USING // ADL of std functions.
-
-   T result = 0;
-   //
-   // Check for negative arguments and use reflection:
-   //
-   if(x <= -1)
-   {
-      // Reflect:
-      x = 1 - x;
-      // Argument reduction for tan:
-      T remainder = x - floor(x);
-      // Shift to negative if > 0.5:
-      if(remainder > 0.5)
-      {
-         remainder -= 1;
-      }
-      //
-      // check for evaluation at a negative pole:
-      //
-      if(remainder == 0)
-      {
-         return policies::raise_pole_error<T>("boost::math::digamma<%1%>(%1%)", 0, (1 - x), pol);
-      }
-      result = constants::pi<T>() / tan(constants::pi<T>() * remainder);
-   }
-   if(x == 0)
-      return policies::raise_pole_error<T>("boost::math::digamma<%1%>(%1%)", 0, x, pol);
-   //
-   // If we're above the lower-limit for the
-   // asymptotic expansion then use it, the
-   // limit is a linear interpolation with
-   // limit = 10 at 50 bit precision and
-   // limit = 250 at 1000 bit precision.
-   //
-   int lim = 10 + ((tools::digits<T>() - 50) * 240L) / 950;
-   T two_x = ldexp(x, 1);
-   if(x >= lim)
-   {
-      result += digamma_imp_large(x, pol, t);
-   }
-   else if(floor(x) == x)
-   {
-      //
-      // Special case for integer arguments, see
-      // http://functions.wolfram.com/06.14.03.0001.01
-      //
-      result = -constants::euler<T, Policy>();
-      T val = 1;
-      while(val < x)
-      {
-         result += 1 / val;
-         val += 1;
-      }
-   }
-   else if(floor(two_x) == two_x)
-   {
-      //
-      // Special case for half integer arguments, see:
-      // http://functions.wolfram.com/06.14.03.0007.01
-      //
-      result = -2 * constants::ln_two<T, Policy>() - constants::euler<T, Policy>();
-      int n = itrunc(x);
-      if(n)
-      {
-         for(int k = 1; k < n; ++k)
-            result += 1 / T(k);
-         for(int k = n; k <= 2 * n - 1; ++k)
-            result += 2 / T(k);
-      }
-   }
-   else
-   {
-      //
-      // Rescale so we can use the asymptotic expansion:
-      //
-      while(x < lim)
-      {
-         result -= 1 / x;
-         x += 1;
-      }
-      result += digamma_imp_large(x, pol, t);
-   }
-   return result;
-}
-//
-// Initializer: ensure all our constants are initialized prior to the first call of main:
-//
-template <class T, class Policy>
-struct digamma_initializer
-{
-   struct init
-   {
-      init()
-      {
-         typedef typename policies::precision<T, Policy>::type precision_type;
-         do_init(mpl::bool_<precision_type::value && (precision_type::value <= 113)>());
-      }
-      void do_init(const mpl::true_&)
-      {
-         boost::math::digamma(T(1.5), Policy());
-         boost::math::digamma(T(500), Policy());
-      }
-      void do_init(const mpl::false_&){}
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class Policy>
-const typename digamma_initializer<T, Policy>::init digamma_initializer<T, Policy>::initializer;
-
 } // namespace detail
 
 template <class T, class Policy>
 inline typename tools::promote_args<T>::type 
-   digamma(T x, const Policy&)
+   digamma(T x, const Policy& pol)
 {
    typedef typename tools::promote_args<T>::type result_type;
    typedef typename policies::evaluation<result_type, Policy>::type value_type;
@@ -584,7 +418,7 @@ inline typename tools::promote_args<T>::type
    typedef typename mpl::if_<
       mpl::or_<
          mpl::less_equal<precision_type, mpl::int_<0> >,
-         mpl::greater<precision_type, mpl::int_<114> >
+         mpl::greater<precision_type, mpl::int_<64> >
       >,
       mpl::int_<0>,
       typename mpl::if_<
@@ -593,28 +427,14 @@ inline typename tools::promote_args<T>::type
          typename mpl::if_<
             mpl::less<precision_type, mpl::int_<54> >,
             mpl::int_<53>,
-            typename mpl::if_<
-               mpl::less<precision_type, mpl::int_<65> >,
-               mpl::int_<64>,
-               mpl::int_<113>
-            >::type
+            mpl::int_<64>
          >::type
       >::type
    >::type tag_type;
 
-   typedef typename policies::normalise<
-      Policy,
-      policies::promote_float<false>,
-      policies::promote_double<false>,
-      policies::discrete_quantile<>,
-      policies::assert_undefined<> >::type forwarding_policy;
-
-   // Force initialization of constants:
-   detail::digamma_initializer<value_type, forwarding_policy>::force_instantiate();
-
    return policies::checked_narrowing_cast<result_type, Policy>(detail::digamma_imp(
       static_cast<value_type>(x),
-      static_cast<const tag_type*>(0), forwarding_policy()), "boost::math::digamma<%1%>(%1%)");
+      static_cast<const tag_type*>(0), pol), "boost::math::digamma<%1%>(%1%)");
 }
 
 template <class T>
@@ -626,10 +446,5 @@ inline typename tools::promote_args<T>::type
 
 } // namespace math
 } // namespace boost
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #endif
 

@@ -4,7 +4,7 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-// See http://www.boost.org/libs/optional for documentation.
+// See http://www.boost.org/lib/optional for documentation.
 //
 // You are welcome to contact the author at:
 //  fernando_cacciola@hotmail.com
@@ -33,12 +33,8 @@ bool equal_pointees ( OptionalPointee const& x, OptionalPointee const& y )
 }
 
 template<class OptionalPointee>
-struct equal_pointees_t
+struct equal_pointees_t : std::binary_function<OptionalPointee,OptionalPointee,bool>
 {
-  typedef bool result_type;
-  typedef OptionalPointee first_argument_type;
-  typedef OptionalPointee second_argument_type;
-
   bool operator() ( OptionalPointee const& x, OptionalPointee const& y ) const
     { return equal_pointees(x,y) ; }
 } ;
@@ -60,12 +56,8 @@ bool less_pointees ( OptionalPointee const& x, OptionalPointee const& y )
 }
 
 template<class OptionalPointee>
-struct less_pointees_t
+struct less_pointees_t : std::binary_function<OptionalPointee,OptionalPointee,bool>
 {
-  typedef bool result_type;
-  typedef OptionalPointee first_argument_type;
-  typedef OptionalPointee second_argument_type;
-
   bool operator() ( OptionalPointee const& x, OptionalPointee const& y ) const
     { return less_pointees(x,y) ; }
 } ;

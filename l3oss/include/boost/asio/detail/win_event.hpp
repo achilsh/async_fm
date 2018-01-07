@@ -1,8 +1,8 @@
 //
-// detail/win_event.hpp
-// ~~~~~~~~~~~~~~~~~~~~
+// win_event.hpp
+// ~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,15 +15,23 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
 
-#if defined(BOOST_ASIO_WINDOWS)
+#include <boost/asio/detail/push_options.hpp>
+#include <boost/config.hpp>
+#include <boost/system/system_error.hpp>
+#include <boost/asio/detail/pop_options.hpp>
 
-#include <boost/asio/detail/assert.hpp>
+#if defined(BOOST_WINDOWS)
+
+#include <boost/asio/error.hpp>
 #include <boost/asio/detail/noncopyable.hpp>
 #include <boost/asio/detail/socket_types.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
+#include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
+#include <boost/asio/detail/pop_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -34,120 +42,64 @@ class win_event
 {
 public:
   // Constructor.
-  BOOST_ASIO_DECL win_event();
+  win_event()
+    : event_(::CreateEvent(0, true, false, 0))
+  {
+    if (!event_)
+    {
+      DWORD last_error = ::GetLastError();
+      boost::system::system_error e(
+          boost::system::error_code(last_error,
+            boost::asio::error::get_system_category()),
+          "event");
+      boost::throw_exception(e);
+    }
+  }
 
   // Destructor.
-  BOOST_ASIO_DECL ~win_event();
+  ~win_event()
+  {
+    ::CloseHandle(event_);
+  }
 
-  // Signal the event. (Retained for backward compatibility.)
+  // Signal the event.
   template <typename Lock>
   void signal(Lock& lock)
   {
-    this->signal_all(lock);
-  }
-
-  // Signal all waiters.
-  template <typename Lock>
-  void signal_all(Lock& lock)
-  {
-    BOOST_ASIO_ASSERT(lock.locked());
+    BOOST_ASSERT(lock.locked());
     (void)lock;
-    state_ |= 1;
-    ::SetEvent(events_[0]);
-  }
-
-  // Unlock the mutex and signal one waiter.
-  template <typename Lock>
-  void unlock_and_signal_one(Lock& lock)
-  {
-    BOOST_ASIO_ASSERT(lock.locked());
-    state_ |= 1;
-    bool have_waiters = (state_ > 1);
-    lock.unlock();
-    if (have_waiters)
-      ::SetEvent(events_[1]);
-  }
-
-  // If there's a waiter, unlock the mutex and signal it.
-  template <typename Lock>
-  bool maybe_unlock_and_signal_one(Lock& lock)
-  {
-    BOOST_ASIO_ASSERT(lock.locked());
-    state_ |= 1;
-    if (state_ > 1)
-    {
-      lock.unlock();
-      ::SetEvent(events_[1]);
-      return true;
-    }
-    return false;
+    ::SetEvent(event_);
   }
 
   // Reset the event.
   template <typename Lock>
   void clear(Lock& lock)
   {
-    BOOST_ASIO_ASSERT(lock.locked());
+    BOOST_ASSERT(lock.locked());
     (void)lock;
-    ::ResetEvent(events_[0]);
-    state_ &= ~std::size_t(1);
+    ::ResetEvent(event_);
   }
 
   // Wait for the event to become signalled.
   template <typename Lock>
   void wait(Lock& lock)
   {
-    BOOST_ASIO_ASSERT(lock.locked());
-    while ((state_ & 1) == 0)
-    {
-      state_ += 2;
-      lock.unlock();
-#if defined(BOOST_ASIO_WINDOWS_APP)
-      ::WaitForMultipleObjectsEx(2, events_, false, INFINITE, false);
-#else // defined(BOOST_ASIO_WINDOWS_APP)
-      ::WaitForMultipleObjects(2, events_, false, INFINITE);
-#endif // defined(BOOST_ASIO_WINDOWS_APP)
-      lock.lock();
-      state_ -= 2;
-    }
-  }
-
-  // Timed wait for the event to become signalled.
-  template <typename Lock>
-  bool wait_for_usec(Lock& lock, long usec)
-  {
-    BOOST_ASIO_ASSERT(lock.locked());
-    if ((state_ & 1) == 0)
-    {
-      state_ += 2;
-      lock.unlock();
-      DWORD msec = usec > 0 ? (usec < 1000 ? 1 : usec / 1000) : 0;
-#if defined(BOOST_ASIO_WINDOWS_APP)
-      ::WaitForMultipleObjectsEx(2, events_, false, msec, false);
-#else // defined(BOOST_ASIO_WINDOWS_APP)
-      ::WaitForMultipleObjects(2, events_, false, msec);
-#endif // defined(BOOST_ASIO_WINDOWS_APP)
-      lock.lock();
-      state_ -= 2;
-    }
-    return (state_ & 1) != 0;
+    BOOST_ASSERT(lock.locked());
+    lock.unlock();
+    ::WaitForSingleObject(event_, INFINITE);
+    lock.lock();
   }
 
 private:
-  HANDLE events_[2];
-  std::size_t state_;
+  HANDLE event_;
 };
 
 } // namespace detail
 } // namespace asio
 } // namespace boost
 
+#endif // defined(BOOST_WINDOWS)
+
 #include <boost/asio/detail/pop_options.hpp>
-
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/detail/impl/win_event.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
-
-#endif // defined(BOOST_ASIO_WINDOWS)
 
 #endif // BOOST_ASIO_DETAIL_WIN_EVENT_HPP

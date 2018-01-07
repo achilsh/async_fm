@@ -11,7 +11,7 @@
 #ifndef BOOST_IOSTREAMS_FILE_DESCRIPTOR_HPP_INCLUDED
 #define BOOST_IOSTREAMS_FILE_DESCRIPTOR_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -28,10 +28,6 @@
 #include <boost/shared_ptr.hpp>
 
 // Must come last.
-#if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251)  // Missing DLL interface for shared_ptr
-#endif
 #include <boost/config/abi_prefix.hpp>
 
 namespace boost { namespace iostreams {
@@ -40,12 +36,6 @@ namespace boost { namespace iostreams {
 class file_descriptor_source;
 class file_descriptor_sink;
 namespace detail { struct file_descriptor_impl; }
-
-enum file_descriptor_flags
-{
-    never_close_handle = 0,
-    close_handle = 3
-};
 
 class BOOST_IOSTREAMS_DECL file_descriptor {
 public:
@@ -62,17 +52,9 @@ public:
     file_descriptor();
 
     // Constructors taking file desciptors
-    file_descriptor(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    file_descriptor(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
-    // Constructors taking file desciptors
     explicit file_descriptor(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     explicit file_descriptor(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // Constructor taking a std:: string
@@ -99,17 +81,9 @@ public:
     file_descriptor(const file_descriptor& other);
 
     // open overloads taking file descriptors
-    void open(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    void open(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
-    // open overloads taking file descriptors
     void open(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     void open(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // open overload taking a std::string
@@ -141,13 +115,13 @@ private:
     // open overload taking a detail::path
     void open( const detail::path& path, 
                BOOST_IOS::openmode, 
-               BOOST_IOS::openmode = BOOST_IOS::openmode(0) );
+               BOOST_IOS::openmode = BOOST_IOS::in | BOOST_IOS::out );
 
     typedef detail::file_descriptor_impl impl_type;
     shared_ptr<impl_type> pimpl_;
 };
 
-class BOOST_IOSTREAMS_DECL file_descriptor_source : private file_descriptor {
+class file_descriptor_source : private file_descriptor {
 public:
 #ifdef BOOST_IOSTREAMS_WINDOWS
     typedef void*  handle_type;  // A.k.a HANDLE
@@ -170,17 +144,9 @@ public:
     file_descriptor_source() { }
 
     // Constructors taking file desciptors
-    explicit file_descriptor_source(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    explicit file_descriptor_source(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
-    // Constructors taking file desciptors
     explicit file_descriptor_source(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     explicit file_descriptor_source(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // Constructor taking a std:: string
@@ -200,18 +166,10 @@ public:
     // Copy constructor
     file_descriptor_source(const file_descriptor_source& other);
 
-    // Constructors taking file desciptors
-    void open(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    void open(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
     // open overloads taking file descriptors
     void open(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     void open(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // open overload taking a std::string
@@ -229,7 +187,7 @@ private:
     void open(const detail::path& path, BOOST_IOS::openmode);
 };
 
-class BOOST_IOSTREAMS_DECL file_descriptor_sink : private file_descriptor {
+class file_descriptor_sink : private file_descriptor {
 public:
 #ifdef BOOST_IOSTREAMS_WINDOWS
     typedef void*  handle_type;  // A.k.a HANDLE
@@ -252,17 +210,9 @@ public:
     file_descriptor_sink() { }
 
     // Constructors taking file desciptors
-    file_descriptor_sink(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    file_descriptor_sink(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
-    // Constructors taking file desciptors
     explicit file_descriptor_sink(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     explicit file_descriptor_sink(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // Constructor taking a std:: string
@@ -283,17 +233,9 @@ public:
     file_descriptor_sink(const file_descriptor_sink& other);
 
     // open overloads taking file descriptors
-    void open(handle_type fd, file_descriptor_flags);
-#ifdef BOOST_IOSTREAMS_WINDOWS
-    void open(int fd, file_descriptor_flags);
-#endif
-
-#if defined(BOOST_IOSTREAMS_USE_DEPRECATED)
-    // open overloads taking file descriptors
     void open(handle_type fd, bool close_on_exit = false);
 #ifdef BOOST_IOSTREAMS_WINDOWS
     void open(int fd, bool close_on_exit = false);
-#endif
 #endif
 
     // open overload taking a std::string
@@ -318,8 +260,5 @@ private:
 } } // End namespaces iostreams, boost.
 
 #include <boost/config/abi_suffix.hpp> // pops abi_suffix.hpp pragmas
-#if defined(BOOST_MSVC)
-# pragma warning(pop)  // pops #pragma warning(disable:4251)
-#endif
 
 #endif // #ifndef BOOST_IOSTREAMS_FILE_DESCRIPTOR_HPP_INCLUDED

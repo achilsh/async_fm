@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_VIEWS_LIST_MAP_VIEW_HPP
 #define BOOST_BIMAP_VIEWS_LIST_MAP_VIEW_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -36,17 +36,22 @@ struct list_map_view_base
 {
     typedef ::boost::bimaps::container_adaptor::list_map_adaptor
     <
-        BOOST_DEDUCED_TYPENAME BimapType::core_type::
-            BOOST_NESTED_TEMPLATE index<Tag>::type,
-        ::boost::bimaps::detail::              map_view_iterator<Tag,BimapType>,
-        ::boost::bimaps::detail::        const_map_view_iterator<Tag,BimapType>,
-        ::boost::bimaps::detail::      reverse_map_view_iterator<Tag,BimapType>,
-        ::boost::bimaps::detail::const_reverse_map_view_iterator<Tag,BimapType>,
+        BOOST_DEDUCED_TYPENAME BimapType::core_type::BOOST_NESTED_TEMPLATE index<Tag>::type,
+        BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                    iterator_type_by<Tag,BimapType>::type,
+        BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                    const_iterator_type_by<Tag,BimapType>::type,
+        BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                   reverse_iterator_type_by<Tag,BimapType>::type,
+        BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                   const_reverse_iterator_type_by<Tag,BimapType>::type,
         ::boost::bimaps::container_adaptor::support::iterator_facade_to_base
         <
-            ::boost::bimaps::detail::      map_view_iterator<Tag,BimapType>,
-            ::boost::bimaps::detail::const_map_view_iterator<Tag,BimapType>
-            
+            BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                iterator_type_by<Tag,BimapType>::type,
+            BOOST_DEDUCED_TYPENAME ::boost::bimaps::support::
+                const_iterator_type_by<Tag,BimapType>::type
+
         >,
         ::boost::mpl::na,
         ::boost::mpl::na,
@@ -59,7 +64,7 @@ struct list_map_view_base
         <
             Tag,
             BOOST_DEDUCED_TYPENAME BimapType::relation
-            
+
         >::type
 
     > type;

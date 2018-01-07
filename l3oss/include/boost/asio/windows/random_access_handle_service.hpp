@@ -1,8 +1,8 @@
 //
-// windows/random_access_handle_service.hpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// random_access_handle_service.hpp
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,21 +15,27 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
 
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+#include <boost/asio/detail/push_options.hpp>
+#include <cstddef>
+#include <boost/config.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/asio/detail/pop_options.hpp>
+
+#include <boost/asio/error.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/detail/service_base.hpp>
+#include <boost/asio/detail/win_iocp_handle_service.hpp>
+
+#if !defined(BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE)
+# if defined(BOOST_ASIO_HAS_IOCP)
+#  define BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE 1
+# endif // defined(BOOST_ASIO_HAS_IOCP)
+#endif // !defined(BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE)
 
 #if defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE) \
   || defined(GENERATING_DOCUMENTATION)
-
-#include <cstddef>
-#include <boost/asio/async_result.hpp>
-#include <boost/asio/detail/cstdint.hpp>
-#include <boost/asio/detail/win_iocp_handle_service.hpp>
-#include <boost/asio/error.hpp>
-#include <boost/asio/io_context.hpp>
-
-#include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -38,7 +44,7 @@ namespace windows {
 /// Default service implementation for a random-access handle.
 class random_access_handle_service
 #if defined(GENERATING_DOCUMENTATION)
-  : public boost::asio::io_context::service
+  : public boost::asio::io_service::service
 #else
   : public boost::asio::detail::service_base<random_access_handle_service>
 #endif
@@ -46,7 +52,7 @@ class random_access_handle_service
 public:
 #if defined(GENERATING_DOCUMENTATION)
   /// The unique service identifier.
-  static boost::asio::io_context::id id;
+  static boost::asio::io_service::id id;
 #endif
 
 private:
@@ -63,16 +69,21 @@ public:
 
   /// The native handle type.
 #if defined(GENERATING_DOCUMENTATION)
-  typedef implementation_defined native_handle_type;
+  typedef implementation_defined native_type;
 #else
-  typedef service_impl_type::native_handle_type native_handle_type;
+  typedef service_impl_type::native_type native_type;
 #endif
 
-  /// Construct a new random-access handle service for the specified io_context.
-  explicit random_access_handle_service(boost::asio::io_context& io_context)
+  /// Construct a new random-access handle service for the specified io_service.
+  explicit random_access_handle_service(boost::asio::io_service& io_service)
     : boost::asio::detail::service_base<
-        random_access_handle_service>(io_context),
-      service_impl_(io_context)
+        random_access_handle_service>(io_service),
+      service_impl_(boost::asio::use_service<service_impl_type>(io_service))
+  {
+  }
+
+  /// Destroy all user-defined handler objects owned by the service.
+  void shutdown_service()
   {
   }
 
@@ -82,23 +93,6 @@ public:
     service_impl_.construct(impl);
   }
 
-#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
-  /// Move-construct a new random-access handle implementation.
-  void move_construct(implementation_type& impl,
-      implementation_type& other_impl)
-  {
-    service_impl_.move_construct(impl, other_impl);
-  }
-
-  /// Move-assign from another random-access handle implementation.
-  void move_assign(implementation_type& impl,
-      random_access_handle_service& other_service,
-      implementation_type& other_impl)
-  {
-    service_impl_.move_assign(impl, other_service.service_impl_, other_impl);
-  }
-#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
-
   /// Destroy a random-access handle implementation.
   void destroy(implementation_type& impl)
   {
@@ -106,11 +100,10 @@ public:
   }
 
   /// Assign an existing native handle to a random-access handle.
-  BOOST_ASIO_SYNC_OP_VOID assign(implementation_type& impl,
-      const native_handle_type& handle, boost::system::error_code& ec)
+  boost::system::error_code assign(implementation_type& impl,
+      const native_type& native_handle, boost::system::error_code& ec)
   {
-    service_impl_.assign(impl, handle, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.assign(impl, native_handle, ec);
   }
 
   /// Determine whether the handle is open.
@@ -120,30 +113,28 @@ public:
   }
 
   /// Close a random-access handle implementation.
-  BOOST_ASIO_SYNC_OP_VOID close(implementation_type& impl,
+  boost::system::error_code close(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.close(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.close(impl, ec);
   }
 
   /// Get the native handle implementation.
-  native_handle_type native_handle(implementation_type& impl)
+  native_type native(implementation_type& impl)
   {
-    return service_impl_.native_handle(impl);
+    return service_impl_.native(impl);
   }
 
   /// Cancel all asynchronous operations associated with the handle.
-  BOOST_ASIO_SYNC_OP_VOID cancel(implementation_type& impl,
+  boost::system::error_code cancel(implementation_type& impl,
       boost::system::error_code& ec)
   {
-    service_impl_.cancel(impl, ec);
-    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+    return service_impl_.cancel(impl, ec);
   }
 
   /// Write the given data at the specified offset.
   template <typename ConstBufferSequence>
-  std::size_t write_some_at(implementation_type& impl, uint64_t offset,
+  std::size_t write_some_at(implementation_type& impl, boost::uint64_t offset,
       const ConstBufferSequence& buffers, boost::system::error_code& ec)
   {
     return service_impl_.write_some_at(impl, offset, buffers, ec);
@@ -151,24 +142,15 @@ public:
 
   /// Start an asynchronous write at the specified offset.
   template <typename ConstBufferSequence, typename WriteHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-      void (boost::system::error_code, std::size_t))
-  async_write_some_at(implementation_type& impl,
-      uint64_t offset, const ConstBufferSequence& buffers,
-      BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
+  void async_write_some_at(implementation_type& impl, boost::uint64_t offset,
+      const ConstBufferSequence& buffers, WriteHandler handler)
   {
-    boost::asio::async_completion<WriteHandler,
-      void (boost::system::error_code, std::size_t)> init(handler);
-
-    service_impl_.async_write_some_at(impl,
-        offset, buffers, init.completion_handler);
-
-    return init.result.get();
+    service_impl_.async_write_some_at(impl, offset, buffers, handler);
   }
 
   /// Read some data from the specified offset.
   template <typename MutableBufferSequence>
-  std::size_t read_some_at(implementation_type& impl, uint64_t offset,
+  std::size_t read_some_at(implementation_type& impl, boost::uint64_t offset,
       const MutableBufferSequence& buffers, boost::system::error_code& ec)
   {
     return service_impl_.read_some_at(impl, offset, buffers, ec);
@@ -176,41 +158,24 @@ public:
 
   /// Start an asynchronous read at the specified offset.
   template <typename MutableBufferSequence, typename ReadHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-      void (boost::system::error_code, std::size_t))
-  async_read_some_at(implementation_type& impl,
-      uint64_t offset, const MutableBufferSequence& buffers,
-      BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
+  void async_read_some_at(implementation_type& impl, boost::uint64_t offset,
+      const MutableBufferSequence& buffers, ReadHandler handler)
   {
-    boost::asio::async_completion<ReadHandler,
-      void (boost::system::error_code, std::size_t)> init(handler);
-
-    service_impl_.async_read_some_at(impl,
-        offset, buffers, init.completion_handler);
-
-    return init.result.get();
+    service_impl_.async_read_some_at(impl, offset, buffers, handler);
   }
 
 private:
-  // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
-  {
-    service_impl_.shutdown();
-  }
-
-  // The platform-specific implementation.
-  service_impl_type service_impl_;
+  // The service that provides the platform-specific implementation.
+  service_impl_type& service_impl_;
 };
 
 } // namespace windows
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
-
 #endif // defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+#include <boost/asio/detail/pop_options.hpp>
 
 #endif // BOOST_ASIO_WINDOWS_RANDOM_ACCESS_HANDLE_SERVICE_HPP

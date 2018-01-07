@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ITERATORS_DATAFLOW_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -16,10 +16,13 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
-#include <boost/assert.hpp>
+#include <cassert>
+
+#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
 
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/int.hpp>
@@ -44,7 +47,7 @@ struct tri_state {
     } m_state;
     // convert to bool
     operator bool (){
-        BOOST_ASSERT(is_indeterminant != m_state);
+        assert(is_indeterminant != m_state);
         return is_true == m_state ? true : false;
     }
     // assign from bool

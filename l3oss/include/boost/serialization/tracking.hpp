@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_TRACKING_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -41,25 +41,25 @@ template<class T>
 struct tracking_level_impl {
     template<class U>
     struct traits_class_tracking {
-        typedef typename U::tracking type;
+        typedef BOOST_DEDUCED_TYPENAME U::tracking type;
     };
     typedef mpl::integral_c_tag tag;
     // note: at least one compiler complained w/o the full qualification
     // on basic traits below
     typedef
-        typename mpl::eval_if<
+        BOOST_DEDUCED_TYPENAME mpl::eval_if<
             is_base_and_derived<boost::serialization::basic_traits, T>,
-            traits_class_tracking< T >,
+            traits_class_tracking<T>,
         //else
-        typename mpl::eval_if<
-            is_pointer< T >,
+        BOOST_DEDUCED_TYPENAME mpl::eval_if<
+            is_pointer<T>,
             // pointers are not tracked by default
             mpl::int_<track_never>,
         //else
-        typename mpl::eval_if<
+        BOOST_DEDUCED_TYPENAME mpl::eval_if<
             // for primitives
-            typename mpl::equal_to<
-                implementation_level< T >,
+            BOOST_DEDUCED_TYPENAME mpl::equal_to<
+                implementation_level<T>,
                 mpl::int_<primitive_type> 
             >,
             // is never
@@ -77,7 +77,7 @@ struct tracking_level :
 };
 
 template<class T, enum tracking_type L>
-inline bool operator>=(tracking_level< T > t, enum tracking_type l)
+inline bool operator>=(tracking_level<T> t, enum tracking_type l)
 {
     return t.value >= (int)l;
 }

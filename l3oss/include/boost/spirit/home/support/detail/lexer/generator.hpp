@@ -12,11 +12,9 @@
 #include "partition/charset.hpp"
 #include "partition/equivset.hpp"
 #include <memory>
-#include <limits>
 #include "parser/tree/node.hpp"
 #include "parser/parser.hpp"
 #include "containers/ptr_list.hpp"
-#include <boost/move/unique_ptr.hpp>
 #include "rules.hpp"
 #include "state_machine.hpp"
 
@@ -46,10 +44,10 @@ public:
 
         for (; index_ < size_; ++index_)
         {
-            internals_._lookup->push_back (static_cast<size_t_vector *>(0));
+            internals_._lookup->push_back (0);
             internals_._lookup->back () = new size_t_vector;
             internals_._dfa_alphabet.push_back (0);
-            internals_._dfa->push_back (static_cast<size_t_vector *>(0));
+            internals_._dfa->push_back (0);
             internals_._dfa->back () = new size_t_vector;
         }
 
@@ -117,10 +115,10 @@ public:
 protected:
     typedef detail::basic_charset<CharT> charset;
     typedef detail::ptr_list<charset> charset_list;
-    typedef boost::movelib::unique_ptr<charset> charset_ptr;
+    typedef std::auto_ptr<charset> charset_ptr;
     typedef detail::equivset equivset;
     typedef detail::ptr_list<equivset> equivset_list;
-    typedef boost::movelib::unique_ptr<equivset> equivset_ptr;
+    typedef std::auto_ptr<equivset> equivset_ptr;
     typedef typename charset::index_set index_set;
     typedef std::vector<index_set> index_set_vector;
     typedef detail::basic_parser<CharT> parser;
@@ -187,10 +185,10 @@ protected:
         while (regex_iter_ != regex_iter_end_)
         {
             // re-declare var, otherwise we perform an assignment..!
-            const typename rules::string &regex2_ = *regex_iter_;
+            const typename rules::string &regex_ = *regex_iter_;
 
-            root_ = parser::parse (regex2_.c_str (),
-                regex2_.c_str () + regex2_.size (), *ids_iter_,
+            root_ = parser::parse (regex_.c_str (),
+                regex_.c_str () + regex_.size (), *ids_iter_,
                 *unique_ids_iter_, *states_iter_, rules_.flags (),
                 rules_.locale (), node_ptr_vector_, macromap_, token_map_,
                 internals_._seen_BOL_assertion,
@@ -231,7 +229,7 @@ protected:
 
             for (; iter_ != end_; ++iter_)
             {
-                node_ptr_vector_->push_back (static_cast<detail::selection_node *>(0));
+                node_ptr_vector_->push_back (0);
                 node_ptr_vector_->back () = new detail::selection_node
                     (root_, *iter_);
                 root_ = node_ptr_vector_->back ();
@@ -287,8 +285,7 @@ protected:
                 locale_, node_ptr_vector_, macromap_, token_map_,
                 seen_BOL_assertion_, seen_EOL_assertion_);
             macro_iter_pair map_iter_ = macromap_.
-                insert (macro_pair (name_, static_cast<const detail::node *>
-                (0)));
+                insert (macro_pair (name_, (detail::node const*)0));
 
             map_iter_.first->second = node_;
         }
@@ -338,16 +335,16 @@ protected:
                         equiv_end_ = equivset_->_index_vector.end ();
                         equiv_iter_ != equiv_end_; ++equiv_iter_)
                     {
-                        const std::size_t equiv_index_ = *equiv_iter_;
+                        const std::size_t index_ = *equiv_iter_;
 
-                        if (equiv_index_ == bol_token)
+                        if (index_ == bol_token)
                         {
                             if (ptr_[eol_index] == 0)
                             {
                                 ptr_[bol_index] = transition_;
                             }
                         }
-                        else if (equiv_index_ == eol_token)
+                        else if (index_ == eol_token)
                         {
                             if (ptr_[bol_index] == 0)
                             {
@@ -356,7 +353,7 @@ protected:
                         }
                         else
                         {
-                            ptr_[equiv_index_ + dfa_offset] = transition_;
+                            ptr_[index_ + dfa_offset] = transition_;
                         }
                     }
                 }
@@ -378,8 +375,8 @@ protected:
         if (followpos_->empty ()) return npos;
 
         std::size_t index_ = 0;
-        boost::movelib::unique_ptr<node_set> set_ptr_ (new node_set);
-        boost::movelib::unique_ptr<node_vector> vector_ptr_ (new node_vector);
+        std::auto_ptr<node_set> set_ptr_ (new node_set);
+        std::auto_ptr<node_vector> vector_ptr_ (new node_vector);
 
         for (typename detail::node::node_vector::const_iterator iter_ =
             followpos_->begin (), end_ = followpos_->end ();
@@ -407,9 +404,9 @@ protected:
 
         if (!found_)
         {
-            seen_sets_->push_back (static_cast<node_set *>(0));
+            seen_sets_->push_back (0);
             seen_sets_->back () = set_ptr_.release ();
-            seen_vectors_->push_back (static_cast<node_vector *>(0));
+            seen_vectors_->push_back (0);
             seen_vectors_->back () = vector_ptr_.release ();
             hash_vector_.push_back (hash_);
             // State 0 is the jam state...
@@ -468,7 +465,7 @@ protected:
             typename charset_list::list::iterator end_;
             charset_ptr overlap_ (new charset);
 
-            lhs_->push_back (static_cast<charset *>(0));
+            lhs_->push_back (0);
             lhs_->back () = rhs_->front ();
             rhs_->pop_front ();
 
@@ -495,22 +492,32 @@ protected:
                         delete *l_iter_;
                         *l_iter_ = overlap_.release ();
 
-                        overlap_.reset (new charset);
+                        // VC++ 6 Hack:
+                        charset_ptr temp_overlap_ (new charset);
+
+                        overlap_ = temp_overlap_;
                         ++iter_;
                     }
                     else if (r_->empty ())
                     {
-                        overlap_.swap (r_);
-                        overlap_.reset (new charset);
+                        delete r_.release ();
+                        r_ = overlap_;
+
+                        // VC++ 6 Hack:
+                        charset_ptr temp_overlap_ (new charset);
+
+                        overlap_ = temp_overlap_;
                         break;
                     }
                     else
                     {
-                        iter_ = lhs_->insert (++iter_,
-                            static_cast<charset *>(0));
+                        iter_ = lhs_->insert (++iter_, (charset*)0);
                         *iter_ = overlap_.release ();
 
-                        overlap_.reset(new charset);
+                        // VC++ 6 Hack:
+                        charset_ptr temp_overlap_ (new charset);
+
+                        overlap_ = temp_overlap_;
                         ++iter_;
                         end_ = lhs_->end ();
                     }
@@ -518,7 +525,7 @@ protected:
 
                 if (!r_->empty ())
                 {
-                    lhs_->push_back (static_cast<charset *>(0));
+                    lhs_->push_back (0);
                     lhs_->back () = r_.release ();
                 }
             }
@@ -535,7 +542,7 @@ protected:
 
         for (; iter_ != end_; ++iter_)
         {
-            list_->push_back (static_cast<charset *>(0));
+            list_->push_back (0);
             list_->back () = new charset (iter_->first, iter_->second);
         }
     }
@@ -551,12 +558,7 @@ protected:
 
         if (token_._negated)
         {
-            // $$$ FIXME JDG July 2014 $$$
-            // this code is problematic on platforms where wchar_t is signed
-            // with min generating negative numbers. This crashes with BAD_ACCESS
-            // because of the vector index below:
-            //  ptr_[static_cast<typename Traits::index_type>(curr_char_)]
-            CharT curr_char_ = 0; // (std::numeric_limits<CharT>::min)();
+            CharT curr_char_ = sizeof (CharT) == 1 ? -128 : 0;
             std::size_t i_ = 0;
 
             while (curr_ < chars_end_)
@@ -605,7 +607,7 @@ protected:
             typename equivset_list::list::iterator end_;
             equivset_ptr overlap_ (new equivset);
 
-            lhs_->push_back (static_cast<equivset *>(0));
+            lhs_->push_back (0);
             lhs_->back () = rhs_->front ();
             rhs_->pop_front ();
 
@@ -632,22 +634,32 @@ protected:
                         delete *l_iter_;
                         *l_iter_ = overlap_.release ();
 
-                        overlap_.reset (new equivset);
+                        // VC++ 6 Hack:
+                        equivset_ptr temp_overlap_ (new equivset);
+
+                        overlap_ = temp_overlap_;
                         ++iter_;
                     }
                     else if (r_->empty ())
                     {
-                        overlap_.swap (r_);
-                        overlap_.reset (new equivset);
+                        delete r_.release ();
+                        r_ = overlap_;
+
+                        // VC++ 6 Hack:
+                        equivset_ptr temp_overlap_ (new equivset);
+
+                        overlap_ = temp_overlap_;
                         break;
                     }
                     else
                     {
-                        iter_ = lhs_->insert (++iter_,
-                            static_cast<equivset *>(0));
+                        iter_ = lhs_->insert (++iter_, (equivset*)0);
                         *iter_ = overlap_.release ();
 
-                        overlap_.reset (new equivset);
+                        // VC++ 6 Hack:
+                        equivset_ptr temp_overlap_ (new equivset);
+
+                        overlap_ = temp_overlap_;
                         ++iter_;
                         end_ = lhs_->end ();
                     }
@@ -655,7 +667,7 @@ protected:
 
                 if (!r_->empty ())
                 {
-                    lhs_->push_back (static_cast<equivset *>(0));
+                    lhs_->push_back (0);
                     lhs_->back () = r_.release ();
                 }
             }
@@ -680,7 +692,7 @@ protected:
 
                 if (token_ != null_token)
                 {
-                    list_->push_back (static_cast<equivset *>(0));
+                    list_->push_back (0);
 
                     if (token_ == bol_token || token_ == eol_token)
                     {
@@ -721,26 +733,24 @@ protected:
 
         if (!found_)
         {
-            node_ptr_vector_->push_back (static_cast<detail::leaf_node *>(0));
+            node_ptr_vector_->push_back (0);
             node_ptr_vector_->back () = new detail::leaf_node
                 (bol_token, true);
 
             detail::node *lhs_ = node_ptr_vector_->back ();
 
-            node_ptr_vector_->push_back (static_cast<detail::leaf_node *>(0));
+            node_ptr_vector_->push_back (0);
             node_ptr_vector_->back () = new detail::leaf_node
                 (null_token, true);
 
             detail::node *rhs_ = node_ptr_vector_->back ();
 
-            node_ptr_vector_->push_back
-                (static_cast<detail::selection_node *>(0));
+            node_ptr_vector_->push_back (0);
             node_ptr_vector_->back () =
                 new detail::selection_node (lhs_, rhs_);
             lhs_ = node_ptr_vector_->back ();
 
-            node_ptr_vector_->push_back
-                (static_cast<detail::sequence_node *>(0));
+            node_ptr_vector_->push_back (0);
             node_ptr_vector_->back () =
                 new detail::sequence_node (lhs_, root_);
             root_ = node_ptr_vector_->back ();

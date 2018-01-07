@@ -5,20 +5,6 @@
 
 #ifndef UUID_274DA366004E11DCB1DDFE2E56D89593
 #define UUID_274DA366004E11DCB1DDFE2E56D89593
-#if (__GNUC__*100+__GNUC_MINOR__>301) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
-#pragma GCC system_header
-#endif
-#if defined(_MSC_VER) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
-#pragma warning(push,1)
-#endif
-
-#ifdef BOOST_EXCEPTION_MINI_BOOST
-#include  <memory>
-namespace boost { namespace exception_detail { using std::shared_ptr; } }
-#else
-namespace boost { template <class T> class shared_ptr; };
-namespace boost { namespace exception_detail { using boost::shared_ptr; } }
-#endif
 
 namespace
 boost
@@ -83,8 +69,8 @@ boost
             void
             release()
                 {
-                if( px_ && px_->release() )
-                    px_=0;
+                if( px_ )
+                    px_->release();
                 }
             };
         }
@@ -140,17 +126,13 @@ boost
             }
         };
 
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility push (default)
-# endif
-#endif
+    template <class E,class Tag,class T>
+    E const & operator<<( E const &, error_info<Tag,T> const & );
+
     class exception;
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility pop
-# endif
-#endif
+
+    template <class>
+    class shared_ptr;
 
     namespace
     exception_detail
@@ -165,11 +147,11 @@ boost
             virtual shared_ptr<error_info_base> get( type_info_ const & ) const = 0;
             virtual void set( shared_ptr<error_info_base> const &, type_info_ const & ) = 0;
             virtual void add_ref() const = 0;
-            virtual bool release() const = 0;
-            virtual refcount_ptr<exception_detail::error_info_container> clone() const = 0;
+            virtual void release() const = 0;
 
             protected:
 
+            virtual
             ~error_info_container() throw()
                 {
                 }
@@ -187,49 +169,12 @@ boost
         template <>
         struct get_info<throw_line>;
 
-        template <class>
-        struct set_info_rv;
-
-        template <>
-        struct set_info_rv<throw_function>;
-
-        template <>
-        struct set_info_rv<throw_file>;
-
-        template <>
-        struct set_info_rv<throw_line>;
-
         char const * get_diagnostic_information( exception const &, char const * );
-
-        void copy_boost_exception( exception *, exception const * );
-
-        template <class E,class Tag,class T>
-        E const & set_info( E const &, error_info<Tag,T> const & );
-
-        template <class E>
-        E const & set_info( E const &, throw_function const & );
-
-        template <class E>
-        E const & set_info( E const &, throw_file const & );
-
-        template <class E>
-        E const & set_info( E const &, throw_line const & );
         }
 
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility push (default)
-# endif
-#endif
     class
     exception
         {
-        //<N3757>
-        public:
-        template <class Tag> void set( typename Tag::type const & );
-        template <class Tag> typename Tag::type const * get() const;
-        //</N3757>
-
         protected:
 
         exception():
@@ -257,47 +202,51 @@ boost
 #endif
             ;
 
-#if (defined(__MWERKS__) && __MWERKS__<=0x3207) || (defined(_MSC_VER) && _MSC_VER<=1310)
-        public:
-#else
         private:
 
         template <class E>
-        friend E const & exception_detail::set_info( E const &, throw_function const & );
+        friend
+        E const &
+        operator<<( E const & x, throw_function const & y )
+            {
+            x.throw_function_=y.v_;
+            return x;
+            }
 
         template <class E>
-        friend E const & exception_detail::set_info( E const &, throw_file const & );
+        friend
+        E const &
+        operator<<( E const & x, throw_file const & y )
+            {
+            x.throw_file_=y.v_;
+            return x;
+            }
 
         template <class E>
-        friend E const & exception_detail::set_info( E const &, throw_line const & );
-
-        template <class E,class Tag,class T>
-        friend E const & exception_detail::set_info( E const &, error_info<Tag,T> const & );
+        friend
+        E const &
+        operator<<( E const & x, throw_line const & y )
+            {
+            x.throw_line_=y.v_;
+            return x;
+            }
 
         friend char const * exception_detail::get_diagnostic_information( exception const &, char const * );
+
+        template <class E,class Tag,class T>
+        friend E const & operator<<( E const &, error_info<Tag,T> const & );
 
         template <class>
         friend struct exception_detail::get_info;
         friend struct exception_detail::get_info<throw_function>;
         friend struct exception_detail::get_info<throw_file>;
         friend struct exception_detail::get_info<throw_line>;
-        template <class>
-        friend struct exception_detail::set_info_rv;
-        friend struct exception_detail::set_info_rv<throw_function>;
-        friend struct exception_detail::set_info_rv<throw_file>;
-        friend struct exception_detail::set_info_rv<throw_line>;
-        friend void exception_detail::copy_boost_exception( exception *, exception const * );
-#endif
+
         mutable exception_detail::refcount_ptr<exception_detail::error_info_container> data_;
         mutable char const * throw_function_;
         mutable char const * throw_file_;
         mutable int throw_line_;
         };
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility pop
-# endif
-#endif
 
     inline
     exception::
@@ -305,44 +254,11 @@ boost
         {
         }
 
-    namespace
-    exception_detail
-        {
-        template <class E>
-        E const &
-        set_info( E const & x, throw_function const & y )
-            {
-            x.throw_function_=y.v_;
-            return x;
-            }
-
-        template <class E>
-        E const &
-        set_info( E const & x, throw_file const & y )
-            {
-            x.throw_file_=y.v_;
-            return x;
-            }
-
-        template <class E>
-        E const &
-        set_info( E const & x, throw_line const & y )
-            {
-            x.throw_line_=y.v_;
-            return x;
-            }
-        }
-
     ////////////////////////////////////////////////////////////////////////
 
     namespace
     exception_detail
         {
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility push (default)
-# endif
-#endif
         template <class T>
         struct
         error_info_injector:
@@ -359,17 +275,12 @@ boost
                 {
                 }
             };
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility pop
-# endif
-#endif
 
         struct large_size { char c[256]; };
-        large_size dispatch_boost_exception( exception const * );
+        large_size dispatch( exception * );
 
         struct small_size { };
-        small_size dispatch_boost_exception( void const * );
+        small_size dispatch( void * );
 
         template <class,int>
         struct enable_error_info_helper;
@@ -392,7 +303,7 @@ boost
         struct
         enable_error_info_return_type
             {
-            typedef typename enable_error_info_helper<T,sizeof(exception_detail::dispatch_boost_exception(static_cast<T *>(0)))>::type type;
+            typedef typename enable_error_info_helper<T,sizeof(dispatch((T*)0))>::type type;
             };
         }
 
@@ -411,11 +322,6 @@ boost
     namespace
     exception_detail
         {
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility push (default)
-# endif
-#endif
         class
         clone_base
             {
@@ -429,23 +335,12 @@ boost
                 {
                 }
             };
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility pop
-# endif
-#endif
 
         inline
         void
         copy_boost_exception( exception * a, exception const * b )
             {
-            refcount_ptr<error_info_container> data;
-            if( error_info_container * d=b->data_.get() )
-                data = d->clone();
-            a->throw_file_ = b->throw_file_;
-            a->throw_line_ = b->throw_line_;
-            a->throw_function_ = b->throw_function_;
-            a->data_ = data;
+            *a = *b;
             }
 
         inline
@@ -454,24 +349,12 @@ boost
             {
             }
 
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility push (default)
-# endif
-#endif
         template <class T>
         class
         clone_impl:
             public T,
-            public virtual clone_base
+            public clone_base
             {
-            struct clone_tag { };
-            clone_impl( clone_impl const & x, clone_tag ):
-                T(x)
-                {
-                copy_boost_exception(this,&x);
-                }
-
             public:
 
             explicit
@@ -490,7 +373,7 @@ boost
             clone_base const *
             clone() const
                 {
-                return new clone_impl(*this,clone_tag());
+                return new clone_impl(*this);
                 }
 
             void
@@ -500,11 +383,6 @@ boost
                 }
             };
         }
-#if defined(__GNUC__)
-# if (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-#  pragma GCC visibility pop
-# endif
-#endif
 
     template <class T>
     inline
@@ -515,7 +393,4 @@ boost
         }
     }
 
-#if defined(_MSC_VER) && !defined(BOOST_EXCEPTION_ENABLE_WARNINGS)
-#pragma warning(pop)
-#endif
 #endif

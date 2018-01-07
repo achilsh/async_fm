@@ -15,7 +15,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/iterator/iterator_categories.hpp>
 
-#include <boost/range/iterator_range_core.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/iterator.hpp>
@@ -230,12 +230,7 @@ namespace boost {
     
                 \post eof()==true
             */
-            split_iterator() :
-                m_Next(),
-                m_End(),
-                m_bEof(true)
-            {}
-
+            split_iterator() {}
             //! Copy constructor
             /*!
                 Construct a copy of the split_iterator
@@ -245,7 +240,7 @@ namespace boost {
                 m_Match(Other.m_Match),
                 m_Next(Other.m_Next),
                 m_End(Other.m_End),
-                m_bEof(Other.m_bEof)
+                m_bEof(false)
             {}
 
             //! Constructor
@@ -264,11 +259,7 @@ namespace boost {
                 m_End(End),
                 m_bEof(false)
             {
-                // force the correct behavior for empty sequences and yield at least one token
-                if(Begin!=End)
-                {
-                    increment();
-                }
+                increment();
             }
             //! Constructor
             /*!
@@ -287,11 +278,7 @@ namespace boost {
                 m_Next=::boost::begin(lit_col);
                 m_End=::boost::end(lit_col);
 
-                // force the correct behavior for empty sequences and yield at least one token
-                if(m_Next!=m_End)
-                {
-                    increment();
-                }
+                increment();
             }
 
 

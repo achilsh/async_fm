@@ -13,7 +13,6 @@
 #ifndef _BOOST_UBLAS_MATRIX_ASSIGN_
 #define _BOOST_UBLAS_MATRIX_ASSIGN_
 
-#include <boost/numeric/ublas/traits.hpp>
 // Required for make_conformant storage
 #include <vector>
 
@@ -75,23 +74,23 @@ namespace detail {
                 if (it2 != it2_end && it2e != it2e_end) {
                     size_type it2_index = it2.index2 (), it2e_index = it2e.index2 ();
                     while (true) {
-                        difference_type compare2 = it2_index - it2e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it2_index - it2e_index;
+                        if (compare == 0) {
                             ++ it2, ++ it2e;
                             if (it2 != it2_end && it2e != it2e_end) {
                                 it2_index = it2.index2 ();
                                 it2e_index = it2e.index2 ();
                             } else
                                 break;
-                        } else if (compare2 < 0) {
-                            increment (it2, it2_end, - compare2);
+                        } else if (compare < 0) {
+                            increment (it2, it2_end, - compare);
                             if (it2 != it2_end)
                                 it2_index = it2.index2 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
+                        } else if (compare > 0) {
                             if (conformant_restrict_type::other (it2e.index1 (), it2e.index2 ()))
-                                if (static_cast<value_type>(*it2e) != value_type/*zero*/())
+                                if (*it2e != value_type/*zero*/())
                                     index.push_back (std::pair<size_type, size_type> (it2e.index1 (), it2e.index2 ()));
                             ++ it2e;
                             if (it2e != it2e_end)
@@ -103,7 +102,7 @@ namespace detail {
                 }
                 while (it2e != it2e_end) {
                     if (conformant_restrict_type::other (it2e.index1 (), it2e.index2 ()))
-                        if (static_cast<value_type>(*it2e) != value_type/*zero*/())
+                        if (*it2e != value_type/*zero*/())
                             index.push_back (std::pair<size_type, size_type> (it2e.index1 (), it2e.index2 ()));
                     ++ it2e;
                 }
@@ -120,7 +119,7 @@ namespace detail {
 #endif
                 while (it2e != it2e_end) {
                     if (conformant_restrict_type::other (it2e.index1 (), it2e.index2 ()))
-                        if (static_cast<value_type>(*it2e) != value_type/*zero*/())
+                        if (*it2e != value_type/*zero*/())
                             index.push_back (std::pair<size_type, size_type> (it2e.index1 (), it2e.index2 ()));
                     ++ it2e;
                 }
@@ -137,7 +136,7 @@ namespace detail {
 #endif
             while (it2e != it2e_end) {
                 if (conformant_restrict_type::other (it2e.index1 (), it2e.index2 ()))
-                    if (static_cast<value_type>(*it2e) != value_type/*zero*/())
+                    if (*it2e != value_type/*zero*/())
                         index.push_back (std::pair<size_type, size_type> (it2e.index1 (), it2e.index2 ()));
                 ++ it2e;
             }
@@ -178,23 +177,23 @@ namespace detail {
                 if (it1 != it1_end && it1e != it1e_end) {
                     size_type it1_index = it1.index1 (), it1e_index = it1e.index1 ();
                     while (true) {
-                        difference_type compare2 = it1_index - it1e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it1_index - it1e_index;
+                        if (compare == 0) {
                             ++ it1, ++ it1e;
                             if (it1 != it1_end && it1e != it1e_end) {
                                 it1_index = it1.index1 ();
                                 it1e_index = it1e.index1 ();
                             } else
                                 break;
-                        } else if (compare2 < 0) {
-                            increment (it1, it1_end, - compare2);
+                        } else if (compare < 0) {
+                            increment (it1, it1_end, - compare);
                             if (it1 != it1_end)
                                 it1_index = it1.index1 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
+                        } else if (compare > 0) {
                             if (conformant_restrict_type::other (it1e.index1 (), it1e.index2 ()))
-                                if (static_cast<value_type>(*it1e) != value_type/*zero*/())
+                                if (*it1e != value_type/*zero*/())
                                     index.push_back (std::pair<size_type, size_type> (it1e.index1 (), it1e.index2 ()));
                             ++ it1e;
                             if (it1e != it1e_end)
@@ -206,7 +205,7 @@ namespace detail {
                 }
                 while (it1e != it1e_end) {
                     if (conformant_restrict_type::other (it1e.index1 (), it1e.index2 ()))
-                        if (static_cast<value_type>(*it1e) != value_type/*zero*/())
+                        if (*it1e != value_type/*zero*/())
                             index.push_back (std::pair<size_type, size_type> (it1e.index1 (), it1e.index2 ()));
                     ++ it1e;
                 }
@@ -223,7 +222,7 @@ namespace detail {
 #endif
                 while (it1e != it1e_end) {
                     if (conformant_restrict_type::other (it1e.index1 (), it1e.index2 ()))
-                        if (static_cast<value_type>(*it1e) != value_type/*zero*/())
+                        if (*it1e != value_type/*zero*/())
                             index.push_back (std::pair<size_type, size_type> (it1e.index1 (), it1e.index2 ()));
                     ++ it1e;
                 }
@@ -240,7 +239,7 @@ namespace detail {
 #endif
             while (it1e != it1e_end) {
                 if (conformant_restrict_type::other (it1e.index1 (), it1e.index2 ()))
-                    if (static_cast<value_type>(*it1e) != value_type/*zero*/())
+                    if (*it1e != value_type/*zero*/())
                         index.push_back (std::pair<size_type, size_type> (it1e.index1 (), it1e.index2 ()));
                 ++ it1e;
             }
@@ -637,16 +636,13 @@ namespace detail {
     template<template <class T1, class T2> class F, class R, class M, class E>
     // BOOST_UBLAS_INLINE This function seems to be big. So we do not let the compiler inline it.
     void matrix_assign (M &m, const matrix_expression<E> &e, packed_proxy_tag, row_major_tag) {
-        typedef typename matrix_traits<E>::value_type expr_value_type;
-        typedef F<typename M::iterator2::reference, expr_value_type> functor_type;
+        typedef F<typename M::iterator2::reference, typename E::value_type> functor_type;
         // R unnecessary, make_conformant not required
         typedef typename M::difference_type difference_type;
-
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
-
 #if BOOST_UBLAS_TYPE_CHECK
-        typedef typename M::value_type value_type;
         matrix<value_type, row_major> cm (m.size1 (), m.size2 ());
         indexing_matrix_assign<scalar_assign> (cm, m, row_major_tag ());
         indexing_matrix_assign<F> (cm, e, row_major_tag ());
@@ -681,7 +677,7 @@ namespace detail {
 #endif
                         difference_type size2 (it2_end - it2);
                         while (-- size2 >= 0)
-                            functor_type::apply (*it2, expr_value_type/*zero*/()), ++ it2;
+                            functor_type::apply (*it2, value_type/*zero*/()), ++ it2;
                         ++ it1;
                     }
                 } else {
@@ -721,7 +717,7 @@ namespace detail {
                     it2_size -= size2;
                     if (!functor_type::computed) {
                         while (-- size2 >= 0)   // zeroing
-                            functor_type::apply (*it2, expr_value_type/*zero*/()), ++ it2;
+                            functor_type::apply (*it2, value_type/*zero*/()), ++ it2;
                     } else {
                         it2 += size2;
                     }
@@ -736,7 +732,7 @@ namespace detail {
             size2 = it2_size;
             if (!functor_type::computed) {
                 while (-- size2 >= 0)   // zeroing
-                    functor_type::apply (*it2, expr_value_type/*zero*/()), ++ it2;
+                    functor_type::apply (*it2, value_type/*zero*/()), ++ it2;
             } else {
                 it2 += size2;
             }
@@ -754,7 +750,7 @@ namespace detail {
 #endif
                 difference_type size2 (it2_end - it2);
                 while (-- size2 >= 0)
-                    functor_type::apply (*it2, expr_value_type/*zero*/()), ++ it2;
+                    functor_type::apply (*it2, value_type/*zero*/()), ++ it2;
                 ++ it1;
             }
         } else {
@@ -769,16 +765,13 @@ namespace detail {
     template<template <class T1, class T2> class F, class R, class M, class E>
     // BOOST_UBLAS_INLINE This function seems to be big. So we do not let the compiler inline it.
     void matrix_assign (M &m, const matrix_expression<E> &e, packed_proxy_tag, column_major_tag) {
-        typedef typename matrix_traits<E>::value_type expr_value_type;
-        typedef F<typename M::iterator1::reference, expr_value_type> functor_type;
+        typedef F<typename M::iterator1::reference, typename E::value_type> functor_type;
         // R unnecessary, make_conformant not required
         typedef typename M::difference_type difference_type;
-
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
-
 #if BOOST_UBLAS_TYPE_CHECK
-        typedef typename M::value_type value_type;
         matrix<value_type, column_major> cm (m.size1 (), m.size2 ());
         indexing_matrix_assign<scalar_assign> (cm, m, column_major_tag ());
         indexing_matrix_assign<F> (cm, e, column_major_tag ());
@@ -813,7 +806,7 @@ namespace detail {
 #endif
                         difference_type size1 (it1_end - it1);
                         while (-- size1 >= 0)
-                            functor_type::apply (*it1, expr_value_type/*zero*/()), ++ it1;
+                            functor_type::apply (*it1, value_type/*zero*/()), ++ it1;
                         ++ it2;
                     }
                 } else {
@@ -853,7 +846,7 @@ namespace detail {
                     it1_size -= size1;
                     if (!functor_type::computed) {
                         while (-- size1 >= 0)   // zeroing
-                            functor_type::apply (*it1, expr_value_type/*zero*/()), ++ it1;
+                            functor_type::apply (*it1, value_type/*zero*/()), ++ it1;
                     } else {
                         it1 += size1;
                     }
@@ -868,7 +861,7 @@ namespace detail {
             size1 = it1_size;
             if (!functor_type::computed) {
                 while (-- size1 >= 0)   // zeroing
-                    functor_type::apply (*it1, expr_value_type/*zero*/()), ++ it1;
+                    functor_type::apply (*it1, value_type/*zero*/()), ++ it1;
             } else {
                 it1 += size1;
             }
@@ -886,7 +879,7 @@ namespace detail {
 #endif
                 difference_type size1 (it1_end - it1);
                 while (-- size1 >= 0)
-                    functor_type::apply (*it1, expr_value_type/*zero*/()), ++ it1;
+                    functor_type::apply (*it1, value_type/*zero*/()), ++ it1;
                 ++ it2;
             }
         } else {
@@ -965,17 +958,14 @@ namespace detail {
     template<template <class T1, class T2> class F, class R, class M, class E>
     // BOOST_UBLAS_INLINE This function seems to be big. So we do not let the compiler inline it.
     void matrix_assign (M &m, const matrix_expression<E> &e, sparse_proxy_tag, row_major_tag) {
-        typedef typename matrix_traits<E>::value_type expr_value_type;
-        typedef F<typename M::iterator2::reference, expr_value_type> functor_type;
+        typedef F<typename M::iterator2::reference, typename E::value_type> functor_type;
         typedef R conformant_restrict_type;
         typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
-
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
-
 #if BOOST_UBLAS_TYPE_CHECK
-        typedef typename M::value_type value_type;
         matrix<value_type, row_major> cm (m.size1 (), m.size2 ());
         indexing_matrix_assign<scalar_assign> (cm, m, row_major_tag ());
         indexing_matrix_assign<F> (cm, e, row_major_tag ());
@@ -1003,8 +993,8 @@ namespace detail {
                 if (it2 != it2_end && it2e != it2e_end) {
                     size_type it2_index = it2.index2 (), it2e_index = it2e.index2 ();
                     while (true) {
-                        difference_type compare2 = it2_index - it2e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it2_index - it2e_index;
+                        if (compare == 0) {
                             functor_type::apply (*it2, *it2e);
                             ++ it2, ++ it2e;
                             if (it2 != it2_end && it2e != it2e_end) {
@@ -1012,18 +1002,18 @@ namespace detail {
                                 it2e_index = it2e.index2 ();
                             } else
                                 break;
-                        } else if (compare2 < 0) {
+                        } else if (compare < 0) {
                             if (!functor_type::computed) {
-                                functor_type::apply (*it2, expr_value_type/*zero*/());
+                                functor_type::apply (*it2, value_type/*zero*/());
                                 ++ it2;
                             } else
-                                increment (it2, it2_end, - compare2);
+                                increment (it2, it2_end, - compare);
                             if (it2 != it2_end)
                                 it2_index = it2.index2 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
-                            increment (it2e, it2e_end, compare2);
+                        } else if (compare > 0) {
+                            increment (it2e, it2e_end, compare);
                             if (it2e != it2e_end)
                                 it2e_index = it2e.index2 ();
                             else
@@ -1033,7 +1023,7 @@ namespace detail {
                 }
                 if (!functor_type::computed) {
                     while (it2 != it2_end) {    // zeroing
-                        functor_type::apply (*it2, expr_value_type/*zero*/());
+                        functor_type::apply (*it2, value_type/*zero*/());
                         ++ it2;
                     }
                 } else {
@@ -1050,7 +1040,7 @@ namespace detail {
                     typename M::iterator2 it2_end (end (it1, iterator1_tag ()));
 #endif
                     while (it2 != it2_end) {    // zeroing
-                        functor_type::apply (*it2, expr_value_type/*zero*/());
+                        functor_type::apply (*it2, value_type/*zero*/());
                         ++ it2;
                     }
                     ++ it1;
@@ -1071,7 +1061,7 @@ namespace detail {
                 typename M::iterator2 it2_end (end (it1, iterator1_tag ()));
 #endif
                 while (it2 != it2_end) {    // zeroing
-                    functor_type::apply (*it2, expr_value_type/*zero*/());
+                    functor_type::apply (*it2, value_type/*zero*/());
                     ++ it2;
                 }
                 ++ it1;
@@ -1088,17 +1078,14 @@ namespace detail {
     template<template <class T1, class T2> class F, class R, class M, class E>
     // BOOST_UBLAS_INLINE This function seems to be big. So we do not let the compiler inline it.
     void matrix_assign (M &m, const matrix_expression<E> &e, sparse_proxy_tag, column_major_tag) {
-        typedef typename matrix_traits<E>::value_type expr_value_type;
-        typedef F<typename M::iterator1::reference, expr_value_type> functor_type;
+        typedef F<typename M::iterator1::reference, typename E::value_type> functor_type;
         typedef R conformant_restrict_type;
         typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
-
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
-
 #if BOOST_UBLAS_TYPE_CHECK
-        typedef typename M::value_type value_type;
         matrix<value_type, column_major> cm (m.size1 (), m.size2 ());
         indexing_matrix_assign<scalar_assign> (cm, m, column_major_tag ());
         indexing_matrix_assign<F> (cm, e, column_major_tag ());
@@ -1126,8 +1113,8 @@ namespace detail {
                 if (it1 != it1_end && it1e != it1e_end) {
                     size_type it1_index = it1.index1 (), it1e_index = it1e.index1 ();
                     while (true) {
-                        difference_type compare2 = it1_index - it1e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it1_index - it1e_index;
+                        if (compare == 0) {
                             functor_type::apply (*it1, *it1e);
                             ++ it1, ++ it1e;
                             if (it1 != it1_end && it1e != it1e_end) {
@@ -1135,18 +1122,18 @@ namespace detail {
                                 it1e_index = it1e.index1 ();
                             } else
                                 break;
-                        } else if (compare2 < 0) {
+                        } else if (compare < 0) {
                             if (!functor_type::computed) {
-                                functor_type::apply (*it1, expr_value_type/*zero*/()); // zeroing
+                                functor_type::apply (*it1, value_type/*zero*/()); // zeroing
                                 ++ it1;
                             } else
-                                increment (it1, it1_end, - compare2);
+                                increment (it1, it1_end, - compare);
                             if (it1 != it1_end)
                                 it1_index = it1.index1 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
-                            increment (it1e, it1e_end, compare2);
+                        } else if (compare > 0) {
+                            increment (it1e, it1e_end, compare);
                             if (it1e != it1e_end)
                                 it1e_index = it1e.index1 ();
                             else
@@ -1156,7 +1143,7 @@ namespace detail {
                 }
                 if (!functor_type::computed) {
                     while (it1 != it1_end) {    // zeroing
-                        functor_type::apply (*it1, expr_value_type/*zero*/());
+                        functor_type::apply (*it1, value_type/*zero*/());
                         ++ it1;
                     }
                 } else {
@@ -1173,7 +1160,7 @@ namespace detail {
                     typename M::iterator1 it1_end (end (it2, iterator2_tag ()));
 #endif
                     while (it1 != it1_end) {    // zeroing
-                        functor_type::apply (*it1, expr_value_type/*zero*/());
+                        functor_type::apply (*it1, value_type/*zero*/());
                         ++ it1;
                     }
                     ++ it2;
@@ -1194,7 +1181,7 @@ namespace detail {
                 typename M::iterator1 it1_end (end (it2, iterator2_tag ()));
 #endif
                 while (it1 != it1_end) {    // zeroing
-                    functor_type::apply (*it1, expr_value_type/*zero*/());
+                    functor_type::apply (*it1, value_type/*zero*/());
                     ++ it1;
                 }
                 ++ it2;
@@ -1259,20 +1246,20 @@ namespace detail {
     void matrix_swap (M &m, matrix_expression<E> &e, dense_proxy_tag, row_major_tag) {
         typedef F<typename M::iterator2::reference, typename E::reference> functor_type;
         // R unnecessary, make_conformant not required
-        //typedef typename M::size_type size_type; // gcc is complaining that this is not used, although this is not right
+        typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
         typename M::iterator1 it1 (m.begin1 ());
         typename E::iterator1 it1e (e ().begin1 ());
-        difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), typename M::size_type (e ().end1 () - it1e)));
+        difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), size_type (e ().end1 () - it1e)));
         while (-- size1 >= 0) {
 #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
             typename M::iterator2 it2 (it1.begin ());
             typename E::iterator2 it2e (it1e.begin ());
-            difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), typename M::size_type (it1e.end () - it2e)));
+            difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), size_type (it1e.end () - it2e)));
 #else
             typename M::iterator2 it2 (begin (it1, iterator1_tag ()));
             typename E::iterator2 it2e (begin (it1e, iterator1_tag ()));
-            difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), typename M::size_type (end (it1e, iterator1_tag ()) - it2e)));
+            difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), size_type (end (it1e, iterator1_tag ()) - it2e)));
 #endif
             while (-- size2 >= 0)
                 functor_type::apply (*it2, *it2e), ++ it2, ++ it2e;
@@ -1285,20 +1272,20 @@ namespace detail {
     void matrix_swap (M &m, matrix_expression<E> &e, dense_proxy_tag, column_major_tag) {
         typedef F<typename M::iterator1::reference, typename E::reference> functor_type;
         // R unnecessary, make_conformant not required
-        // typedef typename M::size_type size_type; // gcc is complaining that this is not used, although this is not right
+        typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
         typename M::iterator2 it2 (m.begin2 ());
         typename E::iterator2 it2e (e ().begin2 ());
-        difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), typename M::size_type (e ().end2 () - it2e)));
+        difference_type size2 (BOOST_UBLAS_SAME (m.size2 (), size_type (e ().end2 () - it2e)));
         while (-- size2 >= 0) {
 #ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
             typename M::iterator1 it1 (it2.begin ());
             typename E::iterator1 it1e (it2e.begin ());
-            difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), typename M::size_type (it2e.end () - it1e)));
+            difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), size_type (it2e.end () - it1e)));
 #else
             typename M::iterator1 it1 (begin (it2, iterator2_tag ()));
             typename E::iterator1 it1e (begin (it2e, iterator2_tag ()));
-            difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), typename M::size_type (end (it2e, iterator2_tag ()) - it1e)));
+            difference_type size1 (BOOST_UBLAS_SAME (m.size1 (), size_type (end (it2e, iterator2_tag ()) - it1e)));
 #endif
             while (-- size1 >= 0)
                 functor_type::apply (*it1, *it1e), ++ it1, ++ it1e;
@@ -1311,6 +1298,7 @@ namespace detail {
     void matrix_swap (M &m, matrix_expression<E> &e, packed_proxy_tag, row_major_tag) {
         typedef F<typename M::iterator2::reference, typename E::reference> functor_type;
         // R unnecessary, make_conformant not required
+        typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
         typename M::iterator1 it1 (m.begin1 ());
         typename E::iterator1 it1e (e ().begin1 ());
@@ -1336,6 +1324,7 @@ namespace detail {
     void matrix_swap (M &m, matrix_expression<E> &e, packed_proxy_tag, column_major_tag) {
         typedef F<typename M::iterator1::reference, typename E::reference> functor_type;
         // R unnecessary, make_conformant not required
+        typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
         typename M::iterator2 it2 (m.begin2 ());
         typename E::iterator2 it2e (e ().begin2 ());
@@ -1363,6 +1352,7 @@ namespace detail {
         typedef R conformant_restrict_type;
         typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
 
@@ -1391,8 +1381,8 @@ namespace detail {
                 if (it2 != it2_end && it2e != it2e_end) {
                     size_type it2_index = it2.index2 (), it2e_index = it2e.index2 ();
                     while (true) {
-                        difference_type compare2 = it2_index - it2e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it2_index - it2e_index;
+                        if (compare == 0) {
                             functor_type::apply (*it2, *it2e);
                             ++ it2, ++ it2e;
                             if (it2 != it2_end && it2e != it2e_end) {
@@ -1400,14 +1390,14 @@ namespace detail {
                                 it2e_index = it2e.index2 ();
                             } else
                                 break;
-                        } else if (compare2 < 0) {
-                            increment (it2, it2_end, - compare2);
+                        } else if (compare < 0) {
+                            increment (it2, it2_end, - compare);
                             if (it2 != it2_end)
                                 it2_index = it2.index2 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
-                            increment (it2e, it2e_end, compare2);
+                        } else if (compare > 0) {
+                            increment (it2e, it2e_end, compare);
                             if (it2e != it2e_end)
                                 it2e_index = it2e.index2 ();
                             else
@@ -1487,7 +1477,7 @@ namespace detail {
         typedef R conformant_restrict_type;
         typedef typename M::size_type size_type;
         typedef typename M::difference_type difference_type;
-
+        typedef typename M::value_type value_type;
         BOOST_UBLAS_CHECK (m.size1 () == e ().size1 (), bad_size ());
         BOOST_UBLAS_CHECK (m.size2 () == e ().size2 (), bad_size ());
 
@@ -1516,8 +1506,8 @@ namespace detail {
                 if (it1 != it1_end && it1e != it1e_end) {
                     size_type it1_index = it1.index1 (), it1e_index = it1e.index1 ();
                     while (true) {
-                        difference_type compare2 = it1_index - it1e_index;
-                        if (compare2 == 0) {
+                        difference_type compare = it1_index - it1e_index;
+                        if (compare == 0) {
                             functor_type::apply (*it1, *it1e);
                             ++ it1, ++ it1e;
                             if (it1 != it1_end && it1e != it1e_end) {
@@ -1525,14 +1515,14 @@ namespace detail {
                                 it1e_index = it1e.index1 ();
                             } else
                                 break;
-                        }  else if (compare2 < 0) {
-                            increment (it1, it1_end, - compare2);
+                        }  else if (compare < 0) {
+                            increment (it1, it1_end, - compare);
                             if (it1 != it1_end)
                                 it1_index = it1.index1 ();
                             else
                                 break;
-                        } else if (compare2 > 0) {
-                            increment (it1e, it1e_end, compare2);
+                        } else if (compare > 0) {
+                            increment (it1e, it1e_end, compare);
                             if (it1e != it1e_end)
                                 it1e_index = it1e.index1 ();
                             else

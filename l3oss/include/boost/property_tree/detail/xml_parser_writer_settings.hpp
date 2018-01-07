@@ -16,13 +16,12 @@
 
 namespace boost { namespace property_tree { namespace xml_parser
 {
-
+    
     // Naively convert narrow string to another character type
-    template<class Str>
-    Str widen(const char *text)
+    template<class Ch>
+    std::basic_string<Ch> widen(const char *text)
     {
-        typedef typename Str::value_type Ch;
-        Str result;
+        std::basic_string<Ch> result;
         while (*text)
         {
             result += Ch(*text);
@@ -32,31 +31,30 @@ namespace boost { namespace property_tree { namespace xml_parser
     }
 
     //! Xml writer settings. The default settings lead to no pretty printing.
-    template<class Str>
+    template<class Ch>
     class xml_writer_settings
     {
-        typedef typename Str::value_type Ch;
     public:
-        xml_writer_settings(Ch inchar = Ch(' '),
-                typename Str::size_type incount = 0,
-                const Str &enc = widen<Str>("utf-8"))
-            : indent_char(inchar)
-            , indent_count(incount)
-            , encoding(enc)
+        xml_writer_settings(Ch indent_char = Ch(' '),
+                typename std::basic_string<Ch>::size_type indent_count = 0,
+                const std::basic_string<Ch> &encoding = widen<Ch>("utf-8"))
+            : indent_char(indent_char)
+            , indent_count(indent_count)
+            , encoding(encoding)
         {
         }
 
-        Ch indent_char;
-        typename Str::size_type indent_count;
-        Str encoding;
+        const Ch indent_char;
+        const typename std::basic_string<Ch>::size_type indent_count;
+        const std::basic_string<Ch> encoding;
     };
 
-    template <class Str>
-    xml_writer_settings<Str> xml_writer_make_settings(typename Str::value_type indent_char = (typename Str::value_type)(' '),
-        typename Str::size_type indent_count = 0,
-        const Str &encoding = widen<Str>("utf-8"))
+    template <class Ch>
+    xml_writer_settings<Ch> xml_writer_make_settings(Ch indent_char = Ch(' '),
+        typename std::basic_string<Ch>::size_type indent_count = 0,
+        const std::basic_string<Ch> &encoding = widen<Ch>("utf-8"))
     {
-        return xml_writer_settings<Str>(indent_char, indent_count, encoding);
+        return xml_writer_settings<Ch>(indent_char, indent_count, encoding);
     }
 
 } } }

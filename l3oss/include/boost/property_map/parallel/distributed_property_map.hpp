@@ -17,22 +17,26 @@
 #ifndef BOOST_PARALLEL_DISTRIBUTED_PROPERTY_MAP_HPP
 #define BOOST_PARALLEL_DISTRIBUTED_PROPERTY_MAP_HPP
 
-#include <boost/assert.hpp>
+#ifndef BOOST_GRAPH_USE_MPI
+#error "Parallel BGL files should not be included unless <boost/graph/use_mpi.hpp> has been included"
+#endif
+
 #include <boost/type_traits/is_base_and_derived.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/optional.hpp>
-#include <boost/property_map/parallel/process_group.hpp>
+#include <boost/graph/parallel/process_group.hpp>
+#include <boost/graph/detail/edge.hpp>
 #include <boost/function/function1.hpp>
 #include <vector>
 #include <set>
-#include <boost/property_map/parallel/basic_reduce.hpp>
-#include <boost/property_map/parallel/detail/untracked_pair.hpp>
+#include <boost/graph/parallel/basic_reduce.hpp>
+#include <boost/graph/parallel/detail/untracked_pair.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/property_map/parallel/local_property_map.hpp>
 #include <map>
 #include <boost/version.hpp>
-#include <boost/property_map/parallel/unsafe_serialize.hpp>
+#include <boost/graph/distributed/unsafe_serialize.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
@@ -42,6 +46,8 @@
 #include <boost/serialization/utility.hpp>
 
 namespace boost { namespace parallel {
+
+using boost::graph::parallel::trigger_receive_context;
 
 namespace detail {
   /**************************************************************************
@@ -77,7 +83,7 @@ namespace detail {
     template<typename PropertyMap, typename Key, typename Value>
     static inline void
     do_put(PropertyMap, const Key&, const Value&)
-    { BOOST_ASSERT(false); }
+    { assert(false); }
   };
 
   template<>
@@ -86,10 +92,10 @@ namespace detail {
     template<typename PropertyMap, typename Key, typename Value>
     static inline void
     do_put(PropertyMap pm, const Key& key, const Value& value)
-    {
+    { 
       using boost::put;
 
-      put(pm, key, value);
+      put(pm, key, value); 
     }
   };
 
@@ -128,7 +134,7 @@ namespace detail {
   template<typename PropertyMap, typename Key, typename Value>
   inline void
   maybe_put_impl(PropertyMap, const Key&, const Value&, ...)
-  { BOOST_ASSERT(false); }
+  { assert(false); }
 
   template<typename PropertyMap, typename Key, typename Value>
   inline void
@@ -233,7 +239,7 @@ class distributed_property_map
     property_map_put,
 
     /** A request to retrieve a particular value in a property
-     *  map. The message contains a key. The owner of that key will
+     *  map. The message contains a key. The owner of that key will 
      *  reply with a value.
      */
     property_map_get,
@@ -258,23 +264,6 @@ class distributed_property_map
     property_map_multiput
   };
 
-  // Code from Joaquín M López Muñoz to work around unusual implementation of
-  // std::pair in VC++ 10:
-  template<typename First,typename Second>
-  class pair_first_extractor {
-    typedef std::pair<First,Second> value_type;
-
-    public:
-    typedef First result_type;
-    const result_type& operator()(const value_type& x) const {
-      return x.first;
-    }
-
-    result_type& operator()(value_type& x) const {
-      return x.first;
-    }
-  };
-
  public:
   /// The type of the ghost cells
   typedef multi_index::multi_index_container<
@@ -282,7 +271,9 @@ class distributed_property_map
             multi_index::indexed_by<
               multi_index::sequenced<>,
               multi_index::hashed_unique<
-                pair_first_extractor<key_type, value_type>
+                multi_index::member<std::pair<key_type, value_type>,
+                                    key_type,
+                                    &std::pair<key_type, value_type>::first>
               >
             >
           > ghost_cells_type;
@@ -370,7 +361,7 @@ class distributed_property_map
   reference operator[](const key_type& key) const
   {
     owner_local_pair p = get(data->global, key);
-
+    
     if (p.first == process_id(data->process_group)) {
       return data->storage[p.second];
     } else {
@@ -390,11 +381,11 @@ class distributed_property_map
    * \internal
    *
    */
-  void
+  void 
   request_put(process_id_type p, const key_type& k, const value_type& v) const
-  {
-    send(data->process_group, p, property_map_put,
-         boost::parallel::detail::make_untracked_pair(k, v));
+  { 
+    send(data->process_group, p, property_map_put, 
+         boost::parallel::detail::make_untracked_pair(k, v)); 
   }
 
   /** Access the ghost cell for the given key.
@@ -412,11 +403,11 @@ class distributed_property_map
 
   struct data_t
   {
-    data_t(const ProcessGroup& pg, const GlobalMap& global,
+    data_t(const ProcessGroup& pg, const GlobalMap& global, 
            const StorageMap& pm, const function1<value_type, key_type>& dv,
            bool has_default_resolver)
-      : process_group(pg), global(global), storage(pm),
-        ghost_cells(), max_ghost_cells(1000000), get_default_value(dv),
+      : process_group(pg), global(global), storage(pm), 
+        ghost_cells(), max_ghost_cells(1000000), get_default_value(dv), 
         has_default_resolver(has_default_resolver), model(cm_forward) { }
 
     /// The process group
@@ -493,29 +484,29 @@ class distributed_property_map
     void operator()(process_id_type source, int tag);
 
     /// Individual message handlers
-    void
-    handle_put(int source, int tag,
-               const boost::parallel::detail::untracked_pair<key_type, value_type>& data,
+    void 
+    handle_put(int source, int tag, 
+               const boost::parallel::detail::untracked_pair<key_type, value_type>& data, 
                trigger_receive_context);
 
     value_type
-    handle_get(int source, int tag, const key_type& data,
+    handle_get(int source, int tag, const key_type& data, 
                trigger_receive_context);
 
     void
-    handle_multiget(int source, int tag,
+    handle_multiget(int source, int tag, 
                     const std::vector<key_type>& data,
                     trigger_receive_context);
 
     void
     handle_multiget_reply
-      (int source, int tag,
+      (int source, int tag, 
        const std::vector<boost::parallel::detail::untracked_pair<key_type, value_type> >& msg,
        trigger_receive_context);
 
     void
     handle_multiput
-      (int source, int tag,
+      (int source, int tag, 
        const std::vector<unsafe_pair<local_key_type, value_type> >& data,
        trigger_receive_context);
 
@@ -574,7 +565,7 @@ get(const PBGL_DISTRIB_PMAP& pm,
 {
   using boost::get;
 
-  typename property_traits<GlobalMap>::value_type p =
+  typename property_traits<GlobalMap>::value_type p = 
     get(pm.data->global, key);
 
   if (p.first == process_id(pm.data->process_group)) {
@@ -602,13 +593,13 @@ put(const PBGL_DISTRIB_PMAP& pm,
 {
   using boost::put;
 
-  typename property_traits<GlobalMap>::value_type p =
+  typename property_traits<GlobalMap>::value_type p = 
     get(pm.data->global, key);
 
   if (p.first == process_id(pm.data->process_group)) {
     put(pm.data->storage, p.second, value);
   } else {
-    if (pm.data->model & cm_forward)
+    if (pm.data->model & cm_forward) 
       pm.request_put(p.first, key, value);
 
     pm.cell(key, false) = value;
@@ -630,7 +621,7 @@ local_put(const PBGL_DISTRIB_PMAP& pm,
 {
   using boost::put;
 
-  typename property_traits<GlobalMap>::value_type p =
+  typename property_traits<GlobalMap>::value_type p = 
     get(pm.data->global, key);
 
   if (p.first == process_id(pm.data->process_group))
@@ -662,7 +653,7 @@ synchronize(PBGL_DISTRIB_PMAP& pm)
 /// Create a distributed property map.
 template<typename ProcessGroup, typename GlobalMap, typename StorageMap>
 inline distributed_property_map<ProcessGroup, GlobalMap, StorageMap>
-make_distributed_property_map(const ProcessGroup& pg, GlobalMap global,
+make_distributed_property_map(const ProcessGroup& pg, GlobalMap global, 
                               StorageMap storage)
 {
   typedef distributed_property_map<ProcessGroup, GlobalMap, StorageMap>
@@ -673,10 +664,10 @@ make_distributed_property_map(const ProcessGroup& pg, GlobalMap global,
 /**
  * \overload
  */
-template<typename ProcessGroup, typename GlobalMap, typename StorageMap,
+template<typename ProcessGroup, typename GlobalMap, typename StorageMap, 
          typename Reduce>
 inline distributed_property_map<ProcessGroup, GlobalMap, StorageMap>
-make_distributed_property_map(const ProcessGroup& pg, GlobalMap global,
+make_distributed_property_map(const ProcessGroup& pg, GlobalMap global, 
                               StorageMap storage, Reduce reduce)
 {
   typedef distributed_property_map<ProcessGroup, GlobalMap, StorageMap>
@@ -685,6 +676,16 @@ make_distributed_property_map(const ProcessGroup& pg, GlobalMap global,
 }
 
 } } // end namespace boost::parallel
+
+// Boost's functional/hash
+namespace boost {
+  template<typename D, typename V>
+  struct hash<boost::detail::edge_desc_impl<D, V> >
+  {
+    std::size_t operator()(const boost::detail::edge_desc_impl<D, V> & x) const
+    { return hash_value(x.get_property()); }
+  };
+}
 
 #include <boost/property_map/parallel/impl/distributed_property_map.ipp>
 

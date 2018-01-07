@@ -8,7 +8,7 @@
 #ifndef BOOST_IOSTREAMS_CLOSE_HPP_INCLUDED
 #define BOOST_IOSTREAMS_CLOSE_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -73,9 +73,13 @@ void close_all(T& t, Sink& snk)
     boost::iostreams::close(t, snk, BOOST_IOS::out);
 }
 
-} // End namespace detail. 
+} // End namespaces detail. 
 
 } } // End namespaces iostreams, boost.
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //-----------------------------------//
+# include <boost/iostreams/detail/vc6/close.hpp>
+#else // #if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //--------------------------//
 
 namespace boost { namespace iostreams {
 
@@ -93,7 +97,7 @@ template<typename T>
 void close(T& t, BOOST_IOS::openmode which)
 { 
 #ifdef BOOST_IOSTREAMS_STRICT
-    BOOST_ASSERT(which == BOOST_IOS::in || which == BOOST_IOS::out);
+    assert(which == BOOST_IOS::in || which == BOOST_IOS::out);
 #else
     if (which == (BOOST_IOS::in | BOOST_IOS::out)) {
         detail::close_all(t);
@@ -107,7 +111,7 @@ template<typename T, typename Sink>
 void close(T& t, Sink& snk, BOOST_IOS::openmode which)
 { 
 #ifdef BOOST_IOSTREAMS_STRICT
-    BOOST_ASSERT(which == BOOST_IOS::in || which == BOOST_IOS::out);
+    assert(which == BOOST_IOS::in || which == BOOST_IOS::out);
 #else
     if (which == (BOOST_IOS::in | BOOST_IOS::out)) {
         detail::close_all(t, snk);
@@ -247,6 +251,8 @@ struct close_impl<two_sequence> {
 } // End namespace detail.
 
 } } // End namespaces iostreams, boost.
+
+#endif // #if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //-------------------------//
 
 #include <boost/iostreams/detail/config/enable_warnings.hpp>
 

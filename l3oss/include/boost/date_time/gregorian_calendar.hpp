@@ -2,14 +2,13 @@
 #define DATE_TIME_GREGORIAN_CALENDAR_HPP__
 
 /* Copyright (c) 2002,2003 CrystalClear Software, Inc.
- * Use, modification and distribution is subject to the
+ * Use, modification and distribution is subject to the 
  * Boost Software License, Version 1.0. (See accompanying
  * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
- * Author: Jeff Garland
+ * Author: Jeff Garland 
  * $Date$
  */
 
-#include <boost/date_time/compiler_config.hpp>
 
 namespace boost {
 namespace date_time {
@@ -26,9 +25,9 @@ namespace date_time {
     @param date_int_type_ Underlying type for the date count.  Must be an arithmetic type.
   */
   template<typename ymd_type_, typename date_int_type_>
-  class BOOST_SYMBOL_VISIBLE gregorian_calendar_base {
+  class gregorian_calendar_base {
   public:
-    //! define a type a date split into components
+    //! define a type a date split into components 
     typedef ymd_type_  ymd_type;
     //! define a type for representing months
     typedef typename ymd_type::month_type  month_type;
@@ -59,7 +58,7 @@ namespace date_time {
 
 
 } } //namespace
-
+  
 #ifndef NO_BOOST_DATE_TIME_INLINE
 #include "boost/date_time/gregorian_calendar.ipp"
 #endif
@@ -67,5 +66,5 @@ namespace date_time {
 
 
 #endif
-
+  
 

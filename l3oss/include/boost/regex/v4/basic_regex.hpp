@@ -1,7 +1,7 @@
 /*
  *
- * Copyright (c) 1998-2004 John Maddock
- * Copyright 2011 Garmin Ltd. or its subsidiaries
+ * Copyright (c) 1998-2004
+ * John Maddock
  *
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
@@ -36,13 +36,10 @@
 namespace boost{
 #ifdef BOOST_MSVC
 #pragma warning(push)
-#pragma warning(disable : 4251 4231 4800)
-#if BOOST_MSVC < 1600
-#pragma warning(disable : 4660)
-#endif
+#pragma warning(disable : 4251 4231 4660 4800)
 #endif
 
-namespace BOOST_REGEX_DETAIL_NS{
+namespace re_detail{
 
 //
 // forward declaration, we will need this one later:
@@ -56,7 +53,7 @@ void bubble_down_one(I first, I last)
    if(first != last)
    {
       I next = last - 1;
-      while((next != first) && (*next < *(next-1)))
+      while((next != first) && !(*(next-1) < *next))
       {
          (next-1)->swap(*next);
          --next;
@@ -64,59 +61,70 @@ void bubble_down_one(I first, I last)
    }
 }
 
+//
+// Class named_subexpressions
+// Contains information about named subexpressions within the regex.
+//
+template <class charT>
+class named_subexpressions_base
+{
+public:
+   virtual int get_id(const charT* i, const charT* j)const = 0;
+   virtual int get_id(std::size_t hash)const = 0;
+#ifdef __GNUC__
+   // warning supression:
+   virtual ~named_subexpressions_base(){}
+#endif
+};
+
 template <class Iterator>
-inline int hash_value_from_capture_name(Iterator i, Iterator j)
+inline std::size_t hash_value_from_capture_name(Iterator i, Iterator j)
 {
    std::size_t r = boost::hash_range(i, j);
    r %= ((std::numeric_limits<int>::max)() - 10001);
    r += 10000;
-   return static_cast<int>(r);
+   return r;
 }
 
-class named_subexpressions
+template <class charT>
+class named_subexpressions : public named_subexpressions_base<charT>
 {
-public:
    struct name
    {
-      template <class charT>
       name(const charT* i, const charT* j, int idx)
-         : index(idx) 
+         : /*n(i, j), */ index(idx) 
       { 
          hash = hash_value_from_capture_name(i, j); 
       }
-      name(int h, int idx)
+      name(std::size_t h, int idx)
          : index(idx), hash(h)
       { 
       }
+      //std::vector<charT> n;
       int index;
-      int hash;
+      std::size_t hash;
       bool operator < (const name& other)const
       {
-         return hash < other.hash;
+         return hash < other.hash; //std::lexicographical_compare(n.begin(), n.end(), other.n.begin(), other.n.end());
       }
       bool operator == (const name& other)const
       {
-         return hash == other.hash; 
+         return hash == other.hash; //n == other.n;
       }
       void swap(name& other)
       {
+         //n.swap(other.n);
          std::swap(index, other.index);
          std::swap(hash, other.hash);
       }
    };
-
-   typedef std::vector<name>::const_iterator const_iterator;
-   typedef std::pair<const_iterator, const_iterator> range_type;
-
+public:
    named_subexpressions(){}
-
-   template <class charT>
    void set_name(const charT* i, const charT* j, int index)
    {
       m_sub_names.push_back(name(i, j, index));
       bubble_down_one(m_sub_names.begin(), m_sub_names.end());
    }
-   template <class charT>
    int get_id(const charT* i, const charT* j)const
    {
       name t(i, j, 0);
@@ -127,46 +135,81 @@ public:
       }
       return -1;
    }
-   template <class charT>
-   range_type equal_range(const charT* i, const charT* j)const
-   {
-      name t(i, j, 0);
-      return std::equal_range(m_sub_names.begin(), m_sub_names.end(), t);
-   }
-   int get_id(int h)const
+   int get_id(std::size_t h)const
    {
       name t(h, 0);
-      std::vector<name>::const_iterator pos = std::lower_bound(m_sub_names.begin(), m_sub_names.end(), t);
+      typename std::vector<name>::const_iterator pos = std::lower_bound(m_sub_names.begin(), m_sub_names.end(), t);
       if((pos != m_sub_names.end()) && (*pos == t))
       {
          return pos->index;
       }
       return -1;
    }
-   range_type equal_range(int h)const
-   {
-      name t(h, 0);
-      return std::equal_range(m_sub_names.begin(), m_sub_names.end(), t);
-   }
 private:
    std::vector<name> m_sub_names;
 };
 
+template <class charT, class Other>
+class named_subexpressions_converter : public named_subexpressions_base<charT>
+{
+   boost::shared_ptr<named_subexpressions<Other> > m_converter;
+public:
+   named_subexpressions_converter(boost::shared_ptr<named_subexpressions<Other> > s)
+      : m_converter(s) {}
+   int get_id(const charT* i, const charT* j)const
+   {
+      if(i == j)
+         return -1;
+      std::vector<Other> v;
+      while(i != j)
+      {
+         v.push_back(*i);
+         ++i;
+      }
+      return m_converter->get_id(&v[0], &v[0] + v.size());
+   }
+   int get_id(std::size_t h)const
+   {
+      return m_converter->get_id(h);
+   }
+};
+
+template <class To>
+inline boost::shared_ptr<named_subexpressions_base<To> > convert_to_named_subs_imp(
+   boost::shared_ptr<named_subexpressions<To> > s, 
+   boost::integral_constant<bool,true> const&)
+{
+   return s;
+}
+template <class To, class From>
+inline boost::shared_ptr<named_subexpressions_base<To> > convert_to_named_subs_imp(
+   boost::shared_ptr<named_subexpressions<From> > s, 
+   boost::integral_constant<bool,false> const&)
+{
+   return boost::shared_ptr<named_subexpressions_converter<To, From> >(new named_subexpressions_converter<To, From>(s));
+}
+template <class To, class From>
+inline boost::shared_ptr<named_subexpressions_base<To> > convert_to_named_subs(
+   boost::shared_ptr<named_subexpressions<From> > s)
+{
+   typedef typename boost::is_same<To, From>::type tag_type;
+   return convert_to_named_subs_imp<To>(s, tag_type());
+}
 //
 // class regex_data:
 // represents the data we wish to expose to the matching algorithms.
 //
 template <class charT, class traits>
-struct regex_data : public named_subexpressions
+struct regex_data : public named_subexpressions<charT>
 {
    typedef regex_constants::syntax_option_type   flag_type;
    typedef std::size_t                           size_type;  
 
    regex_data(const ::boost::shared_ptr<
       ::boost::regex_traits_wrapper<traits> >& t) 
-      : m_ptraits(t), m_expression(0), m_expression_len(0), m_disable_match_any(false) {}
+      : m_ptraits(t), m_expression(0), m_expression_len(0) {}
    regex_data() 
-      : m_ptraits(new ::boost::regex_traits_wrapper<traits>()), m_expression(0), m_expression_len(0), m_disable_match_any(false) {}
+      : m_ptraits(new ::boost::regex_traits_wrapper<traits>()), m_expression(0), m_expression_len(0) {}
 
    ::boost::shared_ptr<
       ::boost::regex_traits_wrapper<traits>
@@ -176,17 +219,16 @@ struct regex_data : public named_subexpressions
    const charT*                m_expression;              // the original expression
    std::ptrdiff_t              m_expression_len;          // the length of the original expression
    size_type                   m_mark_count;              // the number of marked sub-expressions
-   BOOST_REGEX_DETAIL_NS::re_syntax_base*  m_first_state;             // the first state of the machine
+   re_detail::re_syntax_base*  m_first_state;             // the first state of the machine
    unsigned                    m_restart_type;            // search optimisation type
    unsigned char               m_startmap[1 << CHAR_BIT]; // which characters can start a match
    unsigned int                m_can_be_null;             // whether we can match a null string
-   BOOST_REGEX_DETAIL_NS::raw_storage      m_data;                    // the buffer in which our states are constructed
+   re_detail::raw_storage      m_data;                    // the buffer in which our states are constructed
    typename traits::char_class_type    m_word_mask;       // mask used to determine if a character is a word character
    std::vector<
       std::pair<
       std::size_t, std::size_t> > m_subs;                 // Position of sub-expressions within the *string*.
    bool                        m_has_recursions;          // whether we have recursive expressions;
-   bool                        m_disable_match_any;       // when set we need to disable the match_any flag as it causes different/buggy behaviour.
 };
 //
 // class basic_regex_implementation
@@ -237,7 +279,9 @@ public:
    }
    std::pair<const_iterator, const_iterator> BOOST_REGEX_CALL subexpression(std::size_t n)const
    {
-      const std::pair<std::size_t, std::size_t>& pi = this->m_subs.at(n);
+      if(n == 0)
+         throw std::out_of_range("0 is not a valid subexpression index.");
+      const std::pair<std::size_t, std::size_t>& pi = this->m_subs.at(n - 1);
       std::pair<const_iterator, const_iterator> p(expression() + pi.first, expression() + pi.second);
       return p;
    }
@@ -245,11 +289,11 @@ public:
    // begin, end:
    const_iterator BOOST_REGEX_CALL begin()const
    { 
-      return (this->m_status ? 0 : this->m_expression); 
+      return (!this->m_status ? 0 : this->m_expression); 
    }
    const_iterator BOOST_REGEX_CALL end()const
    { 
-      return (this->m_status ? 0 : this->m_expression + this->m_expression_len); 
+      return (!this->m_status ? 0 : this->m_expression + this->m_expression_len); 
    }
    flag_type BOOST_REGEX_CALL flags()const
    {
@@ -265,9 +309,9 @@ public:
    }
    size_type BOOST_REGEX_CALL mark_count()const
    {
-      return this->m_mark_count - 1;
+      return this->m_mark_count;
    }
-   const BOOST_REGEX_DETAIL_NS::re_syntax_base* get_first_state()const
+   const re_detail::re_syntax_base* get_first_state()const
    {
       return this->m_first_state;
    }
@@ -294,7 +338,7 @@ public:
    }
 };
 
-} // namespace BOOST_REGEX_DETAIL_NS
+} // namespace re_detail
 //
 // class basic_regex:
 // represents the compiled
@@ -400,7 +444,7 @@ public:
       typedef typename traits::string_type seq_type;
       seq_type a(arg_first, arg_last);
       if(a.size())
-         assign(static_cast<const charT*>(&*a.begin()), static_cast<const charT*>(&*a.begin() + a.size()), f);
+         assign(&*a.begin(), &*a.begin() + a.size(), f);
       else
          assign(static_cast<const charT*>(0), static_cast<const charT*>(0), f);
    }
@@ -489,7 +533,7 @@ public:
    std::pair<const_iterator, const_iterator> BOOST_REGEX_CALL subexpression(std::size_t n)const
    {
       if(!m_pimpl.get())
-         boost::throw_exception(std::logic_error("Can't access subexpressions in an invalid regex."));
+         throw std::logic_error("Can't access subexpressions in an invalid regex.");
       return m_pimpl->subexpression(n);
    }
    const_iterator BOOST_REGEX_CALL begin()const
@@ -598,7 +642,7 @@ public:
    //
    // private access methods:
    //
-   const BOOST_REGEX_DETAIL_NS::re_syntax_base* get_first_state()const
+   const re_detail::re_syntax_base* get_first_state()const
    {
       BOOST_ASSERT(0 != m_pimpl.get());
       return m_pimpl->get_first_state();
@@ -623,18 +667,18 @@ public:
       BOOST_ASSERT(0 != m_pimpl.get());
       return m_pimpl->can_be_null();
    }
-   const BOOST_REGEX_DETAIL_NS::regex_data<charT, traits>& get_data()const
+   const re_detail::regex_data<charT, traits>& get_data()const
    {
       BOOST_ASSERT(0 != m_pimpl.get());
       return m_pimpl->get_data();
    }
-   boost::shared_ptr<BOOST_REGEX_DETAIL_NS::named_subexpressions > get_named_subs()const
+   boost::shared_ptr<re_detail::named_subexpressions<charT> > get_named_subs()const
    {
       return m_pimpl;
    }
 
 private:
-   shared_ptr<BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits> > m_pimpl;
+   shared_ptr<re_detail::basic_regex_implementation<charT, traits> > m_pimpl;
 };
 
 //
@@ -648,14 +692,14 @@ basic_regex<charT, traits>& basic_regex<charT, traits>::do_assign(const charT* p
                         const charT* p2,
                         flag_type f)
 {
-   shared_ptr<BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits> > temp;
+   shared_ptr<re_detail::basic_regex_implementation<charT, traits> > temp;
    if(!m_pimpl.get())
    {
-      temp = shared_ptr<BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits> >(new BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits>());
+      temp = shared_ptr<re_detail::basic_regex_implementation<charT, traits> >(new re_detail::basic_regex_implementation<charT, traits>());
    }
    else
    {
-      temp = shared_ptr<BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits> >(new BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits>(m_pimpl->m_ptraits));
+      temp = shared_ptr<re_detail::basic_regex_implementation<charT, traits> >(new re_detail::basic_regex_implementation<charT, traits>(m_pimpl->m_ptraits));
    }
    temp->assign(p1, p2, f);
    temp.swap(m_pimpl);
@@ -665,7 +709,7 @@ basic_regex<charT, traits>& basic_regex<charT, traits>::do_assign(const charT* p
 template <class charT, class traits>
 typename basic_regex<charT, traits>::locale_type BOOST_REGEX_CALL basic_regex<charT, traits>::imbue(locale_type l)
 { 
-   shared_ptr<BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits> > temp(new BOOST_REGEX_DETAIL_NS::basic_regex_implementation<charT, traits>());
+   shared_ptr<re_detail::basic_regex_implementation<charT, traits> > temp(new re_detail::basic_regex_implementation<charT, traits>());
    locale_type result = temp->imbue(l);
    temp.swap(m_pimpl);
    return result;

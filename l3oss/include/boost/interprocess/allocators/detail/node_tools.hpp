@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2007-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2007-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,11 +11,7 @@
 #ifndef BOOST_INTERPROCESS_DETAIL_NODE_TOOLS_HPP
 #define BOOST_INTERPROCESS_DETAIL_NODE_TOOLS_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
@@ -26,7 +22,7 @@
 
 namespace boost {
 namespace interprocess {
-namespace ipcdetail {
+namespace detail {
 
 
 template<class VoidPointer>
@@ -45,7 +41,7 @@ struct node_slist
       <node_t, bi::linear<true>, bi::base_hook<slist_hook_t> >::type node_slist_t;
 };
 
-}  //namespace ipcdetail {
+}  //namespace detail {
 }  //namespace interprocess {
 }  //namespace boost {
 

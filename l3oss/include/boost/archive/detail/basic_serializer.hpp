@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_SERIALIZER_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -16,17 +16,12 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
-#include <boost/assert.hpp>
+#include <cassert>
 #include <cstddef> // NULL
 
 #include <boost/noncopyable.hpp>
 #include <boost/config.hpp>
 #include <boost/serialization/extended_type_info.hpp>
-
-#ifdef BOOST_MSVC
-#  pragma warning(push)
-#  pragma warning(disable : 4511 4512)
-#endif
 
 namespace boost {
 namespace archive {
@@ -41,7 +36,9 @@ protected:
         const boost::serialization::extended_type_info & eti
     ) : 
         m_eti(& eti)
-    {}
+    {
+        assert(NULL != & eti);
+    }
 public:
     inline bool 
     operator<(const basic_serializer & rhs) const {
@@ -69,9 +66,5 @@ public:
 } // namespace detail
 } // namespace archive
 } // namespace boost
-
-#ifdef BOOST_MSVC
-#pragma warning(pop)
-#endif
 
 #endif // BOOST_ARCHIVE_BASIC_SERIALIZER_HPP

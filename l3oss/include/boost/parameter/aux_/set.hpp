@@ -7,7 +7,8 @@
 
 # include <boost/detail/workaround.hpp>
 
-# if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+# if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564)) \
+  && !BOOST_WORKAROUND(__GNUC__, < 3)
 #  include <boost/mpl/insert.hpp>
 #  include <boost/mpl/set/set0.hpp>
 #  include <boost/mpl/has_key.hpp>

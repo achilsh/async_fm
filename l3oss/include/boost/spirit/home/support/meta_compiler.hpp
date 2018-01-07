@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (c) 2001-2011 Joel de Guzman
+  Copyright (c) 2001-2009 Joel de Guzman
   http://spirit.sourceforge.net/
 
   Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -13,9 +13,7 @@
 #endif
 
 #include <boost/config.hpp>
-#include <boost/spirit/include/phoenix_limits.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/spirit/include/phoenix_limits.hpp>      // needs to be included before proto
 #include <boost/proto/proto.hpp>
 #include <boost/spirit/home/support/make_component.hpp>
 #include <boost/spirit/home/support/modify.hpp>
@@ -23,7 +21,6 @@
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/assert_msg.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/remove_reference.hpp>
 
 namespace boost { namespace spirit
 {
@@ -59,7 +56,7 @@ namespace boost { namespace spirit
             !use_operator<Domain, proto::tag::subscript>::value
         ), error_proto_tag_subscript_cannot_be_used, ());
 
-#if !BOOST_WORKAROUND(BOOST_MSVC, < 1400)
+#if !BOOST_WORKAROUND(BOOST_MSVC, <= 1400)
         // this is the non-broken part for compilers properly supporting 
         // partial template specialization (VC7.1 does not)
         struct cases
@@ -220,8 +217,7 @@ namespace boost { namespace spirit
         template <typename Domain, typename Expr>
         struct matches :
             proto::matches<
-                typename proto::result_of::as_expr<
-                    typename remove_reference<Expr>::type>::type,
+                typename proto::result_of::as_expr<Expr>::type,
                 typename meta_compiler<Domain>::meta_grammar
             >
         {

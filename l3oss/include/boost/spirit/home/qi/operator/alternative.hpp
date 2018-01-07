@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,9 +15,7 @@
 #include <boost/spirit/home/qi/detail/alternative_function.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/parser.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
-#include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/detail/what_function.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/info.hpp>
@@ -49,9 +47,8 @@ namespace boost { namespace spirit { namespace qi
         {
             // Put all the element attributes in a tuple
             typedef typename traits::build_attribute_sequence<
-                Elements, Context, traits::alternative_attribute_transform
-              , Iterator, qi::domain
-            >::type all_attributes;
+                Elements, Context, mpl::identity, Iterator>::type
+            all_attributes;
 
             // Ok, now make a variant over the attribute sequence. Note that
             // build_variant makes sure that 1) all attributes in the variant
@@ -63,17 +60,17 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        alternative(Elements const& elements_)
-          : elements(elements_) {}
+        alternative(Elements const& elements)
+          : elements(elements) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             detail::alternative_function<Iterator, Context, Skipper, Attribute>
-                f(first, last, context, skipper, attr_);
+                f(first, last, context, skipper, attr);
 
             // return true if *any* of the parsers succeed
             return fusion::any(elements, f);
@@ -102,17 +99,9 @@ namespace boost { namespace spirit { namespace qi
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Elements>
     struct has_semantic_action<qi::alternative<Elements> >
       : nary_has_semantic_action<Elements> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Elements, typename Attribute, typename Context
-      , typename Iterator>
-    struct handles_container<qi::alternative<Elements>, Attribute, Context
-      , Iterator>
-      : nary_handles_container<Elements, Attribute, Context, Iterator> {};
 }}}
 
 #endif

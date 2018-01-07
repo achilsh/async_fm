@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2005 Joel de Guzman
     Copyright (c) 2005 Eric Niebler
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -8,17 +8,16 @@
 #if !defined(FUSION_MAKE_CONS_07172005_0918)
 #define FUSION_MAKE_CONS_07172005_0918
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/detail/as_fusion_element.hpp>
 #include <boost/fusion/container/list/cons.hpp>
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     namespace result_of
     {
-        template <typename Car, typename Cdr = nil_>
+        template <typename Car, typename Cdr = nil>
         struct make_cons
         {
             typedef cons<typename detail::as_fusion_element<Car>::type, Cdr> type;
@@ -26,7 +25,6 @@ namespace boost { namespace fusion
     }
 
     template <typename Car>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
     inline cons<typename detail::as_fusion_element<Car>::type>
     make_cons(Car const& car)
     {
@@ -34,7 +32,6 @@ namespace boost { namespace fusion
     }
 
     template <typename Car, typename Cdr>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
     inline cons<typename detail::as_fusion_element<Car>::type, Cdr>
     make_cons(Car const& car, Cdr const& cdr)
     {

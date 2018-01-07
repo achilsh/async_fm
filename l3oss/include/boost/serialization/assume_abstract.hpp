@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_ASSUME_ABSTRACT_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -19,7 +19,6 @@
 // this is useful for compilers which don't support the boost::is_abstract
 
 #include <boost/type_traits/is_abstract.hpp>
-#include <boost/mpl/bool_fwd.hpp>
 
 #ifndef BOOST_NO_IS_ABSTRACT
 
@@ -30,7 +29,7 @@
 namespace boost {
 namespace serialization {
     template<class T>
-    struct is_abstract : boost::is_abstract< T > {} ;
+    struct is_abstract : boost::is_abstract<T> {} ;
 } // namespace serialization
 } // namespace boost
 

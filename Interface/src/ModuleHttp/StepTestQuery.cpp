@@ -1,13 +1,19 @@
 #include "StepTestQuery.h"
+#include "thrift_serialize.h"
+//
+#include "hello_test_types.h"
+using namespace Test; 
+
 
 namespace im {
+
+int StepTestQuery::m_Test = 0;
 
 StepTestQuery::StepTestQuery(const oss::tagMsgShell& stMsgShell,
                             const HttpMsg& oHttpMsg,
                             const std::string& sVal) {
   m_stMsgShell = stMsgShell; m_oHttpMsg = oHttpMsg; m_sKey = sVal;
 }
-
 //
 StepTestQuery::~StepTestQuery() {
 }
@@ -23,11 +29,19 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
                        const std::string& strErrShow ) {
   MsgBody oOutMsgBody;
   MsgHead oOutMsgHead;
-#if 1
+  LOG4_TRACE("===== 54 again =====");
+#if 1 
+  /***
   loss::CJsonObject tData; 
   tData.Add("key",m_sKey);
   oOutMsgBody.set_body(tData.ToString());
-  LOG4_TRACE("add test 1 ");  
+  ***/
+  OneTest t;
+  t.__set_fOne(m_sKey); 
+  std::string sData;
+  ThrifSerialize<OneTest>::ToString(t,sData);
+
+  oOutMsgBody.set_body(sData);
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
   oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
@@ -44,6 +58,7 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
     LOG4_ERROR("send data to TestLogic failed");
     return oss::STATUS_CMD_FAULT;
   }
+
 #endif
   return oss::STATUS_CMD_RUNNING;
 }
@@ -53,7 +68,7 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
          const MsgHead& oInMsgHead,
          const MsgBody& oInMsgBody,
          void* data) {
-#if 1 
+#if 0 
   loss::CJsonObject jsData;
   std::string sData = oInMsgBody.body();
   if (false == jsData.Parse(sData)) {
@@ -63,7 +78,17 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
     sData= jsData("key");
     SendAck("", sData);
   }
+  //
 #endif
+  OneTest t;
+  std::string sData = oInMsgBody.body();
+  if (0 != ThrifSerialize<OneTest>::FromString(sData,t)) {
+    sData = "http parse ret body fail";
+    SendAck(sData);
+  } else  {
+    sData = t.fOne;
+    SendAck("", sData);
+  }
   return oss::STATUS_CMD_COMPLETED;
 }
 

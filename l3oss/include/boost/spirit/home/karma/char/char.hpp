@@ -1,5 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
-//  Copyright (c)      2010 Bryce Lelbach
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -24,14 +23,12 @@
 #include <boost/spirit/home/karma/auxiliary/lazy.hpp>
 #include <boost/spirit/home/karma/detail/get_casetag.hpp>
 #include <boost/spirit/home/karma/detail/generate_to.hpp>
-#include <boost/spirit/home/karma/detail/enable_lit.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/cons.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/bool.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <string>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,12 +49,6 @@ namespace boost { namespace spirit
           , fusion::vector1<A0>
         >
     > : mpl::true_ {};
-
-    template <typename A0>
-    struct use_terminal<karma::domain
-          , terminal_ex<tag::lit, fusion::vector1<A0> > // enables lit('x')
-          , typename enable_if<traits::is_char<A0> >::type>
-      : mpl::true_ {};
 
     template <typename CharEncoding, typename A0, typename A1>
     struct use_terminal<karma::domain
@@ -89,15 +80,13 @@ namespace boost { namespace spirit
     template <>
     struct use_terminal<karma::domain, wchar_t[2]>      // enables L"x"
       : mpl::true_ {};
+
 }}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace karma
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::lit;    // lit('x') is equivalent to 'x'
-#endif
-    using spirit::lit_type;
 
     ///////////////////////////////////////////////////////////////////////////
     //
@@ -137,7 +126,7 @@ namespace boost { namespace spirit { namespace karma
             // providing any attribute, as the generator doesn't 'know' what
             // character to output. The following assertion fires if this
             // situation is detected in your code.
-            BOOST_SPIRIT_ASSERT_FAIL(CharParam, char_not_usable_without_attribute, ());
+            BOOST_SPIRIT_ASSERT_MSG(false, char_not_usable_without_attribute, ());
             return false;
         }
 
@@ -230,11 +219,11 @@ namespace boost { namespace spirit { namespace karma
         template <typename CharParam, typename Context>
         bool test(unused_type, CharParam&, Context&) const
         {
-            // It is not possible (doesn't make sense) to use char_ generators
-            // without providing any attribute, as the generator doesn't 'know'
+            // It is not possible (doesn't make sense) to use char_ generators 
+            // without providing any attribute, as the generator doesn't 'know' 
             // what to output. The following assertion fires if this situation
             // is detected in your code.
-            BOOST_SPIRIT_ASSERT_FAIL(CharParam
+            BOOST_SPIRIT_ASSERT_MSG(false
               , char_range_not_usable_without_attribute, ());
             return false;
         }
@@ -253,18 +242,12 @@ namespace boost { namespace spirit { namespace karma
 
     ///////////////////////////////////////////////////////////////////////////
     // character set generator
-    template <typename CharEncoding, typename Tag, bool no_attribute>
+    template <typename CharEncoding, typename Tag>
     struct char_set
-      : char_generator<char_set<CharEncoding, Tag, no_attribute>
-          , CharEncoding, Tag>
+      : char_generator<char_set<CharEncoding, Tag>, CharEncoding, Tag>
     {
         typedef typename CharEncoding::char_type char_type;
         typedef CharEncoding char_encoding;
-
-        template <typename Context, typename Unused>
-        struct attribute
-          : mpl::if_c<no_attribute, unused_type, char_type>
-        {};
 
         template <typename String>
         char_set(String const& str)
@@ -316,11 +299,11 @@ namespace boost { namespace spirit { namespace karma
         template <typename CharParam, typename Context>
         bool test(unused_type, CharParam&, Context&) const
         {
-            // It is not possible (doesn't make sense) to use char_ generators
-            // without providing any attribute, as the generator doesn't 'know'
+            // It is not possible (doesn't make sense) to use char_ generators 
+            // without providing any attribute, as the generator doesn't 'know' 
             // what to output. The following assertion fires if this situation
             // is detected in your code.
-            BOOST_SPIRIT_ASSERT_FAIL(CharParam
+            BOOST_SPIRIT_ASSERT_MSG(false
                , char_set_not_usable_without_attribute, ());
             return false;
         }
@@ -348,7 +331,7 @@ namespace boost { namespace spirit { namespace karma
                 has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
 
             typedef literal_char<
-                typename spirit::detail::get_encoding_with_case<
+                typename spirit::detail::get_encoding<
                     Modifiers, Encoding, lower || upper>::type
               , typename get_casetag<Modifiers, lower || upper>::type
               , true>
@@ -391,12 +374,12 @@ namespace boost { namespace spirit { namespace karma
     struct make_primitive<tag::char_code<tag::char_, CharEncoding>, Modifiers>
     {
         static bool const lower =
-            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
         static bool const upper =
-            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
 
         typedef any_char<
-            typename spirit::detail::get_encoding_with_case<
+            typename spirit::detail::get_encoding<
                 Modifiers, CharEncoding, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
         > result_type;
@@ -407,74 +390,54 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    ///////////////////////////////////////////////////////////////////////////
-    namespace detail
-    {
-        template <typename CharEncoding, typename Modifiers, typename A0
-          , bool no_attribute>
-        struct make_char_direct
-        {
-            static bool const lower =
-                has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
-            static bool const upper =
-                has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
-
-            typedef typename spirit::detail::get_encoding_with_case<
-                Modifiers, CharEncoding, lower || upper>::type encoding;
-            typedef typename detail::get_casetag<
-                Modifiers, lower || upper>::type tag;
-
-            typedef typename mpl::if_<
-                traits::is_string<A0>
-              , char_set<encoding, tag, no_attribute>
-              , literal_char<encoding, tag, no_attribute>
-            >::type result_type;
-
-            template <typename Terminal>
-            result_type operator()(Terminal const& term, unused_type) const
-            {
-                return result_type(fusion::at_c<0>(term.args));
-            }
-        };
-    }
-
-    // char_(...), lit(...)
+    // char_(...)
     template <typename CharEncoding, typename Modifiers, typename A0>
     struct make_primitive<
-            terminal_ex<
-                tag::char_code<tag::char_, CharEncoding>
-              , fusion::vector1<A0> >
-          , Modifiers>
-      : detail::make_char_direct<CharEncoding, Modifiers, A0, false>
-    {};
+        terminal_ex<
+            tag::char_code<tag::char_, CharEncoding>
+          , fusion::vector1<A0>
+        >
+      , Modifiers>
+    {
+        static bool const lower =
+            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
+        static bool const upper =
+            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
 
-    template <typename Modifiers, typename A0>
-    struct make_primitive<
-            terminal_ex<tag::lit, fusion::vector1<A0> >
-          , Modifiers
-          , typename enable_if<traits::is_char<A0> >::type>
-      : detail::make_char_direct<
-            typename traits::char_encoding_from_char<
-                typename traits::char_type_of<A0>::type>::type
-          , Modifiers, A0, true>
-    {};
+        typedef typename spirit::detail::get_encoding<
+            Modifiers, CharEncoding, lower || upper>::type encoding;
+        typedef typename detail::get_casetag<
+            Modifiers, lower || upper>::type tag;
 
-    ///////////////////////////////////////////////////////////////////////////
+        typedef typename mpl::if_<
+            traits::is_string<A0>
+          , char_set<encoding, tag>
+          , literal_char<encoding, tag, false>
+        >::type result_type;
+
+        template <typename Terminal>
+        result_type operator()(Terminal const& term, unused_type) const
+        {
+            return result_type(fusion::at_c<0>(term.args));
+        }
+    };
+
     // char_("x")
     template <typename CharEncoding, typename Modifiers, typename Char>
     struct make_primitive<
         terminal_ex<
             tag::char_code<tag::char_, CharEncoding>
-          , fusion::vector1<Char(&)[2]> > // For single char strings
+          , fusion::vector1<Char(&)[2]> // For single char strings
+        >
       , Modifiers>
     {
         static bool const lower =
-            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
         static bool const upper =
-            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
 
         typedef literal_char<
-            typename spirit::detail::get_encoding_with_case<
+            typename spirit::detail::get_encoding<
                 Modifiers, CharEncoding, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
           , false
@@ -487,7 +450,6 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    ///////////////////////////////////////////////////////////////////////////
     // char_('a', 'z')
     template <typename CharEncoding, typename Modifiers, typename A0, typename A1>
     struct make_primitive<
@@ -498,12 +460,12 @@ namespace boost { namespace spirit { namespace karma
       , Modifiers>
     {
         static bool const lower =
-            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
         static bool const upper =
-            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
+            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
 
         typedef char_range<
-            typename spirit::detail::get_encoding_with_case<
+            typename spirit::detail::get_encoding<
                 Modifiers, CharEncoding, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
         > result_type;
@@ -516,32 +478,6 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    template <typename CharEncoding, typename Modifiers, typename Char>
-    struct make_primitive<
-        terminal_ex<
-            tag::char_code<tag::char_, CharEncoding>
-          , fusion::vector2<Char(&)[2], Char(&)[2]> // For single char strings
-        >
-      , Modifiers>
-    {
-        static bool const lower =
-            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
-        static bool const upper =
-            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
-
-        typedef char_range<
-            typename spirit::detail::get_encoding_with_case<
-                Modifiers, CharEncoding, lower || upper>::type
-          , typename detail::get_casetag<Modifiers, lower || upper>::type
-        > result_type;
-
-        template <typename Terminal>
-        result_type operator()(Terminal const& term, unused_type) const
-        {
-            return result_type(fusion::at_c<0>(term.args)[0]
-              , fusion::at_c<1>(term.args)[0]);
-        }
-    };
 }}}   // namespace boost::spirit::karma
 
 #endif

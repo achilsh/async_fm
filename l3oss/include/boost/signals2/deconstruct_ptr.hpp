@@ -17,7 +17,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/checked_delete.hpp>
-#include <boost/core/no_exceptions_support.hpp>
 #include <boost/signals2/postconstructible.hpp>
 #include <boost/signals2/predestructible.hpp>
 #include <boost/shared_ptr.hpp>
@@ -28,29 +27,28 @@ namespace boost
   {
     namespace detail
     {
-      inline void do_postconstruct(const postconstructible *ptr)
+      extern inline void do_postconstruct(const postconstructible *ptr)
       {
         postconstructible *nonconst_ptr = const_cast<postconstructible*>(ptr);
         nonconst_ptr->postconstruct();
       }
-      inline void do_postconstruct(...)
+      extern inline void do_postconstruct(...)
       {
       }
-      inline void do_predestruct(...)
+      extern inline void do_predestruct(...)
       {
       }
-      inline void do_predestruct(const predestructible *ptr)
+      extern inline void do_predestruct(const predestructible *ptr)
       {
-        BOOST_TRY
+        try
         {
           predestructible *nonconst_ptr = const_cast<predestructible*>(ptr);
           nonconst_ptr->predestruct();
         }
-        BOOST_CATCH(...)
+        catch(...)
         {
           BOOST_ASSERT(false);
         }
-        BOOST_CATCH_END
       }
     }
 

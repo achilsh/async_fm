@@ -9,34 +9,39 @@
 #ifndef BOOST_PROTO_TRANSFORM_FOLD_TREE_HPP_EAN_11_05_2007
 #define BOOST_PROTO_TRANSFORM_FOLD_TREE_HPP_EAN_11_05_2007
 
+#include <boost/proto/detail/prefix.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/proto/proto_fwd.hpp>
 #include <boost/proto/traits.hpp>
 #include <boost/proto/matches.hpp>
 #include <boost/proto/transform/fold.hpp>
 #include <boost/proto/transform/impl.hpp>
+#include <boost/proto/detail/suffix.hpp>
 
 namespace boost { namespace proto
 {
     namespace detail
     {
         template<typename Tag>
-        struct has_tag
+        struct has_tag : transform<has_tag<Tag> >
         {
             template<typename Expr, typename State, typename Data, typename EnableIf = Tag>
             struct impl
+              : transform_impl<Expr, State, Data>
             {
                 typedef mpl::false_ result_type;
             };
 
             template<typename Expr, typename State, typename Data>
             struct impl<Expr, State, Data, typename Expr::proto_tag>
+              : transform_impl<Expr, State, Data>
             {
                 typedef mpl::true_ result_type;
             };
 
             template<typename Expr, typename State, typename Data>
             struct impl<Expr &, State, Data, typename Expr::proto_tag>
+              : transform_impl<Expr &, State, Data>
             {
                 typedef mpl::true_ result_type;
             };
@@ -69,7 +74,7 @@ namespace boost { namespace proto
     /// template<typename Tag, typename Fun>
     /// struct recurse_if_
     ///   : if_<
-    ///         // If the current node has type "Tag" ...
+    ///         // If the current node has type type "Tag" ...
     ///         is_same<tag_of<_>, Tag>()
     ///         // ... recurse, otherwise ...
     ///       , fold<_, _state, recurse_if_<Tag, Fun> >
@@ -94,17 +99,11 @@ namespace boost { namespace proto
           : fold<
                 Sequence
               , State0
-              , detail::fold_tree_<typename Expr::proto_tag, Fun>
+              , detail::fold_tree_<
+                    typename remove_reference<Expr>::type::proto_tag
+                  , Fun
+                >
             >::template impl<Expr, State, Data>
-        {};
-
-        template<typename Expr, typename State, typename Data>
-        struct impl<Expr &, State, Data>
-          : fold<
-                Sequence
-              , State0
-              , detail::fold_tree_<typename Expr::proto_tag, Fun>
-            >::template impl<Expr &, State, Data>
         {};
     };
 
@@ -124,7 +123,7 @@ namespace boost { namespace proto
     /// template<typename Tag, typename Fun>
     /// struct recurse_if_
     ///   : if_<
-    ///         // If the current node has type "Tag" ...
+    ///         // If the current node has type type "Tag" ...
     ///         is_same<tag_of<_>, Tag>()
     ///         // ... recurse, otherwise ...
     ///       , reverse_fold<_, _state, recurse_if_<Tag, Fun> >
@@ -149,17 +148,11 @@ namespace boost { namespace proto
           : reverse_fold<
                 Sequence
               , State0
-              , detail::reverse_fold_tree_<typename Expr::proto_tag, Fun>
+              , detail::reverse_fold_tree_<
+                    typename remove_reference<Expr>::type::proto_tag
+                  , Fun
+                >
             >::template impl<Expr, State, Data>
-        {};
-
-        template<typename Expr, typename State, typename Data>
-        struct impl<Expr &, State, Data>
-          : reverse_fold<
-                Sequence
-              , State0
-              , detail::reverse_fold_tree_<typename Expr::proto_tag, Fun>
-            >::template impl<Expr &, State, Data>
         {};
     };
 
@@ -176,7 +169,6 @@ namespace boost { namespace proto
     struct is_callable<reverse_fold_tree<Sequence, State0, Fun> >
       : mpl::true_
     {};
-
 }}
 
 #endif

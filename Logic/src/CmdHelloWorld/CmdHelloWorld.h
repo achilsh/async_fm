@@ -23,6 +23,11 @@ extern "C" {
 }
 #endif
 
+class MStatic {
+  public:
+   static int m_MTest;
+};
+
 class CmdHelloWorld: public oss::Cmd {
   public:
    CmdHelloWorld();

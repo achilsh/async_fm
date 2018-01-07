@@ -10,12 +10,13 @@
 #define BOOST_MPI_PACKED_OPRIMITIVE_HPP
 
 #include <boost/mpi/config.hpp>
+#include <iostream>
 #include <cstddef> // size_t
 #include <boost/config.hpp>
 
 #include <boost/mpi/datatype.hpp>
 #include <boost/mpi/exception.hpp>
-#include <boost/mpi/detail/antiques.hpp>
+#include <boost/serialization/detail/get_data.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/assert.hpp>
 #include <vector>
@@ -54,7 +55,7 @@ public:
 
     // fast saving of arrays
     template<class T>
-    void save_array(serialization::array_wrapper<T> const& x, unsigned int /* file_version */)
+    void save_array(serialization::array<T> const& x, unsigned int /* file_version */)
     {
         if (x.count())
           save_impl(x.address(), get_mpi_datatype(*x.address()), x.count());
@@ -73,40 +74,36 @@ public:
     template<class T>
     void save(const T & t)
     {
-      save_impl(&t, get_mpi_datatype<T>(t), 1);
+        save_impl(&t, get_mpi_datatype<T>(t), 1);
     }
 
-    template<class CharType>
-    void save(const std::basic_string<CharType> &s)
+    void save(const std::string &s)
     {
       unsigned int l = static_cast<unsigned int>(s.size());
       save(l);
-      if (l)
-        save_impl(s.data(),get_mpi_datatype(CharType()),s.size());
+      save_impl(s.data(),MPI_CHAR,s.size());
     }
 
 private:
 
     void save_impl(void const * p, MPI_Datatype t, int l)
-    {
-      // allocate enough memory
+        {
+          // allocate enough memory
       int memory_needed;
       BOOST_MPI_CHECK_RESULT(MPI_Pack_size,(l,t,comm,&memory_needed));
 
-      int position = buffer_.size();
-      buffer_.resize(position + memory_needed);
+         int position = buffer_.size();
+          buffer_.resize(position + memory_needed);
 
-      // pack the data into the buffer
-      BOOST_MPI_CHECK_RESULT(MPI_Pack,
-                             (const_cast<void*>(p),l,t, 
-                              detail::c_data(buffer_),
-                              buffer_.size(), 
-                              &position,comm));
-      // reduce the buffer size if needed
-      BOOST_ASSERT(std::size_t(position) <= buffer_.size());
-      if (std::size_t(position) < buffer_.size())
-          buffer_.resize(position);
-    }
+          // pack the data into the buffer
+          BOOST_MPI_CHECK_RESULT(MPI_Pack,
+        (const_cast<void*>(p), l, t, boost::serialization::detail::get_data(buffer_), buffer_.size(), &position, comm));
+
+          // reduce the buffer size if needed
+          BOOST_ASSERT(std::size_t(position) <= buffer_.size());
+          if (std::size_t(position) < buffer_.size())
+            buffer_.resize(position);
+        }
 
   buffer_type& buffer_;
   mutable std::size_t size_;

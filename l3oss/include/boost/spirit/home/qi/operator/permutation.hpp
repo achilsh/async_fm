@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,11 +13,9 @@
 
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/detail/permute_function.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/algorithm/any_if_ns.hpp>
 #include <boost/spirit/home/support/detail/what_function.hpp>
-#include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/optional.hpp>
@@ -49,9 +47,8 @@ namespace boost { namespace spirit { namespace qi
             // Put all the element attributes in a tuple,
             // wrapping each element in a boost::optional
             typedef typename traits::build_attribute_sequence<
-                Elements, Context, traits::permutation_attribute_transform
-              , Iterator, qi::domain
-            >::type all_attributes;
+                Elements, Context, traits::build_optional, Iterator>::type
+            all_attributes;
 
             // Now, build a fusion vector over the attributes. Note
             // that build_fusion_vector 1) removes all unused attributes
@@ -62,8 +59,8 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        permutation(Elements const& elements_)
-          : elements(elements_) {}
+        permutation(Elements const& elements)
+          : elements(elements) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
@@ -82,7 +79,7 @@ namespace boost { namespace spirit { namespace qi
             }
 
             // wrap the attribute in a tuple if it is not a tuple
-            typename traits::wrap_if_not_tuple<Attribute>::type attr_local(attr_);
+            typename traits::wrap_if_not_tuple<Attribute>::type attr(attr_);
 
             // We have a bool array 'flags' with one flag for each parser.
             // permute_function sets the slot to true when the corresponding
@@ -91,7 +88,7 @@ namespace boost { namespace spirit { namespace qi
 
             bool result = false;
             f.taken = flags.begin();
-            while (spirit::any_if_ns(elements, attr_local, f, predicate()))
+            while (spirit::any_if_ns(elements, attr, f, predicate()))
             {
                 f.taken = flags.begin();
                 result = true;
@@ -122,7 +119,6 @@ namespace boost { namespace spirit { namespace qi
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     // We specialize this for permutation (see support/attributes.hpp).
     // For permutation, we only wrap the attribute in a tuple IFF
     // it is not already a fusion tuple.
@@ -130,17 +126,9 @@ namespace boost { namespace spirit { namespace traits
     struct pass_attribute<qi::permutation<Elements>, Attribute>
       : wrap_if_not_tuple<Attribute> {};
 
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Elements>
     struct has_semantic_action<qi::permutation<Elements> >
       : nary_has_semantic_action<Elements> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Elements, typename Attribute, typename Context
-      , typename Iterator>
-    struct handles_container<qi::permutation<Elements>, Attribute, Context
-      , Iterator>
-      : nary_handles_container<Elements, Attribute, Context, Iterator> {};
 }}}
 
 #endif

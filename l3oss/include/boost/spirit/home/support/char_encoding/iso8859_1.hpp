@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -573,7 +573,7 @@ namespace boost { namespace spirit { namespace char_encoding
         static bool
         isascii_(int ch)
         {
-            return 0 == (ch & ~0x7f);
+            return (0 == (ch & ~0x7f)) ? true : false;
         }
 
         static bool
@@ -584,7 +584,7 @@ namespace boost { namespace spirit { namespace char_encoding
             return (0 == (ch & ~0xff) || ~0 == (ch | 0xff)) ? true : false;
         }
 
-        static bool
+        static int
         isalnum(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
@@ -592,78 +592,78 @@ namespace boost { namespace spirit { namespace char_encoding
                 || (iso8859_1_char_types[ch] & BOOST_CC_DIGIT);
         }
 
-        static bool
+        static int
         isalpha(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_ALPHA) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_ALPHA);
         }
 
-        static bool
+        static int
         isdigit(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_DIGIT) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_DIGIT);
         }
 
-        static bool
+        static int
         isxdigit(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_XDIGIT) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_XDIGIT);
         }
 
-        static bool
+        static int
         iscntrl(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_CTRL) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_CTRL);
         }
 
-        static bool
+        static int
         isgraph(int ch)
         {
             return ('\x21' <= ch && ch <= '\x7e') || ('\xa1' <= ch && ch <= '\xff');
         }
 
-        static bool
+        static int
         islower(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_LOWER) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_LOWER);
         }
 
-        static bool
+        static int
         isprint(int ch)
         {
             return ('\x20' <= ch && ch <= '\x7e') || ('\xa0' <= ch && ch <= '\xff');
         }
 
-        static bool
+        static int
         ispunct(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_PUNCT) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_PUNCT);
         }
 
-        static bool
+        static int
         isspace(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_SPACE) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_SPACE);
         }
 
-        static bool
+        static int
         isblank BOOST_PREVENT_MACRO_SUBSTITUTION (int ch)
         {
             return ('\x09' == ch || '\x20' == ch || '\xa0' == ch);
         }
 
-        static bool
+        static int
         isupper(int ch)
         {
             BOOST_ASSERT(0 == (ch & ~UCHAR_MAX));
-            return (iso8859_1_char_types[ch] & BOOST_CC_UPPER) ? true : false;
+            return (iso8859_1_char_types[ch] & BOOST_CC_UPPER);
         }
 
     ///////////////////////////////////////////////////////////////////////////

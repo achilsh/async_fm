@@ -1,12 +1,15 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2001-2008.
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
 //
-//!@file
-//!@brief a central place for global configuration switches
+//  File        : $RCSfile$
+//
+//  Version     : $Revision$
+//
+//  Description : as a central place for global configuration switches
 // ***************************************************************************
 
 #ifndef BOOST_TEST_CONFIG_HPP_071894GER
@@ -15,18 +18,6 @@
 // Boost
 #include <boost/config.hpp> // compilers workarounds
 #include <boost/detail/workaround.hpp>
-
-#if defined(_WIN32) && !defined(BOOST_DISABLE_WIN32) &&                  \
-    (!defined(__COMO__) && !defined(__MWERKS__) && !defined(__GNUC__) || \
-    BOOST_WORKAROUND(__MWERKS__, >= 0x3000))
-#  define BOOST_SEH_BASED_SIGNAL_HANDLING
-#endif
-
-#if defined(__COMO__) && defined(_MSC_VER)
-// eh.h uses type_info without declaring it.
-class type_info;
-#  define BOOST_SEH_BASED_SIGNAL_HANDLING
-#endif
 
 //____________________________________________________________________________//
 
@@ -46,7 +37,9 @@ class type_info;
 
 //____________________________________________________________________________//
 
-#if !defined(BOOST_NO_STD_LOCALE) && !defined(__MWERKS__)
+#if !defined(BOOST_NO_STD_LOCALE) &&            \
+    !BOOST_WORKAROUND(BOOST_MSVC, < 1310)  &&   \
+    !defined(__MWERKS__) 
 #  define BOOST_TEST_USE_STD_LOCALE 1
 #endif
 
@@ -72,8 +65,10 @@ class type_info;
 
 //____________________________________________________________________________//
 
-#if !defined(__BORLANDC__) && !BOOST_WORKAROUND( __SUNPRO_CC, < 0x5100 )
-#define BOOST_TEST_SUPPORT_TOKEN_ITERATOR 1
+#if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564)) && \
+    !BOOST_WORKAROUND(BOOST_MSVC, <1310) && \
+    !BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x530))
+#  define BOOST_TEST_SUPPORT_INTERACTION_TESTING 1
 #endif
 
 //____________________________________________________________________________//
@@ -89,12 +84,17 @@ class type_info;
 #if defined(BOOST_TEST_DYN_LINK)
 #  define BOOST_TEST_ALTERNATIVE_INIT_API
 
-#  ifdef BOOST_TEST_SOURCE
-#    define BOOST_TEST_DECL BOOST_SYMBOL_EXPORT
-#  else
-#    define BOOST_TEST_DECL BOOST_SYMBOL_IMPORT
-#  endif  // BOOST_TEST_SOURCE
-#else
+#  if defined(BOOST_HAS_DECLSPEC) && defined(BOOST_TEST_DYN_LINK)
+#    ifdef BOOST_TEST_SOURCE
+#      define BOOST_TEST_DECL __declspec(dllexport)
+#    else
+#      define BOOST_TEST_DECL __declspec(dllimport)
+#    endif  // BOOST_TEST_SOURCE
+#  endif  // BOOST_HAS_DECLSPEC
+#endif  // BOOST_TEST_DYN_LINK
+
+
+#ifndef BOOST_TEST_DECL
 #  define BOOST_TEST_DECL
 #endif
 
@@ -105,23 +105,5 @@ class type_info;
 #if !defined(BOOST_TEST_MAIN) && defined(BOOST_TEST_MODULE)
 #define BOOST_TEST_MAIN BOOST_TEST_MODULE
 #endif
-
-
-
-#ifndef BOOST_PP_VARIADICS /* we can change this only if not already defined) */
-
-#ifdef __PGI
-#define BOOST_PP_VARIADICS 1
-#endif
-
-#if BOOST_CLANG
-#define BOOST_PP_VARIADICS 1
-#endif
-
-#if defined(BOOST_GCC) && (BOOST_GCC >= 4 * 10000 + 8 * 100)
-#define BOOST_PP_VARIADICS 1
-#endif
-
-#endif /* ifndef BOOST_PP_VARIADICS */
 
 #endif // BOOST_TEST_CONFIG_HPP_071894GER

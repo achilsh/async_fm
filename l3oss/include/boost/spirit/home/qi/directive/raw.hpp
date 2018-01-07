@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -20,7 +20,6 @@
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/range/iterator_range.hpp>
 
 namespace boost { namespace spirit
@@ -35,17 +34,15 @@ namespace boost { namespace spirit
 
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::raw;
-#endif
     using spirit::raw_type;
 
     template <typename Subject>
     struct raw_directive : unary_parser<raw_directive<Subject> >
     {
         typedef Subject subject_type;
-        raw_directive(Subject const& subject_)
-          : subject(subject_) {}
+        raw_directive(Subject const& subject)
+          : subject(subject) {}
 
         template <typename Context, typename Iterator>
         struct attribute
@@ -56,13 +53,13 @@ namespace boost { namespace spirit { namespace qi
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context& context, Skipper const& skipper, Attribute& attr_) const
+          , Context& context, Skipper const& skipper, Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
             Iterator i = first;
             if (subject.parse(i, last, context, skipper, unused))
             {
-                spirit::traits::assign_to(first, i, attr_);
+                spirit::traits::assign_to(first, i, attr);
                 first = i;
                 return true;
             }
@@ -95,17 +92,9 @@ namespace boost { namespace spirit { namespace qi
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Subject>
     struct has_semantic_action<qi::raw_directive<Subject> >
       : unary_has_semantic_action<Subject> {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Attribute, typename Context
-        , typename Iterator>
-    struct handles_container<qi::raw_directive<Subject>, Attribute
-        , Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
 }}}
 
 #endif

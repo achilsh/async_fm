@@ -52,6 +52,68 @@ namespace boost
 {
   namespace math
   {
+     namespace detail{
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::integer_round_nearest>&,
+            boost::uintmax_t& max_iter);
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::integer_round_up>&,
+            boost::uintmax_t& max_iter);
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::integer_round_down>&,
+            boost::uintmax_t& max_iter);
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::integer_round_outwards>&,
+            boost::uintmax_t& max_iter);
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::integer_round_inwards>&,
+            boost::uintmax_t& max_iter);
+      template <class Dist>
+      inline typename Dist::value_type 
+         inverse_discrete_quantile(
+            const Dist& dist,
+            const typename Dist::value_type& p,
+            const typename Dist::value_type& guess,
+            const typename Dist::value_type& multiplier,
+            const typename Dist::value_type& adder,
+            const policies::discrete_quantile<policies::real>&,
+            boost::uintmax_t& max_iter);
+     }
     namespace poisson_detail
     {
       // Common error checking routines for Poisson distribution functions.
@@ -147,7 +209,7 @@ namespace boost
       typedef RealType value_type;
       typedef Policy policy_type;
 
-      poisson_distribution(RealType l_mean = 1) : m_l(l_mean) // mean (lambda).
+      poisson_distribution(RealType mean = 1) : m_l(mean) // mean (lambda).
       { // Expected mean number of events that occur during the given interval.
         RealType r;
         poisson_detail::check_dist(
@@ -173,7 +235,7 @@ namespace boost
     inline const std::pair<RealType, RealType> range(const poisson_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable k.
        using boost::math::tools::max_value;
-       return std::pair<RealType, RealType>(static_cast<RealType>(0), max_value<RealType>()); // Max integer?
+       return std::pair<RealType, RealType>(0, max_value<RealType>()); // Max integer?
     }
 
     template <class RealType, class Policy>
@@ -181,7 +243,7 @@ namespace boost
     { // Range of supported values for random variable k.
        // This is range where cdf rises from 0 to 1, and outside it, the pdf is zero.
        using boost::math::tools::max_value;
-       return std::pair<RealType, RealType>(static_cast<RealType>(0),  max_value<RealType>());
+       return std::pair<RealType, RealType>(0,  max_value<RealType>());
     }
 
     template <class RealType, class Policy>
@@ -254,7 +316,7 @@ namespace boost
 
       RealType mean = dist.mean();
       // Error check:
-      RealType result = 0;
+      RealType result;
       if(false == poisson_detail::check_dist_and_k(
         "boost::math::pdf(const poisson_distribution<%1%>&, %1%)",
         mean,
@@ -300,7 +362,7 @@ namespace boost
 
       RealType mean = dist.mean();
       // Error checks:
-      RealType result = 0;
+      RealType result;
       if(false == poisson_detail::check_dist_and_k(
         "boost::math::cdf(const poisson_distribution<%1%>&, %1%)",
         mean,
@@ -352,7 +414,7 @@ namespace boost
       RealType mean = dist.mean();
 
       // Error checks:
-      RealType result = 0;
+      RealType result;
       if(false == poisson_detail::check_dist_and_k(
         "boost::math::cdf(const poisson_distribution<%1%>&, %1%)",
         mean,
@@ -381,10 +443,9 @@ namespace boost
     inline RealType quantile(const poisson_distribution<RealType, Policy>& dist, const RealType& p)
     { // Quantile (or Percent Point) Poisson function.
       // Return the number of expected events k for a given probability p.
-      static const char* function = "boost::math::quantile(const poisson_distribution<%1%>&, %1%)";
-      RealType result = 0; // of Argument checks:
+      RealType result; // of Argument checks:
       if(false == poisson_detail::check_prob(
-        function,
+        "boost::math::quantile(const poisson_distribution<%1%>&, %1%)",
         p,
         &result, Policy()))
       {
@@ -394,21 +455,23 @@ namespace boost
       if (dist.mean() == 0)
       { // if mean = 0 then p = 0, so k can be anything?
          if (false == poisson_detail::check_mean_NZ(
-         function,
+         "boost::math::quantile(const poisson_distribution<%1%>&, %1%)",
          dist.mean(),
          &result, Policy()))
         {
           return result;
         }
       }
-      if(p == 0)
-      {
-         return 0; // Exact result regardless of discrete-quantile Policy
+      /*
+      BOOST_MATH_STD_USING // ADL of std functions.
+      // if(p == 0) NOT necessarily zero!
+      // Not necessarily any special value of k because is unlimited.
+      if (p <= exp(-dist.mean()))
+      { // if p <= cdf for 0 events (== pdf for 0 events), then quantile must be zero.
+         return 0;
       }
-      if(p == 1)
-      {
-         return policies::raise_overflow_error<RealType>(function, 0, Policy());
-      }
+      return gamma_q_inva(dist.mean(), p, Policy()) - 1;
+      */
       typedef typename Policy::discrete_quantile_type discrete_type;
       boost::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
       RealType guess, factor = 8;
@@ -434,7 +497,7 @@ namespace boost
       return detail::inverse_discrete_quantile(
          dist,
          p,
-         false,
+         1-p,
          guess,
          factor,
          RealType(1),
@@ -449,12 +512,11 @@ namespace boost
       // complement of the probability q.
       //
       // Error checks:
-      static const char* function = "boost::math::quantile(complement(const poisson_distribution<%1%>&, %1%))";
       RealType q = c.param;
       const poisson_distribution<RealType, Policy>& dist = c.dist;
-      RealType result = 0;  // of argument checks.
+      RealType result;  // of argument checks.
       if(false == poisson_detail::check_prob(
-        function,
+        "boost::math::quantile(const poisson_distribution<%1%>&, %1%)",
         q,
         &result, Policy()))
       {
@@ -464,21 +526,20 @@ namespace boost
       if (dist.mean() == 0)
       { // if mean = 0 then p = 0, so k can be anything?
          if (false == poisson_detail::check_mean_NZ(
-         function,
+         "boost::math::quantile(const poisson_distribution<%1%>&, %1%)",
          dist.mean(),
          &result, Policy()))
         {
           return result;
         }
       }
-      if(q == 0)
-      {
-         return policies::raise_overflow_error<RealType>(function, 0, Policy());
+      /*
+      if (-q <= boost::math::expm1(-dist.mean()))
+      { // if q <= cdf(complement for 0 events, then quantile must be zero.
+         return 0;
       }
-      if(q == 1)
-      {
-         return 0;  // Exact result regardless of discrete-quantile Policy
-      }
+      return gamma_p_inva(dist.mean(), q, Policy()) -1;
+      */
       typedef typename Policy::discrete_quantile_type discrete_type;
       boost::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
       RealType guess, factor = 8;
@@ -503,8 +564,8 @@ namespace boost
 
       return detail::inverse_discrete_quantile(
          dist,
+         1-q,
          q,
-         true,
          guess,
          factor,
          RealType(1),

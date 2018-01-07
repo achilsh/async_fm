@@ -3,7 +3,7 @@
 
     http://www.boost.org/
 
-    Copyright (c) 2001-2012 Hartmut Kaiser. Distributed under the Boost
+    Copyright (c) 2001-2009 Hartmut Kaiser. Distributed under the Boost
     Software License, Version 1.0. (See accompanying file
     LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
@@ -47,12 +47,12 @@ namespace util {
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  The function interpret_pragma interprets the given token sequence as the
-//  body of a #pragma directive (or parameter to the _Pragma operator) and
+//  body of a #pragma directive (or parameter to the _Pragma operator) and 
 //  executes the actions associated with recognized Wave specific options.
 //
 ///////////////////////////////////////////////////////////////////////////////
 template <typename ContextT, typename IteratorT, typename ContainerT>
-inline bool
+inline bool 
 interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
     IteratorT it, IteratorT const &end, ContainerT &pending)
 {
@@ -62,56 +62,53 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
     using namespace cpplexer;
     if (T_IDENTIFIER == token_id(*it)) {
     // check for pragma wave ...
-        if ((*it).get_value() == BOOST_WAVE_PRAGMA_KEYWORD)
+        if ((*it).get_value() == BOOST_WAVE_PRAGMA_KEYWORD) 
         {
         //  this is a wave specific option, it should have the form:
         //
         //      #pragma command option(value)
         //
-        //  where
+        //  where 
         //      'command' is the value of the preprocessor constant
         //                BOOST_WAVE_PRAGMA_KEYWORD (defaults to "wave") and
-        //      '(value)' is required only for some pragma directives (this is
+        //      '(value)' is required only for some pragma directives (this is 
         //                optional)
         //
-        //  All recognized #pragma operators are forwarded to the supplied
+        //  All recognized #pragma operators are forwarded to the supplied 
         //  preprocessing hook.
             using namespace boost::spirit::classic;
             token_type option;
             ContainerT values;
-
-            if (!parse (++it, end,
+            
+            if (!parse (++it, end, 
                             (   ch_p(T_IDENTIFIER)
                                 [
                                     spirit_assign_actor(option)
-                                ]
-                            |   pattern_p(KeywordTokenType,
-                                    TokenTypeMask|PPTokenFlag)
+                                ] 
+                            |   pattern_p(KeywordTokenType, TokenTypeMask)
                                 [
                                     spirit_assign_actor(option)
-                                ]
-                            |   pattern_p(OperatorTokenType|AltExtTokenType,
-                                    ExtTokenTypeMask|PPTokenFlag)   // and, bit_and etc.
+                                ] 
+                            |   pattern_p(OperatorTokenType|AltExtTokenType, 
+                                    ExtTokenTypeMask)   // and, bit_and etc.
                                 [
                                     spirit_assign_actor(option)
-                                ]
-                            |   pattern_p(BoolLiteralTokenType,
-                                    TokenTypeMask|PPTokenFlag)
+                                ] 
+                            |   pattern_p(BoolLiteralTokenType, TokenTypeMask)
                                 [
                                     spirit_assign_actor(option)
-                                ]
+                                ] 
                             )
                         >> !comment_nest_p(
                                 ch_p(T_LEFTPAREN),
                                 ch_p(T_RIGHTPAREN)
                             )[spirit_assign_actor(values)],
-                    pattern_p(WhiteSpaceTokenType, TokenTypeMask|PPTokenFlag)).hit)
+                    pattern_p(WhiteSpaceTokenType, TokenTypeMask)).hit)
             {
-                typename ContextT::string_type msg(
-                    impl::as_string<string_type>(it, end));
-                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception,
+                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception, 
                     ill_formed_pragma_option,
-                    msg.c_str(), act_token.get_position());
+                    impl::as_string<string_type>(it, end).c_str(), 
+                    act_token.get_position());
                 return false;
             }
 
@@ -125,9 +122,9 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
 
         // decode the option (call the context_policy hook)
             if (!ctx.get_hooks().interpret_pragma(
-                  ctx.derived(), pending, option, values, act_token))
+                  ctx.derived(), pending, option, values, act_token)) 
             {
-            // unknown #pragma option
+            // unknown #pragma option 
             string_type option_str ((*it).get_value());
 
                 option_str += option.get_value();
@@ -136,7 +133,7 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
                     option_str += impl::as_string(values);
                     option_str += ")";
                 }
-                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception,
+                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception, 
                     ill_formed_pragma_option,
                     option_str.c_str(), act_token.get_position());
                 return false;
@@ -148,15 +145,15 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
         // #pragma once
             return ctx.add_pragma_once_header(act_token, ctx.get_current_filename());
         }
-#endif
+#endif 
 #if BOOST_WAVE_SUPPORT_PRAGMA_MESSAGE != 0
         else if ((*it).get_value() == "message") {
         // #pragma message(...) or #pragma message ...
             using namespace boost::spirit::classic;
             ContainerT values;
 
-            if (!parse (++it, end,
-                            (   (   ch_p(T_LEFTPAREN)
+            if (!parse (++it, end, 
+                            (   (   ch_p(T_LEFTPAREN) 
                                 >>  lexeme_d[
                                         *(anychar_p[spirit_append_actor(values)] - ch_p(T_RIGHTPAREN))
                                     ]
@@ -166,15 +163,14 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
                                     *(anychar_p[spirit_append_actor(values)] - ch_p(T_NEWLINE))
                                 ]
                             ),
-                            pattern_p(WhiteSpaceTokenType, TokenTypeMask|PPTokenFlag)
+                            pattern_p(WhiteSpaceTokenType, TokenTypeMask)
                        ).hit
                )
             {
-                typename ContextT::string_type msg(
-                    impl::as_string<string_type>(it, end));
-                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception,
+                BOOST_WAVE_THROW_CTX(ctx, preprocess_exception, 
                     ill_formed_pragma_message,
-                    msg.c_str(), act_token.get_position());
+                    impl::as_string<string_type>(it, end).c_str(), 
+                    act_token.get_position());
                 return false;
             }
 
@@ -186,10 +182,9 @@ interpret_pragma(ContextT &ctx, typename ContextT::token_type const &act_token,
             }
 
         // output the message itself
-            typename ContextT::string_type msg(impl::as_string(values));
-            BOOST_WAVE_THROW_CTX(ctx, preprocess_exception,
-                pragma_message_directive,
-                msg.c_str(), act_token.get_position());
+            BOOST_WAVE_THROW_CTX(ctx, preprocess_exception, 
+                pragma_message_directive, 
+                impl::as_string(values).c_str(), act_token.get_position());
             return false;
         }
 #endif

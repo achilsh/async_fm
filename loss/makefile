@@ -28,11 +28,14 @@ INC := $(INC) \
        -I $(LIB3RD_PATH)/include/libevent \
        -I $(LIB3RD_PATH)/include/mysql \
        -I $(LIB3RD_PATH)/include/boost  \
+       -I $(LIB3RD_PATH)/include/thrift  \
+       -I $(LIB3RD_PATH)/include/thrift/transport  \
        -I $(LOSS_PATH)/src/LibComm/include \
        -I $(LOSS_PATH)/src/MySqlDb/include \
        -I $(LOSS_PATH)/src/RedisClient/include \
        -I $(LOSS_PATH)/src/CnfComm/include \
        -I $(LOSS_PATH)/src/Shm/include \
+       -I $(LOSS_PATH)/src/thrift_util \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
@@ -45,6 +48,8 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -levent \
            -lhiredis \
            -ltcmalloc_minimal \
+           -lthrift \
+           -L$(LIB3RD_PATH)/lib/boost -lboost_thread-mt \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -ldl -lrt -liconv
 
@@ -54,17 +59,17 @@ C_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
 S_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.s))
 OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubst %.s,%.o,$(S_SRCS)) 
 
-all:  LIBRARYS Ts
+all:  Ls  Ts
 TESTSPATH = $(shell find $(LOSS_PATH) -name 'test*' -type d)
 Ts:
 	@for dir in $(TESTSPATH); do echo "making in $$dir"; ( cd $$dir && make -f makefile -e CC='$(CXX)' CFLAG='$(CFLAG)'); done  
 
-LIBRARYS: $(OBJS)
+Ls: $(OBJS)
 	$(CXX) -shared -Wl,-soname,libloss.so -o libloss.so $(OBJS) -lc -lrt -ldl $(LDFLAGS)
 	mv libloss.so $(LOSS_PATH)/lib/
 	cp $(LOSS_PATH)/lib/* $(LIB3RD_PATH)/lib/
-	ar -crv libloss.a $(OBJS)
-	ranlib libloss.a
+	#ar -crv libloss.a $(OBJS)
+	#ranlib libloss.a
 
 
 
@@ -78,7 +83,7 @@ LIBRARYS: $(OBJS)
 	#$(CC) $(INC) $(CFLAG) -c -o $@ $< 
 clean:
 	rm -f $(OBJS)
-	rm -f $(LIBRARYS)
-	rm -f $(LOSS_PATH)/lib/*
+	rm -f $(Ls)
+	rm -f $(LOSS_PATH)/lib/libloss.so
 	@for dir in $(TESTSPATH); do echo "making in $$dir"; ( cd $$dir && make clean -f makefile -e CC='$(CXX)' CFLAG='$(CFLAG)'); done 
   

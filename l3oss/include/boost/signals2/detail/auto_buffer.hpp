@@ -8,7 +8,7 @@
 
 #include <boost/detail/workaround.hpp>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif
 
@@ -23,6 +23,7 @@
 #include <boost/mpl/if.hpp>
 #include <boost/multi_index/detail/scope_guard.hpp>
 #include <boost/swap.hpp>
+#include <boost/throw_exception.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/alignment_of.hpp>
 #include <boost/type_traits/has_nothrow_copy.hpp>
@@ -98,7 +99,7 @@ namespace detail
         }
 
         template< class SizeType >
-        static bool should_shrink( SizeType, SizeType )
+        static bool should_shrink( SizeType size, SizeType capacity )
         {
             //
             // @remark: when defining a new grow policy, one might
@@ -157,19 +158,19 @@ namespace detail
                                                       optimized_const_reference;
     private:
 
-        pointer allocate( size_type capacity_arg )
+        pointer allocate( size_type capacity )
         {
-            if( capacity_arg > N )
-                return &*get_allocator().allocate( capacity_arg );
+            if( capacity > N )
+                return &*get_allocator().allocate( capacity );
             else
                 return static_cast<T*>( members_.address() );
         }
 
-        void deallocate( pointer where, size_type capacity_arg )
+        void deallocate( pointer where, size_type capacity )
         {
-            if( capacity_arg <= N )
+            if( capacity <= N )
                 return;
-            get_allocator().deallocate( allocator_pointer(where), capacity_arg );
+            get_allocator().deallocate( allocator_pointer(where), capacity );
         }
 
         template< class I >
@@ -248,14 +249,6 @@ namespace detail
             auto_buffer_destroy( where, boost::has_trivial_destructor<T>() );
         }
 
-        void auto_buffer_destroy()
-        {
-            BOOST_ASSERT( is_valid() );
-            if( buffer_ ) // do we need this check? Yes, but only
-                // for N = 0u + local instances in one_sided_swap()
-                auto_buffer_destroy( boost::has_trivial_destructor<T>() );
-        }
-
         void destroy_back_n( size_type n, const boost::false_type& )
         {
             BOOST_ASSERT( n > 0 );
@@ -265,7 +258,7 @@ namespace detail
                 auto_buffer_destroy( buffer );
         }
 
-        void destroy_back_n( size_type, const boost::true_type& )
+        void destroy_back_n( size_type n, const boost::true_type& )
         { }
 
         void destroy_back_n( size_type n )
@@ -309,7 +302,7 @@ namespace detail
         {
             pointer new_buffer = move_to_new_buffer( new_capacity,
                                                  boost::has_nothrow_copy<T>() );
-            auto_buffer_destroy();
+            (*this).~auto_buffer();
             buffer_   = new_buffer;
             members_.capacity_ = new_capacity;
             BOOST_ASSERT( size_ <= members_.capacity_ );
@@ -363,7 +356,7 @@ namespace detail
         void one_sided_swap( auto_buffer& temp ) // nothrow
         {
             BOOST_ASSERT( !temp.is_on_stack() );
-            auto_buffer_destroy();
+            this->~auto_buffer();
             // @remark: must be nothrow
             get_allocator()    = temp.get_allocator();
             members_.capacity_ = temp.members_.capacity_;
@@ -375,12 +368,12 @@ namespace detail
         }
 
         template< class I >
-        void insert_impl( const_iterator before, I begin_arg, I end_arg,
+        void insert_impl( const_iterator before, I begin, I end,
                           std::input_iterator_tag )
         {
-            for( ; begin_arg != end_arg; ++begin_arg )
+            for( ; begin != end; ++begin )
             {
-                before = insert( before, *begin_arg );
+                before = insert( before, *begin );
                 ++before;
             }
         }
@@ -418,10 +411,10 @@ namespace detail
         }
 
         template< class I >
-        void insert_impl( const_iterator before, I begin_arg, I end_arg,
+        void insert_impl( const_iterator before, I begin, I end,
                           std::forward_iterator_tag )
         {
-            difference_type n = std::distance(begin_arg, end_arg);
+            difference_type n = std::distance(begin,end);
 
             if( size_ + n <= members_.capacity_ )
             {
@@ -431,11 +424,11 @@ namespace detail
                     grow_back( n );
                     iterator where = const_cast<T*>(before);
                     std::copy( before, cend() - n, where + n );
-                    assign_impl( begin_arg, end_arg, where );
+                    assign_impl( begin, end, where );
                 }
                 else
                 {
-                    unchecked_push_back( begin_arg, end_arg );
+                    unchecked_push_back( begin, end );
                 }
                 BOOST_ASSERT( is_valid() );
                 return;
@@ -443,7 +436,7 @@ namespace detail
 
             auto_buffer temp( new_capacity_impl( size_ + n ) );
             temp.unchecked_push_back( cbegin(), before );
-            temp.unchecked_push_back( begin_arg, end_arg );
+            temp.unchecked_push_back( begin, end );
             temp.unchecked_push_back( before, cend() );
             one_sided_swap( temp );
             BOOST_ASSERT( is_valid() );
@@ -514,7 +507,7 @@ namespace detail
                 {
                     // @remark: we release memory as early as possible
                     //          since we only give the basic guarantee
-                    auto_buffer_destroy();
+                    (*this).~auto_buffer();
                     buffer_ = 0;
                     pointer new_buffer = allocate( r.size() );
                     boost::multi_index::detail::scope_guard guard =
@@ -535,53 +528,53 @@ namespace detail
             return *this;
         }
 
-        explicit auto_buffer( size_type capacity_arg )
-            : members_( (std::max)(capacity_arg, size_type(N)) ),
+        explicit auto_buffer( size_type capacity )
+            : members_( (std::max)(capacity,size_type(N)) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
             BOOST_ASSERT( is_valid() );
         }
 
-        auto_buffer( size_type size_arg, optimized_const_reference init_value )
-            : members_( (std::max)(size_arg, size_type(N)) ),
+        auto_buffer( size_type size, optimized_const_reference init_value )
+            : members_( (std::max)(size,size_type(N)) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
-            std::uninitialized_fill( buffer_, buffer_ + size_arg, init_value );
-            size_ = size_arg;
+            std::uninitialized_fill( buffer_, buffer_ + size, init_value );
+            size_ = size;
             BOOST_ASSERT( is_valid() );
         }
 
-        auto_buffer( size_type capacity_arg, const allocator_type& a )
+        auto_buffer( size_type capacity, const allocator_type& a )
             : allocator_type( a ),
-              members_( (std::max)(capacity_arg, size_type(N)) ),
+              members_( (std::max)(capacity,size_type(N)) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
             BOOST_ASSERT( is_valid() );
         }
 
-        auto_buffer( size_type size_arg, optimized_const_reference init_value,
+        auto_buffer( size_type size, optimized_const_reference init_value,
                      const allocator_type& a )
             : allocator_type( a ),
-              members_( (std::max)(size_arg, size_type(N)) ),
+              members_( (std::max)(size,size_type(N)) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
-            std::uninitialized_fill( buffer_, buffer_ + size_arg, init_value );
-            size_ = size_arg;
+            std::uninitialized_fill( buffer_, buffer_ + size, init_value );
+            size_ = size;
             BOOST_ASSERT( is_valid() );
         }
 
         template< class ForwardIterator >
-        auto_buffer( ForwardIterator begin_arg, ForwardIterator end_arg )
+        auto_buffer( ForwardIterator begin, ForwardIterator end )
             :
-              members_( std::distance(begin_arg, end_arg) ),
+              members_( std::distance(begin,end) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
-            copy_impl( begin_arg, end_arg, buffer_ );
+            copy_impl( begin, end, buffer_ );
             size_ = members_.capacity_;
             if( members_.capacity_ < N )
                 members_.capacity_ = N;
@@ -589,14 +582,14 @@ namespace detail
         }
 
         template< class ForwardIterator >
-        auto_buffer( ForwardIterator begin_arg, ForwardIterator end_arg,
+        auto_buffer( ForwardIterator begin, ForwardIterator end,
                      const allocator_type& a )
             : allocator_type( a ),
-              members_( std::distance(begin_arg, end_arg) ),
+              members_( std::distance(begin,end) ),
               buffer_( allocate(members_.capacity_) ),
               size_( 0 )
         {
-            copy_impl( begin_arg, end_arg, buffer_ );
+            copy_impl( begin, end, buffer_ );
             size_ = members_.capacity_;
             if( members_.capacity_ < N )
                 members_.capacity_ = N;
@@ -605,7 +598,10 @@ namespace detail
 
         ~auto_buffer()
         {
-            auto_buffer_destroy();
+            BOOST_ASSERT( is_valid() );
+            if( buffer_ ) // do we need this check? Yes, but only
+                // for N = 0u + local instances in one_sided_swap()
+                auto_buffer_destroy( boost::has_trivial_destructor<T>() );
         }
 
     public:
@@ -770,12 +766,12 @@ namespace detail
         }
 
         template< class ForwardIterator >
-        void unchecked_push_back( ForwardIterator begin_arg,
-                                  ForwardIterator end_arg ) // non-growing
+        void unchecked_push_back( ForwardIterator begin,
+                                  ForwardIterator end ) // non-growing
         {
-            BOOST_ASSERT( size_ + std::distance(begin_arg, end_arg) <= members_.capacity_ );
-            copy_impl( begin_arg, end_arg, buffer_ + size_ );
-            size_ += std::distance(begin_arg, end_arg);
+            BOOST_ASSERT( size_ + std::distance(begin,end) <= members_.capacity_ );
+            copy_impl( begin, end, buffer_ + size_ );
+            size_ += std::distance(begin,end);
         }
 
         void reserve_precisely( size_type n )
@@ -826,12 +822,12 @@ namespace detail
         }
 
         template< class ForwardIterator >
-        void push_back( ForwardIterator begin_arg, ForwardIterator end_arg )
+        void push_back( ForwardIterator begin, ForwardIterator end )
         {
-            difference_type diff = std::distance(begin_arg, end_arg);
+            difference_type diff = std::distance(begin,end);
             if( size_ + diff > members_.capacity_ )
                 reserve( size_ + diff );
-            unchecked_push_back( begin_arg, end_arg );
+            unchecked_push_back( begin, end );
         }
 
         iterator insert( const_iterator before, optimized_const_reference x ) // basic
@@ -891,11 +887,11 @@ namespace detail
 
         template< class ForwardIterator >
         void insert( const_iterator before,
-                     ForwardIterator begin_arg, ForwardIterator end_arg ) // basic
+                     ForwardIterator begin, ForwardIterator end ) // basic
         {
             typedef typename std::iterator_traits<ForwardIterator>
                 ::iterator_category category;
-            insert_impl( before, begin_arg, end_arg, category() );
+            insert_impl( before, begin, end, category() );
         }
 
         void pop_back()
@@ -976,7 +972,7 @@ namespace detail
 
         pointer uninitialized_grow( size_type n ) // strong
         {
-            if( size_ + n > members_.capacity_ )
+            if( size_ + n <= members_.capacity_ )
                 reserve( size_ + n );
 
             pointer res = end();
@@ -997,6 +993,8 @@ namespace detail
                 uninitialized_grow( n - size() );
             else if( n < size() )
                 uninitialized_shrink( size() - n );
+            else
+                ;
 
            BOOST_ASSERT( size() == n );
         }
@@ -1038,7 +1036,7 @@ namespace detail
                 pointer new_buffer = static_cast<T*>(other->members_.address());
                 copy_impl( one_on_stack->begin(), one_on_stack->end(),
                            new_buffer );                            // strong
-                one_on_stack->auto_buffer_destroy();                       // nothrow
+                one_on_stack->~auto_buffer();                       // nothrow
                 boost::swap( get_allocator(), r.get_allocator() );  // assume nothrow
                 boost::swap( members_.capacity_, r.members_.capacity_ );
                 boost::swap( size_, r.size_ );
@@ -1121,7 +1119,7 @@ namespace detail
     inline bool operator<=( const auto_buffer<T,SBP,GP,A>& l,
                             const auto_buffer<T,SBP,GP,A>& r )
     {
-        return !(l > r);
+        return !(r > l);
     }
 
     template< class T, class SBP, class GP, class A >

@@ -15,6 +15,7 @@
 
 #include <boost/detail/workaround.hpp>
 #include <boost/mpl/aux_/lambda_support.hpp>
+#include <boost/type_traits/detail/template_arity_spec.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 
@@ -22,7 +23,7 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/vector/vector0.hpp>
 
-#if BOOST_WORKAROUND(__BORLANDC__, <= 0x565)
+#if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x656))
 #   include <boost/type_traits/remove_cv.hpp>
 
 #   include <boost/mpl/identity.hpp>
@@ -46,6 +47,7 @@
 
 #include <boost/function_types/config/config.hpp>
 
+#ifndef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
 #   if   BOOST_FT_MAX_ARITY < 10
 #     include <boost/mpl/vector/vector10.hpp>
 #   elif BOOST_FT_MAX_ARITY < 20
@@ -57,6 +59,9 @@
 #   elif BOOST_FT_MAX_ARITY < 50
 #     include <boost/mpl/vector/vector50.hpp>
 #   endif
+#else
+#   include <boost/function_types/detail/classifier.hpp>
+#endif
 
 #include <boost/function_types/detail/class_transform.hpp>
 #include <boost/function_types/property_tags.hpp>
@@ -76,14 +81,14 @@ namespace boost
     namespace detail 
     {
       template<typename T, typename L> struct components_impl;
-#if BOOST_WORKAROUND(__BORLANDC__, <= 0x565)
+#if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x565))
       template<typename T, typename OrigT, typename L> struct components_bcc;
 #endif
     }
 
     template<typename T, typename ClassTypeTransform> 
     struct components
-#if !BOOST_WORKAROUND(__BORLANDC__, <= 0x565)
+#if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x565))
       : detail::components_impl<T, ClassTypeTransform>
 #else
       : detail::components_bcc<typename remove_cv<T>::type,T,
@@ -255,7 +260,7 @@ namespace boost
           typename detail::class_transform<C,L>::type > types;
     };
 
-#if !BOOST_WORKAROUND(__BORLANDC__, <= 0x565)
+#if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x565))
 #   define BOOST_FT_variations BOOST_FT_pointer|BOOST_FT_member_pointer
 
     template<typename T, class C, typename L>
@@ -414,6 +419,8 @@ namespace boost
 #include <boost/function_types/detail/pp_loop.hpp>
 
   } } // namespace function_types::detail
+
+  BOOST_TT_AUX_TEMPLATE_ARITY_SPEC(2,function_types::components)
 
 } // namespace ::boost
 

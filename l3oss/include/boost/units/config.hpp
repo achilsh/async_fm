@@ -29,7 +29,7 @@
     ///INTERNAL ONLY
     #define BOOST_UNITS_HAS_TYPEOF          1
 #else    
-    #if (__GNUC__ && __cplusplus)
+    #if (__GNUC__ && __cplusplus && __GNUC__ >= 3)
         ///INTERNAL ONLY
         #define BOOST_UNITS_HAS_TYPEOF          1
         ///INTERNAL ONLY
@@ -67,6 +67,13 @@
         #error Boost.Units requires function template partial ordering
     #endif
 
+    #ifdef BOOST_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS
+        #error Boost.Units requires explicit function template arguments
+    #endif
+
+    #ifdef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
+        #error Boost.Units requires partial specialization
+    #endif
 
 #endif
 
@@ -84,7 +91,7 @@
 /// is not layout compatible with T
 #define BOOST_UNITS_REQUIRE_LAYOUT_COMPATIBILITY
 
-/// If defined will disable a preprocessor check that the
+/// If defined will diasable a preprocessor check that the
 /// compiler is able to handle the library.
 #define BOOST_UNITS_NO_COMPILER_CHECK
 

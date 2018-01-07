@@ -9,7 +9,7 @@
 #define BOOST_XPRESSIVE_DETAIL_UTILITY_TRACKING_PTR_HPP_EAN_10_04_2005
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -112,10 +112,8 @@ private:
 //  for use with a filter_iterator to filter a node out of a list of dependencies
 template<typename Derived>
 struct filter_self
+  : std::unary_function<shared_ptr<Derived>, bool>
 {
-    typedef shared_ptr<Derived> argument_type;
-    typedef bool result_type;
-
     filter_self(enable_reference_tracking<Derived> *self)
       : self_(self)
     {
@@ -436,24 +434,17 @@ struct tracking_ptr
         return this->impl_->self_;
     }
 
-    // smart-pointer operators
     #if defined(__SUNPRO_CC) && BOOST_WORKAROUND(__SUNPRO_CC, <= 0x530)
+    typedef bool unspecified_bool_type;
+    #else
+    typedef typename intrusive_ptr<element_type>::unspecified_bool_type unspecified_bool_type;
+    #endif
 
-    operator bool() const
+    // smart-pointer operators
+    operator unspecified_bool_type() const
     {
         return this->impl_;
     }
-
-    #else
-
-    typedef intrusive_ptr<element_type> tracking_ptr::* unspecified_bool_type;
-
-    operator unspecified_bool_type() const
-    {
-        return this->impl_ ? &tracking_ptr::impl_ : 0;
-    }
-
-    #endif
 
     bool operator !() const
     {

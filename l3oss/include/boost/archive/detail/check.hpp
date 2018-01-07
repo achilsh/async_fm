@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_DETAIL_CHECK_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #pragma inline_depth(511)
 #pragma inline_recursion(on)
@@ -48,43 +48,43 @@ namespace detail {
 // checks for objects
 
 template<class T>
-inline void check_object_level(){
+void inline check_object_level(){
     typedef 
-        typename mpl::greater_equal<
-            serialization::implementation_level< T >,
+        BOOST_DEDUCED_TYPENAME mpl::greater_equal<
+            serialization::implementation_level<T>,
             mpl::int_<serialization::primitive_type>
         >::type typex;
 
     // trap attempts to serialize objects marked
     // not_serializable
     BOOST_STATIC_ASSERT(typex::value);
-}
+};
 
 template<class T>
-inline void check_object_versioning(){
+void inline check_object_versioning(){
     typedef 
-        typename mpl::or_<
-            typename mpl::greater<
-                serialization::implementation_level< T >,
+        BOOST_DEDUCED_TYPENAME mpl::or_<
+            BOOST_DEDUCED_TYPENAME mpl::greater<
+                serialization::implementation_level<T>,
                 mpl::int_<serialization::object_serializable>
             >,
-            typename mpl::equal_to<
-                serialization::version< T >,
+            BOOST_DEDUCED_TYPENAME mpl::equal_to<
+                serialization::version<T>,
                 mpl::int_<0>
             >
         > typex;
     // trap attempts to serialize with objects that don't
     // save class information in the archive with versioning.
     BOOST_STATIC_ASSERT(typex::value);
-}
+};
 
 template<class T>
-inline void check_object_tracking(){
+void inline check_object_tracking(){
     // presume it has already been determined that
     // T is not a const
-    BOOST_STATIC_ASSERT(! boost::is_const< T >::value);
-    typedef typename mpl::equal_to<
-        serialization::tracking_level< T >,
+    BOOST_STATIC_ASSERT(! boost::is_const<T>::value);
+    typedef BOOST_DEDUCED_TYPENAME mpl::equal_to<
+        serialization::tracking_level<T>,
         mpl::int_<serialization::track_never>
     >::type typex;
     // saving an non-const object of a type not marked "track_never)
@@ -96,23 +96,23 @@ inline void check_object_tracking(){
     // for motivation for this checking.
 
     BOOST_STATIC_WARNING(typex::value);
-}
+};
 
 // checks for pointers
 
 template<class T>
-inline void check_pointer_level(){
+void inline check_pointer_level(){
     // we should only invoke this once we KNOW that T
     // has been used as a pointer!!
     typedef 
-        typename mpl::or_<
-            typename mpl::greater<
-                serialization::implementation_level< T >,
+        BOOST_DEDUCED_TYPENAME mpl::or_<
+            BOOST_DEDUCED_TYPENAME mpl::greater<
+                serialization::implementation_level<T>,
                 mpl::int_<serialization::object_serializable>
             >,
-            typename mpl::not_<
-                typename mpl::equal_to<
-                    serialization::tracking_level< T >,
+            BOOST_DEDUCED_TYPENAME mpl::not_<
+                BOOST_DEDUCED_TYPENAME mpl::equal_to<
+                    serialization::tracking_level<T>,
                     mpl::int_<serialization::track_selectively>
                 >
             >
@@ -139,28 +139,28 @@ inline void check_pointer_level(){
 
 template<class T>
 void inline check_pointer_tracking(){
-    typedef typename mpl::greater<
-        serialization::tracking_level< T >,
+    typedef BOOST_DEDUCED_TYPENAME mpl::greater<
+        serialization::tracking_level<T>,
         mpl::int_<serialization::track_never>
     >::type typex;
     // serializing an object of a type marked "track_never" through a pointer
     // could result in creating more objects than were saved!
     BOOST_STATIC_WARNING(typex::value);
-}
+};
 
 template<class T>
-inline void check_const_loading(){
+void inline check_const_loading(){
     typedef
-        typename mpl::or_<
-            typename boost::serialization::is_wrapper< T >,
-            typename mpl::not_<
-                typename boost::is_const< T >
+        BOOST_DEDUCED_TYPENAME mpl::or_<
+            BOOST_DEDUCED_TYPENAME boost::serialization::is_wrapper<T>,
+            BOOST_DEDUCED_TYPENAME mpl::not_<
+                BOOST_DEDUCED_TYPENAME boost::is_const<T>
             >
         >::type typex;
     // cannot load data into a "const" object unless it's a
     // wrapper around some other non-const object.
     BOOST_STATIC_ASSERT(typex::value);
-}
+};
 
 } // detail
 } // archive

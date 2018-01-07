@@ -1,19 +1,22 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2004-2008.
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
 //
-//!@file
-//!@brief enable previously suppressed warnings
+//  File        : $RCSfile$
+//
+//  Version     : $Revision$
+//
+//  Description : enable previosly suppressed warnings
 // ***************************************************************************
 
 #ifdef BOOST_MSVC
 # pragma warning(default: 4511) // copy constructor can't not be generated
 # pragma warning(default: 4512) // assignment operator can't not be generated
-# pragma warning(default: 4100) // unreferenced formal parameter
-# pragma warning(default: 4996) // <symbol> was declared deprecated
+# pragma warning(default: 4100) // unreferenced formal parameter 
+# pragma warning(default: 4996) // <symbol> was declared deprecated 
 # pragma warning(default: 4355) // 'this' : used in base member initializer list
 # pragma warning(default: 4706) // assignment within conditional expression
 # pragma warning(default: 4251) // class 'A<T>' needs to have dll-interface to be used by clients of class 'B'
@@ -25,12 +28,3 @@
 # pragma warning(default: 4511) // 'class' : copy constructor could not be generated
 # pragma warning(pop)
 #endif
-
-#if BOOST_CLANG
-#pragma clang diagnostic pop
-#endif
-
-#if defined(BOOST_GCC) && (BOOST_GCC >= 4 * 10000 + 6 * 100)
-# pragma GCC diagnostic pop
-#endif
-

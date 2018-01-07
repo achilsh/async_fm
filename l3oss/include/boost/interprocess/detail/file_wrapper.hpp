@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2006-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2006. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,31 +11,22 @@
 #ifndef BOOST_INTERPROCESS_DETAIL_FILE_WRAPPER_HPP
 #define BOOST_INTERPROCESS_DETAIL_FILE_WRAPPER_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
-#  pragma once
-#endif
-
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
 #include <boost/interprocess/detail/os_file_functions.hpp>
 #include <boost/interprocess/creation_tags.hpp>
-#include <boost/move/utility_core.hpp>
+#include <boost/interprocess/detail/move.hpp>
 #include <boost/interprocess/creation_tags.hpp>
-#include <boost/interprocess/detail/simple_swap.hpp>
 
 namespace boost {
 namespace interprocess {
-namespace ipcdetail{
+namespace detail{
 
 class file_wrapper
 {
-   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-   BOOST_MOVABLE_BUT_NOT_COPYABLE(file_wrapper)
-   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+   /// @cond
+   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(file_wrapper)
+   /// @endcond
    public:
 
    //!Default constructor.
@@ -44,35 +35,34 @@ class file_wrapper
 
    //!Creates a file object with name "name" and mode "mode", with the access mode "mode"
    //!If the file previously exists, throws an error.
-   file_wrapper(create_only_t, const char *name, mode_t mode, const permissions &perm = permissions())
-   {  this->priv_open_or_create(ipcdetail::DoCreate, name, mode, perm);  }
+   file_wrapper(create_only_t, const char *name, mode_t mode)
+   {  this->priv_open_or_create(detail::DoCreate, name, mode);  }
 
    //!Tries to create a file with name "name" and mode "mode", with the
    //!access mode "mode". If the file previously exists, it tries to open it with mode "mode".
    //!Otherwise throws an error.
-   file_wrapper(open_or_create_t, const char *name, mode_t mode, const permissions &perm  = permissions())
-   {  this->priv_open_or_create(ipcdetail::DoOpenOrCreate, name, mode, perm);  }
+   file_wrapper(open_or_create_t, const char *name, mode_t mode)
+   {  this->priv_open_or_create(detail::DoOpenOrCreate, name, mode);  }
 
-   //!Tries to open a file with name "name", with the access mode "mode".
+   //!Tries to open a file with name "name", with the access mode "mode". 
    //!If the file does not previously exist, it throws an error.
    file_wrapper(open_only_t, const char *name, mode_t mode)
-   {  this->priv_open_or_create(ipcdetail::DoOpen, name, mode, permissions());  }
+   {  this->priv_open_or_create(detail::DoOpen, name, mode);  }
 
-   //!Moves the ownership of "moved"'s file to *this.
-   //!After the call, "moved" does not represent any file.
+   //!Moves the ownership of "moved"'s file to *this. 
+   //!After the call, "moved" does not represent any file. 
    //!Does not throw
-   file_wrapper(BOOST_RV_REF(file_wrapper) moved)
-      :  m_handle(file_handle_t(ipcdetail::invalid_file()))
+   file_wrapper(BOOST_INTERPROCESS_RV_REF(file_wrapper) moved)
    {  this->swap(moved);   }
 
    //!Moves the ownership of "moved"'s file to *this.
    //!After the call, "moved" does not represent any file.
    //!Does not throw
-   file_wrapper &operator=(BOOST_RV_REF(file_wrapper) moved)
-   {
-      file_wrapper tmp(boost::move(moved));
+   file_wrapper &operator=(BOOST_INTERPROCESS_RV_REF(file_wrapper) moved)
+   {  
+      file_wrapper tmp(boost::interprocess::move(moved));
       this->swap(tmp);
-      return *this;
+      return *this;  
    }
 
    //!Swaps to file_wrappers.
@@ -82,7 +72,7 @@ class file_wrapper
    //!Erases a file from the system.
    //!Returns false on error. Never throws
    static bool remove(const char *name);
-
+   
    //!Sets the size of the file
    void truncate(offset_t length);
 
@@ -110,18 +100,18 @@ class file_wrapper
    //!Closes a previously opened file mapping. Never throws.
    void priv_close();
    //!Closes a previously opened file mapping. Never throws.
-   bool priv_open_or_create(ipcdetail::create_enum_t type, const char *filename, mode_t mode, const permissions &perm);
+   bool priv_open_or_create(detail::create_enum_t type, const char *filename, mode_t mode);
 
    file_handle_t  m_handle;
    mode_t      m_mode;
    std::string       m_filename;
 };
 
-inline file_wrapper::file_wrapper()
-   :  m_handle(file_handle_t(ipcdetail::invalid_file()))
+inline file_wrapper::file_wrapper() 
+   :  m_handle(file_handle_t(detail::invalid_file()))
 {}
 
-inline file_wrapper::~file_wrapper()
+inline file_wrapper::~file_wrapper() 
 {  this->priv_close(); }
 
 inline const char *file_wrapper::get_name() const
@@ -131,10 +121,10 @@ inline bool file_wrapper::get_size(offset_t &size) const
 {  return get_file_size((file_handle_t)m_handle, size);  }
 
 inline void file_wrapper::swap(file_wrapper &other)
-{
-   (simple_swap)(m_handle,  other.m_handle);
-   (simple_swap)(m_mode,    other.m_mode);
-   m_filename.swap(other.m_filename);
+{  
+   std::swap(m_handle,  other.m_handle);
+   std::swap(m_mode,    other.m_mode);
+   m_filename.swap(other.m_filename);   
 }
 
 inline mapping_handle_t file_wrapper::get_mapping_handle() const
@@ -144,10 +134,9 @@ inline mode_t file_wrapper::get_mode() const
 {  return m_mode; }
 
 inline bool file_wrapper::priv_open_or_create
-   (ipcdetail::create_enum_t type,
+   (detail::create_enum_t type, 
     const char *filename,
-    mode_t mode,
-    const permissions &perm = permissions())
+    mode_t mode)
 {
    m_filename = filename;
 
@@ -158,14 +147,14 @@ inline bool file_wrapper::priv_open_or_create
 
    //Open file existing native API to obtain the handle
    switch(type){
-      case ipcdetail::DoOpen:
+      case detail::DoOpen:
          m_handle = open_existing_file(filename, mode);
       break;
-      case ipcdetail::DoCreate:
-         m_handle = create_new_file(filename, mode, perm);
+      case detail::DoCreate:
+         m_handle = create_new_file(filename, mode);
       break;
-      case ipcdetail::DoOpenOrCreate:
-         m_handle = create_or_open_file(filename, mode, perm);
+      case detail::DoOpenOrCreate:
+         m_handle = create_or_open_file(filename, mode);
       break;
       default:
          {
@@ -176,8 +165,7 @@ inline bool file_wrapper::priv_open_or_create
 
    //Check for error
    if(m_handle == invalid_file()){
-      error_info err = system_error_code();
-      throw interprocess_exception(err);
+      throw interprocess_exception(error_info(system_error_code()));
    }
 
    m_mode = mode;
@@ -203,7 +191,7 @@ inline void file_wrapper::priv_close()
    }
 }
 
-}  //namespace ipcdetail{
+}  //namespace detail{
 }  //namespace interprocess {
 }  //namespace boost {
 

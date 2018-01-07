@@ -1,19 +1,22 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2005-2008.
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
 //
-/// @file
-/// @brief defines simple text based progress monitor
+//  File        : $RCSfile$
+//
+//  Version     : $Revision$
+//
+//  Description : defines simple text based progress monitor
 // ***************************************************************************
 
 #ifndef BOOST_TEST_PROGRESS_MONITOR_HPP_020105GER
 #define BOOST_TEST_PROGRESS_MONITOR_HPP_020105GER
 
 // Boost.Test
-#include <boost/test/tree/observer.hpp>
+#include <boost/test/test_observer.hpp>
 #include <boost/test/utils/trivial_singleton.hpp>
 
 // STL
@@ -24,38 +27,39 @@
 //____________________________________________________________________________//
 
 namespace boost {
+
 namespace unit_test {
 
 // ************************************************************************** //
 // **************                progress_monitor              ************** //
 // ************************************************************************** //
 
-/// This class implements test observer interface and updates test progress as test units finish or get aborted
 class BOOST_TEST_DECL progress_monitor_t : public test_observer, public singleton<progress_monitor_t> {
 public:
-    /// @name Test observer interface
-    /// @{
-    virtual void    test_start( counter_t test_cases_amount );
-    virtual void    test_aborted();
+    // test observer interface
+    void    test_start( counter_t test_cases_amount );
+    void    test_finish() {}
+    void    test_aborted();
 
-    virtual void    test_unit_finish( test_unit const&, unsigned long );
-    virtual void    test_unit_skipped( test_unit const&, const_string );
+    void    test_unit_start( test_unit const& ) {}
+    void    test_unit_finish( test_unit const&, unsigned long );
+    void    test_unit_skipped( test_unit const& );
+    void    test_unit_aborted( test_unit const& ) {}
 
-    virtual int     priority() { return 4; }
-    /// @}
+    void    assertion_result( bool ) {}
+    void    exception_caught( execution_exception const& ) {}
 
-    /// @name Configuration
-    /// @{
-    void            set_stream( std::ostream& );
-    /// @}
+    // configuration
+    void    set_stream( std::ostream& );
 
 private:
-    BOOST_TEST_SINGLETON_CONS( progress_monitor_t )
+    BOOST_TEST_SINGLETON_CONS( progress_monitor_t );
 }; // progress_monitor_t
 
 BOOST_TEST_SINGLETON_INST( progress_monitor )
 
 } // namespace unit_test
+
 } // namespace boost
 
 //____________________________________________________________________________//

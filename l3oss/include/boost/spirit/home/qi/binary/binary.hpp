@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -14,7 +14,7 @@
 
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/spirit/home/support/detail/endian.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/qi/parser.hpp>
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/domain.hpp>
@@ -25,7 +25,6 @@
 #include <boost/mpl/or.hpp>
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/type_traits/is_enum.hpp>
-#include <boost/type_traits/is_floating_point.hpp>
 #include <boost/config.hpp>
 
 #define BOOST_SPIRIT_ENABLE_BINARY(name)                                        \
@@ -41,19 +40,6 @@
     template <>                                                                 \
     struct use_lazy_terminal<qi::domain, tag::name, 1> : mpl::true_ {};         \
                                                                                 \
-/***/
-
-#define BOOST_SPIRIT_ENABLE_BINARY_IEEE754(name)                              \
-    template<>                                                                \
-    struct use_terminal<qi::domain, tag::name>: mpl::true_ {};                \
-                                                                              \
-    template<typename A0>                                                     \
-    struct use_terminal<qi::domain, terminal_ex<tag::name,                    \
-        fusion::vector1<A0> > >: is_floating_point<A0> {};                    \
-                                                                              \
-    template<>                                                                \
-    struct use_lazy_terminal<qi::domain, tag::name, 1>: mpl::true_ {};        \
-                                                                              \
 /***/
 
 namespace boost { namespace spirit
@@ -73,58 +59,34 @@ namespace boost { namespace spirit
     BOOST_SPIRIT_ENABLE_BINARY(big_qword)               // enables big_qword
     BOOST_SPIRIT_ENABLE_BINARY(little_qword)            // enables little_qword
 #endif
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(bin_float)
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(big_bin_float)
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(little_bin_float)
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(bin_double)
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(big_bin_double)
-    BOOST_SPIRIT_ENABLE_BINARY_IEEE754(little_bin_double)
 }}
 
 #undef BOOST_SPIRIT_ENABLE_BINARY
-#undef BOOST_SPIRIT_ENABLE_BINARY_IEEE754
 
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using boost::spirit::byte_;
+    using boost::spirit::byte__type;
     using boost::spirit::word;
-    using boost::spirit::big_word;
-    using boost::spirit::little_word;
-    using boost::spirit::dword;
-    using boost::spirit::big_dword;
-    using boost::spirit::little_dword;
-#ifdef BOOST_HAS_LONG_LONG
-    using boost::spirit::qword;
-    using boost::spirit::big_qword;
-    using boost::spirit::little_qword;
-#endif
-    using boost::spirit::bin_float;
-    using boost::spirit::big_bin_float;
-    using boost::spirit::little_bin_float;
-    using boost::spirit::bin_double;
-    using boost::spirit::big_bin_double;
-    using boost::spirit::little_bin_double;
-#endif
-
-    using boost::spirit::byte_type;
     using boost::spirit::word_type;
+    using boost::spirit::big_word;
     using boost::spirit::big_word_type;
+    using boost::spirit::little_word;
     using boost::spirit::little_word_type;
+    using boost::spirit::dword;
     using boost::spirit::dword_type;
+    using boost::spirit::big_dword;
     using boost::spirit::big_dword_type;
+    using boost::spirit::little_dword;
     using boost::spirit::little_dword_type;
 #ifdef BOOST_HAS_LONG_LONG
+    using boost::spirit::qword;
     using boost::spirit::qword_type;
+    using boost::spirit::big_qword;
     using boost::spirit::big_qword_type;
+    using boost::spirit::little_qword;
     using boost::spirit::little_qword_type;
 #endif
-    using boost::spirit::bin_float_type;
-    using boost::spirit::big_bin_float_type;
-    using boost::spirit::little_bin_float_type;
-    using boost::spirit::bin_double_type;
-    using boost::spirit::big_bin_double_type;
-    using boost::spirit::little_bin_double_type;
 
     namespace detail
     {
@@ -145,21 +107,18 @@ namespace boost { namespace spirit { namespace qi
         template <>
         struct integer<8>
         {
-            enum { size = 1 };
             typedef uint_least8_t type;
         };
 
         template <>
         struct integer<16>
         {
-            enum { size = 2 };
             typedef uint_least16_t type;
         };
 
         template <>
         struct integer<32>
         {
-            enum { size = 4 };
             typedef uint_least32_t type;
         };
 
@@ -167,39 +126,16 @@ namespace boost { namespace spirit { namespace qi
         template <>
         struct integer<64>
         {
-            enum { size = 8 };
             typedef uint_least64_t type;
         };
 #endif
 
-        template <int bits>
-        struct floating_point
-        {
-            BOOST_SPIRIT_ASSERT_MSG(
-                bits == 32 || bits == 64,
-                not_supported_binary_size, ());
-        };
-
-        template <>
-        struct floating_point<32>
-        {
-            enum { size = 4 };
-            typedef float type;
-        };
-
-        template <>
-        struct floating_point<64>
-        {
-            enum { size = 8 };
-            typedef double type;
-        };
-
         ///////////////////////////////////////////////////////////////////////
-        template <BOOST_SCOPED_ENUM(boost::endian::endianness) bits>
+        template <BOOST_SCOPED_ENUM(boost::integer::endianness) bits>
         struct what;
 
         template <>
-        struct what<boost::endian::endianness::native>
+        struct what<boost::integer::endianness::native>
         {
             static std::string is()
             {
@@ -208,7 +144,7 @@ namespace boost { namespace spirit { namespace qi
         };
 
         template <>
-        struct what<boost::endian::endianness::little>
+        struct what<boost::integer::endianness::little>
         {
             static char const* is()
             {
@@ -217,7 +153,7 @@ namespace boost { namespace spirit { namespace qi
         };
 
         template <>
-        struct what<boost::endian::endianness::big>
+        struct what<boost::integer::endianness::big>
         {
             static char const* is()
             {
@@ -227,21 +163,22 @@ namespace boost { namespace spirit { namespace qi
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T, BOOST_SCOPED_ENUM(boost::endian::endianness) endian, int bits>
-    struct any_binary_parser : primitive_parser<any_binary_parser<T, endian, bits> >
+    template <BOOST_SCOPED_ENUM(boost::integer::endianness) endian, int bits>
+    struct any_binary_parser : primitive_parser<any_binary_parser<endian, bits> >
     {
         template <typename Context, typename Iterator>
         struct attribute
         {
-            typedef boost::endian::endian<endian, typename T::type,
-                bits> type;
+            typedef boost::integer::endian<
+                endian, typename qi::detail::integer<bits>::type, bits
+            > type;
         };
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
 
@@ -257,7 +194,7 @@ namespace boost { namespace spirit { namespace qi
             }
 
             first = it;
-            spirit::traits::assign_to(attr_, attr_param);
+            spirit::traits::assign_to(attr_, attr);
             return true;
         }
 
@@ -269,10 +206,10 @@ namespace boost { namespace spirit { namespace qi
     };
 
     ///////////////////////////////////////////////////////////////////////////
-    template <typename V, typename T
-      , BOOST_SCOPED_ENUM(boost::endian::endianness) endian, int bits>
+    template <typename Int
+      , BOOST_SCOPED_ENUM(boost::integer::endianness) endian, int bits>
     struct binary_lit_parser
-      : primitive_parser<binary_lit_parser<V, T, endian, bits> >
+      : primitive_parser<binary_lit_parser<Int, endian, bits> >
     {
         template <typename Context, typename Iterator>
         struct attribute
@@ -280,14 +217,14 @@ namespace boost { namespace spirit { namespace qi
             typedef unused_type type;
         };
 
-        binary_lit_parser(V n_)
-          : n(n_) {}
+        binary_lit_parser(Int n)
+          : n(n) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
 
@@ -295,7 +232,8 @@ namespace boost { namespace spirit { namespace qi
             // definition of C++03) it seems to be safe to assume they are
             // (but in C++0x the endian types _are_ PODs).
             // This allows us to treat them as a sequence of consecutive bytes.
-            boost::endian::endian<endian, typename T::type, bits> attr_;
+            boost::integer::endian<
+                endian, typename qi::detail::integer<bits>::type, bits> attr_;
 
 #if defined(BOOST_MSVC)
 // warning C4244: 'argument' : conversion from 'const int' to 'foo', possible loss of data
@@ -312,12 +250,12 @@ namespace boost { namespace spirit { namespace qi
             Iterator it = first;
             for (unsigned int i = 0; i < sizeof(attr_); ++i)
             {
-                if (it == last || *bytes++ != static_cast<unsigned char>(*it++))
+                if (it == last || *bytes++ != *it++)
                     return false;
             }
 
             first = it;
-            spirit::traits::assign_to(attr_, attr_param);
+            spirit::traits::assign_to(attr_, attr);
             return true;
         }
 
@@ -327,27 +265,27 @@ namespace boost { namespace spirit { namespace qi
             return info(qi::detail::what<endian>::is());
         }
 
-        V n;
+        Int n;
     };
 
     ///////////////////////////////////////////////////////////////////////////
     // Parser generators: make_xxx function (objects)
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T, BOOST_SCOPED_ENUM(boost::endian::endianness) endian, int bits>
+    template <BOOST_SCOPED_ENUM(boost::integer::endianness) endian, int bits>
     struct make_binary_parser
     {
-        typedef any_binary_parser<T, endian, bits> result_type;
+        typedef any_binary_parser<endian, bits> result_type;
         result_type operator()(unused_type, unused_type) const
         {
             return result_type();
         }
     };
 
-    template <typename V, typename T
-      , BOOST_SCOPED_ENUM(boost::endian::endianness) endian, int bits>
+    template <typename Int
+      , BOOST_SCOPED_ENUM(boost::integer::endianness) endian, int bits>
     struct make_binary_lit_parser
     {
-        typedef binary_lit_parser<V, T, endian, bits> result_type;
+        typedef binary_lit_parser<Int, endian, bits> result_type;
         template <typename Terminal>
         result_type operator()(Terminal const& term, unused_type) const
         {
@@ -355,18 +293,16 @@ namespace boost { namespace spirit { namespace qi
         }
     };
 
-#define BOOST_SPIRIT_MAKE_BINARY_PRIMITIVE(name, endiantype, bits)            \
-    template <typename Modifiers>                                             \
-    struct make_primitive<tag::name, Modifiers>                               \
-      : make_binary_parser<detail::integer<bits>,                             \
-        boost::endian::endianness::endiantype, bits> {};                      \
-                                                                              \
-    template <typename Modifiers, typename A0>                                \
-    struct make_primitive<                                                    \
-        terminal_ex<tag::name, fusion::vector1<A0> > , Modifiers>             \
-      : make_binary_lit_parser<A0, detail::integer<bits>,                     \
-        boost::endian::endianness::endiantype, bits> {};                      \
-                                                                              \
+#define BOOST_SPIRIT_MAKE_BINARY_PRIMITIVE(name, endian, bits)                  \
+    template <typename Modifiers>                                               \
+    struct make_primitive<tag::name, Modifiers>                                 \
+      : make_binary_parser<boost::integer::endianness::endian, bits> {};        \
+                                                                                \
+    template <typename Modifiers, typename A0>                                  \
+    struct make_primitive<                                                      \
+        terminal_ex<tag::name, fusion::vector1<A0> > , Modifiers>               \
+      : make_binary_lit_parser<A0, boost::integer::endianness::endian, bits> {};\
+                                                                                \
     /***/
 
     BOOST_SPIRIT_MAKE_BINARY_PRIMITIVE(byte_, native, 8)
@@ -383,30 +319,6 @@ namespace boost { namespace spirit { namespace qi
 #endif
 
 #undef BOOST_SPIRIT_MAKE_BINARY_PRIMITIVE
-
-#define BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(name, endiantype, bits)    \
-    template<typename Modifiers>                                              \
-    struct make_primitive<tag::name, Modifiers>                               \
-      : make_binary_parser<detail::floating_point<bits>,                      \
-        boost::endian::endianness::endiantype, bits> {};                      \
-                                                                              \
-    template<typename Modifiers, typename A0>                                 \
-    struct make_primitive<                                                    \
-        terminal_ex<tag::name, fusion::vector1<A0> >, Modifiers>              \
-      : make_binary_lit_parser<A0, detail::floating_point<bits>,              \
-        boost::endian::endianness::endiantype,                                \
-        bits> {};                                                             \
-                                                                              \
-    /***/
-
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(bin_float, native, 32)
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(big_bin_float, big, 32)
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(little_bin_float, little, 32)
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(bin_double, native, 64)
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(big_bin_double, big, 64)
-    BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE(little_bin_double, little, 64)
-
-#undef BOOST_SPIRIT_MAKE_BINARY_IEEE754_PRIMITIVE
 
 }}}
 

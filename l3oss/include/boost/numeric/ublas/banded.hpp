@@ -1,6 +1,6 @@
 //
-//  Copyright (c) 2000-2013
-//  Joerg Walter, Mathias Koch, Athanasios Iliopoulos
+//  Copyright (c) 2000-2002
+//  Joerg Walter, Mathias Koch
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
 //  accompanying file LICENSE_1_0.txt or copy at
@@ -20,79 +20,7 @@
 
 namespace boost { namespace numeric { namespace ublas {
 
-
-namespace hidden {
-
-
-
-/** \brief A helper for band_matrix indexing.
- *
- * The indexing happens as per the netlib description: http://www.netlib.org/lapack/lug/node124.html.
- * In the case of a row_major matrix a different approach is followed;
- */
-template <class LayoutType>
-class banded_indexing { };
-
-/** \brief A helper for indexing column major banded matrices.
- *
- */
-template <>
-class banded_indexing<column_major_tag> {
-public:
-
-    template <class T>
-    BOOST_UBLAS_INLINE static T size(T /*size1*/, T size2) {
-        return size2;
-    }
-
-//    template <class T>
-//    BOOST_UBLAS_INLINE static bool valid_index(T size1, T /*size2*/, T lower, T upper, T i, T j) {
-//        return (upper+i >= j) && i <= std::min(size1 - 1, j + lower); // upper + i is used by get_index. Maybe find a way to consolidate the operations to increase performance
-//    }
-
-    template <class T>
-    BOOST_UBLAS_INLINE static T get_index(T /*size1*/, T size2, T lower, T upper, T i, T j) {
-        return column_major::element (upper + i - j, lower + 1 + upper, j, size2);
-    }
-};
-
-/** \brief A helper for indexing row major banded matrices.
- *
- */
-template <>
-class banded_indexing<row_major_tag> {
-public:
-
-    template <class T>
-    BOOST_UBLAS_INLINE static T size(T size1, T /*size2*/) {
-        return size1;
-    }
-
-  //  template <class T>
-  //  BOOST_UBLAS_INLINE static bool valid_index(T /*size1*/, T  size2, T lower, T upper, T i, T j) {
-  //      return (lower+j >= i) && j <= std::min(size2 - 1, i + upper); // lower + j is used by get_index. Maybe find a way to consolidate the operations to increase performance
-  //  }
-
-    template <class T>
-    BOOST_UBLAS_INLINE static T get_index(T size1, T /*size2*/, T lower, T upper, T i, T j) {
-        return row_major::element (i, size1, lower + j - i, lower + 1 + upper);
-    }
-};
-
-}
-
-    /** \brief A banded matrix of values of type \c T.
-     *
-     * For a \f$(mxn)\f$-dimensional banded matrix with \f$l\f$ lower and \f$u\f$ upper diagonals and 
-     * \f$0 \leq i < m\f$ and \f$0 \leq j < n\f$, if \f$i>j+l\f$ or \f$i<j-u\f$ then \f$b_{i,j}=0\f$. 
-     * The default storage for banded matrices is packed. Orientation and storage can also be specified. 
-     * Default is \c row_major and and unbounded_array. It is \b not required by the storage to initialize 
-     * elements of the matrix.
-     *
-     * \tparam T the type of object stored in the matrix (like double, float, complex, etc...)
-     * \tparam L the storage organization. It can be either \c row_major or \c column_major. Default is \c row_major
-     * \tparam A the type of Storage array. Default is \c unbounded_array
-     */
+    // Array based banded matrix class
     template<class T, class L, class A>
     class banded_matrix:
         public matrix_container<banded_matrix<T, L, A> > {
@@ -100,9 +28,6 @@ public:
         typedef T *pointer;
         typedef L layout_type;
         typedef banded_matrix<T, L, A> self_type;
-
-
-
     public:
 #ifdef BOOST_UBLAS_ENABLE_PROXY_SHORTCUTS
         using matrix_container<self_type>::operator ();
@@ -120,9 +45,6 @@ public:
         typedef packed_tag storage_category;
         typedef typename L::orientation_category orientation_category;
 
-    private:
-    public:
-
         // Construction and destruction
         BOOST_UBLAS_INLINE
         banded_matrix ():
@@ -133,13 +55,7 @@ public:
         banded_matrix (size_type size1, size_type size2, size_type lower = 0, size_type upper = 0):
             matrix_container<self_type> (),
             size1_ (size1), size2_ (size2),
-            lower_ (lower), upper_ (upper),
-#if defined(BOOST_UBLAS_OWN_BANDED) || (BOOST_UBLAS_LEGACY_BANDED)
-            data_ ((std::max) (size1, size2) * (lower + 1 + upper))
-#else
-            data_ ( hidden::banded_indexing<orientation_category>::size(size1, size2) * (lower + 1 + upper)) // This is the netlib layout as described here: http://www.netlib.org/lapack/lug/node124.html
-#endif
-        {
+            lower_ (lower), upper_ (upper), data_ ((std::max) (size1, size2) * (lower + 1 + upper)) {
         }
         BOOST_UBLAS_INLINE
         banded_matrix (size_type size1, size_type size2, size_type lower, size_type upper, const array_type &data):
@@ -157,12 +73,7 @@ public:
             matrix_container<self_type> (),
             size1_ (ae ().size1 ()), size2_ (ae ().size2 ()),
             lower_ (lower), upper_ (upper),
-#if defined(BOOST_UBLAS_OWN_BANDED) || (BOOST_UBLAS_LEGACY_BANDED)
-            data_ ((std::max) (size1_, size2_) * (lower_ + 1 + upper_))
-#else
-            data_ ( hidden::banded_indexing<orientation_category>::size(size1_, size2_) * (lower_ + 1 + upper_)) // This is the netlib layout as described here: http://www.netlib.org/lapack/lug/node124.html
-#endif
-        {
+            data_ ((std::max) (size1_, size2_) * (lower_ + 1 + upper_)) {
             matrix_assign<scalar_assign> (*this, ae);
         }
 
@@ -194,13 +105,6 @@ public:
             return data_;
         }
 
-#if !defined (BOOST_UBLAS_OWN_BANDED)||(BOOST_UBLAS_LEGACY_BANDED)
-        BOOST_UBLAS_INLINE
-        bool is_element_in_band(size_type i, size_type j) const{
-            //return (upper_+i >= j) && i <= std::min(size1() - 1, j + lower_); // We don't need to check if i is outside because it is checked anyway in the accessors.
-            return (upper_+i >= j) && i <= ( j + lower_); // Essentially this band has "infinite" positive dimensions
-        }
-#endif
         // Resizing
         BOOST_UBLAS_INLINE
         void resize (size_type size1, size_type size2, size_type lower = 0, size_type upper = 0, bool preserve = true) {
@@ -234,49 +138,34 @@ public:
 #ifdef BOOST_UBLAS_OWN_BANDED
             const size_type k = (std::max) (i, j);
             const size_type l = lower_ + j - i;
-            if (k < (std::max) (size1_, size2_) && // TODO: probably use BOOST_UBLAS_CHECK here instead of if
+            if (k < (std::max) (size1_, size2_) &&
                 l < lower_ + 1 + upper_)
                 return data () [layout_type::element (k, (std::max) (size1_, size2_),
                                                        l, lower_ + 1 + upper_)];
-#elif BOOST_UBLAS_LEGACY_BANDED // Prior to version: TODO: add version this is actually incorporated in
+#else
             const size_type k = j;
             const size_type l = upper_ + i - j;
             if (k < size2_ &&
                 l < lower_ + 1 + upper_)
                 return data () [layout_type::element (k, size2_,
                                                        l, lower_ + 1 + upper_)];
-#else  // New default
-            // This is the netlib layout as described here: http://www.netlib.org/lapack/lug/node124.html
-            if ( is_element_in_band( i, j) ) {
-                return data () [hidden::banded_indexing<orientation_category>::get_index(size1_, size2_, lower_, upper_, i, j)];
-            }
 #endif
             return zero_;
         }
-
         BOOST_UBLAS_INLINE
         reference at_element (size_type i, size_type j) {
             BOOST_UBLAS_CHECK (i < size1_, bad_index ());
             BOOST_UBLAS_CHECK (j < size2_, bad_index ());
 #ifdef BOOST_UBLAS_OWN_BANDED
             const size_type k = (std::max) (i, j);
-            const size_type l = lower_ + j - i; // TODO: Don't we need an if or BOOST_UBLAS_CHECK HERE?
+            const size_type l = lower_ + j - i;
             return data () [layout_type::element (k, (std::max) (size1_, size2_),
                                                    l, lower_ + 1 + upper_)];
-#elif BOOST_UBLAS_LEGACY_BANDED // Prior to version: TODO: add version this is actually incorporated in
+#else
             const size_type k = j;
             const size_type l = upper_ + i - j;
-            if (! (k < size2_ &&
-                   l < lower_ + 1 + upper_) ) {
-                bad_index ().raise ();
-                // NEVER reached
-            }
             return data () [layout_type::element (k, size2_,
-                                                       l, lower_ + 1 + upper_)];
-#else
-            // This is the netlib layout as described here: http://www.netlib.org/lapack/lug/node124.html
-            BOOST_UBLAS_CHECK(is_element_in_band( i, j) , bad_index());
-            return data () [hidden::banded_indexing<orientation_category>::get_index(size1_, size2_, lower_, upper_, i, j)];
+                                                   l, lower_ + 1 + upper_)];
 #endif
         }
         BOOST_UBLAS_INLINE
@@ -286,14 +175,14 @@ public:
 #ifdef BOOST_UBLAS_OWN_BANDED
             const size_type k = (std::max) (i, j);
             const size_type l = lower_ + j - i;
-            if (! (k < (std::max) (size1_, size2_) && // TODO: probably use BOOST_UBLAS_CHECK here instead of if
+            if (! (k < (std::max) (size1_, size2_) &&
                   l < lower_ + 1 + upper_) ) {
                 bad_index ().raise ();
                 // NEVER reached
             }
             return data () [layout_type::element (k, (std::max) (size1_, size2_),
                                                        l, lower_ + 1 + upper_)];
-#elif BOOST_UBLAS_LEGACY_BANDED // Prior to version: TODO: add version this is actually incorporated in
+#else
             const size_type k = j;
             const size_type l = upper_ + i - j;
             if (! (k < size2_ &&
@@ -303,12 +192,7 @@ public:
             }
             return data () [layout_type::element (k, size2_,
                                                        l, lower_ + 1 + upper_)];
-#else
-            // This is the netlib layout as described here: http://www.netlib.org/lapack/lug/node124.html
-            BOOST_UBLAS_CHECK( is_element_in_band( i, j) , bad_index());
-            return data () [hidden::banded_indexing<orientation_category>::get_index(size1_, size2_, lower_, upper_, i, j)];
 #endif
-
         }
 
         // Element assignment
@@ -543,22 +427,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_iterator2 cbegin () const {
-                return begin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_iterator2 end () const {
                 return (*this) ().find2 (1, it1_, (*this) ().size2 ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_iterator2 cend () const {
-                return end ();
             }
             BOOST_UBLAS_INLINE
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
@@ -571,22 +441,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_reverse_iterator2 crbegin () const {
-                return rbegin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_reverse_iterator2 rend () const {
                 return const_reverse_iterator2 (begin ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_reverse_iterator2 crend () const {
-                return rend ();
             }
 #endif
 
@@ -634,16 +490,8 @@ public:
             return find1 (0, 0, 0);
         }
         BOOST_UBLAS_INLINE
-        const_iterator1 cbegin1 () const {
-            return begin1 ();
-        }
-        BOOST_UBLAS_INLINE
         const_iterator1 end1 () const {
             return find1 (0, size1_, 0);
-        }
-        BOOST_UBLAS_INLINE
-        const_iterator1 cend1 () const {
-            return end1 ();
         }
 
 #ifndef BOOST_UBLAS_USE_INDEXED_ITERATOR
@@ -721,7 +569,6 @@ public:
             iterator2 end () const {
                 return (*this) ().find2 (1, it1_, (*this) ().size2 ());
             }
-
             BOOST_UBLAS_INLINE
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
@@ -863,24 +710,9 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_iterator1 cbegin () const {
-                return begin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_iterator1 end () const {
                 return (*this) ().find1 (1, (*this) ().size1 (), it2_);
             }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_iterator1 cend () const {
-                return end();
-            }
-
             BOOST_UBLAS_INLINE
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
@@ -892,22 +724,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_reverse_iterator1 crbegin () const {
-                return rbegin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_reverse_iterator1 rend () const {
                 return const_reverse_iterator1 (begin ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_reverse_iterator1 crend () const {
-                return rend ();
             }
 #endif
 
@@ -955,16 +773,8 @@ public:
             return find2 (0, 0, 0);
         }
         BOOST_UBLAS_INLINE
-        const_iterator2 cbegin2 () const {
-            return begin2 ();
-        }
-        BOOST_UBLAS_INLINE
         const_iterator2 end2 () const {
             return find2 (0, 0, size2_);
-        }
-        BOOST_UBLAS_INLINE
-        const_iterator2 cend2 () const {
-            return end2 ();
         }
 
 #ifndef BOOST_UBLAS_USE_INDEXED_ITERATOR
@@ -1115,16 +925,8 @@ public:
             return const_reverse_iterator1 (end1 ());
         }
         BOOST_UBLAS_INLINE
-        const_reverse_iterator1 crbegin1 () const {
-            return rbegin1 ();
-        }
-        BOOST_UBLAS_INLINE
         const_reverse_iterator1 rend1 () const {
             return const_reverse_iterator1 (begin1 ());
-        }
-        BOOST_UBLAS_INLINE
-        const_reverse_iterator1 crend1 () const {
-            return rend1 ();
         }
 
         BOOST_UBLAS_INLINE
@@ -1141,16 +943,8 @@ public:
             return const_reverse_iterator2 (end2 ());
         }
         BOOST_UBLAS_INLINE
-        const_reverse_iterator2 crbegin2 () const {
-            return rbegin2 ();
-        }
-        BOOST_UBLAS_INLINE
         const_reverse_iterator2 rend2 () const {
             return const_reverse_iterator2 (begin2 ());
-        }
-        BOOST_UBLAS_INLINE
-        const_reverse_iterator2 crend2 () const {
-            return rend2 ();
         }
 
         BOOST_UBLAS_INLINE
@@ -1176,21 +970,7 @@ public:
     typename banded_matrix<T, L, A>::const_value_type banded_matrix<T, L, A>::zero_ = value_type/*zero*/();
 
 
-    /** \brief A diagonal matrix of values of type \c T, which is a specialization of a banded matrix
-     *
-     * For a \f$(m\times m)\f$-dimensional diagonal matrix, \f$0 \leq i < m\f$ and \f$0 \leq j < m\f$, 
-     * if \f$i\neq j\f$ then \f$b_{i,j}=0\f$. The default storage for diagonal matrices is packed. 
-     * Orientation and storage can also be specified. Default is \c row major \c unbounded_array. 
-     *
-     * As a specialization of a banded matrix, the constructor of the diagonal matrix creates 
-     * a banded matrix with 0 upper and lower diagonals around the main diagonal and the matrix is 
-     * obviously a square matrix. Operations are optimized based on these 2 assumptions. It is 
-     * \b not required by the storage to initialize elements of the matrix.  
-     *
-     * \tparam T the type of object stored in the matrix (like double, float, complex, etc...)
-     * \tparam L the storage organization. It can be either \c row_major or \c column_major. Default is \c row_major
-     * \tparam A the type of Storage array. Default is \c unbounded_array
-     */
+    // Diagonal matrix class
     template<class T, class L, class A>
     class diagonal_matrix:
         public banded_matrix<T, L, A> {
@@ -1233,24 +1013,12 @@ public:
         }
     };
 
-    /** \brief A banded matrix adaptator: convert a any matrix into a banded matrix expression
-     *
-     * For a \f$(m\times n)\f$-dimensional matrix, the \c banded_adaptor will provide a banded matrix
-     * with \f$l\f$ lower and \f$u\f$ upper diagonals and \f$0 \leq i < m\f$ and \f$0 \leq j < n\f$,
-     * if \f$i>j+l\f$ or \f$i<j-u\f$ then \f$b_{i,j}=0\f$. 
-     *
-     * Storage and location are based on those of the underlying matrix. This is important because
-     * a \c banded_adaptor does not copy the matrix data to a new place. Therefore, modifying values
-     * in a \c banded_adaptor matrix will also modify the underlying matrix too.
-     *
-     * \tparam M the type of matrix used to generate a banded matrix
-     */
+    // Banded matrix adaptor class
     template<class M>
     class banded_adaptor:
         public matrix_expression<banded_adaptor<M> > {
 
         typedef banded_adaptor<M> self_type;
-
     public:
 #ifdef BOOST_UBLAS_ENABLE_PROXY_SHORTCUTS
         using matrix_expression<self_type>::operator ();
@@ -1314,14 +1082,6 @@ public:
             return data_;
         }
 
-#if !defined (BOOST_UBLAS_OWN_BANDED)||(BOOST_UBLAS_LEGACY_BANDED)
-        BOOST_UBLAS_INLINE
-        bool is_element_in_band(size_type i, size_type j) const{
-            //return (upper_+i >= j) && i <= std::min(size1() - 1, j + lower_); // We don't need to check if i is outside because it is checked anyway in the accessors.
-            return (upper_+i >= j) && i <= ( j + lower_); // Essentially this band has "infinite" positive dimensions
-        }
-#endif
-
         // Element access
 #ifndef BOOST_UBLAS_PROXY_CONST_MEMBER
         BOOST_UBLAS_INLINE
@@ -1334,14 +1094,11 @@ public:
             if (k < (std::max) (size1 (), size2 ()) &&
                 l < lower_ + 1 + upper_)
                 return data () (i, j);
-#elif BOOST_UBLAS_LEGACY_BANDED
+#else
             size_type k = j;
             size_type l = upper_ + i - j;
             if (k < size2 () &&
                 l < lower_ + 1 + upper_)
-                return data () (i, j);
-#else
-            if (is_element_in_band( i, j))
                 return data () (i, j);
 #endif
             return zero_;
@@ -1356,14 +1113,11 @@ public:
             if (k < (std::max) (size1 (), size2 ()) &&
                 l < lower_ + 1 + upper_)
                 return data () (i, j);
-#elif BOOST_UBLAS_LEGACY_BANDED
+#else
             size_type k = j;
             size_type l = upper_ + i - j;
             if (k < size2 () &&
                 l < lower_ + 1 + upper_)
-                return data () (i, j);
-#else
-            if (is_element_in_band( i, j))
                 return data () (i, j);
 #endif
 #ifndef BOOST_UBLAS_REFERENCE_CONST_MEMBER
@@ -1382,14 +1136,11 @@ public:
             if (k < (std::max) (size1 (), size2 ()) &&
                 l < lower_ + 1 + upper_)
                 return data () (i, j);
-#elif BOOST_UBLAS_LEGACY_BANDED
+#else
             size_type k = j;
             size_type l = upper_ + i - j;
             if (k < size2 () &&
                 l < lower_ + 1 + upper_)
-                return data () (i, j);
-#else
-            if (is_element_in_band( i, j))
                 return data () (i, j);
 #endif
 #ifndef BOOST_UBLAS_REFERENCE_CONST_MEMBER
@@ -1644,22 +1395,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_iterator2 cbegin () const {
-                return begin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_iterator2 end () const {
                 return (*this) ().find2 (1, index1 (), (*this) ().size2 ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_iterator2 cend () const {
-                return end ();
             }
             BOOST_UBLAS_INLINE
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
@@ -1672,22 +1409,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_reverse_iterator2 crbegin () const {
-                return rbegin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_reverse_iterator2 rend () const {
                 return const_reverse_iterator2 (begin ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_reverse_iterator2 crend () const {
-                return rend ();
             }
 #endif
 
@@ -1731,16 +1454,8 @@ public:
             return find1 (0, 0, 0);
         }
         BOOST_UBLAS_INLINE
-        const_iterator1 cbegin1 () const {
-            return begin1 ();
-        }
-        BOOST_UBLAS_INLINE
         const_iterator1 end1 () const {
             return find1 (0, size1 (), 0);
-        }
-        BOOST_UBLAS_INLINE
-        const_iterator1 cend1 () const {
-            return end1 ();
         }
 
 #ifndef BOOST_UBLAS_USE_INDEXED_ITERATOR
@@ -1990,22 +1705,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_iterator1 cbegin () const {
-                return begin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_iterator1 end () const {
                 return (*this) ().find1 (1, (*this) ().size1 (), index2 ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_iterator1 cend () const {
-                return end ();
             }
             BOOST_UBLAS_INLINE
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
@@ -2018,22 +1719,8 @@ public:
 #ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
             typename self_type::
 #endif
-            const_reverse_iterator1 crbegin () const {
-                return rbegin ();
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
             const_reverse_iterator1 rend () const {
                 return const_reverse_iterator1 (begin ());
-            }
-            BOOST_UBLAS_INLINE
-#ifdef BOOST_UBLAS_MSVC_NESTED_CLASS_RELATION
-            typename self_type::
-#endif
-            const_reverse_iterator1 crend () const {
-                return rend ();
             }
 #endif
 
@@ -2077,16 +1764,8 @@ public:
             return find2 (0, 0, 0);
         }
         BOOST_UBLAS_INLINE
-        const_iterator2 cbegin2 () const {
-            return begin2 ();
-        }
-        BOOST_UBLAS_INLINE
         const_iterator2 end2 () const {
             return find2 (0, 0, size2 ());
-        }
-        BOOST_UBLAS_INLINE
-        const_iterator2 cend2 () const {
-            return end2 ();
         }
 
 #ifndef BOOST_UBLAS_USE_INDEXED_ITERATOR
@@ -2250,16 +1929,8 @@ public:
             return const_reverse_iterator1 (end1 ());
         }
         BOOST_UBLAS_INLINE
-        const_reverse_iterator1 crbegin1 () const {
-            return rbegin1 ();
-        }
-        BOOST_UBLAS_INLINE
         const_reverse_iterator1 rend1 () const {
             return const_reverse_iterator1 (begin1 ());
-        }
-        BOOST_UBLAS_INLINE
-        const_reverse_iterator1 crend1 () const {
-            return rend1 ();
         }
 
         BOOST_UBLAS_INLINE
@@ -2276,16 +1947,8 @@ public:
             return const_reverse_iterator2 (end2 ());
         }
         BOOST_UBLAS_INLINE
-        const_reverse_iterator2 crbegin2 () const {
-            return rbegin2 ();
-        }
-        BOOST_UBLAS_INLINE
         const_reverse_iterator2 rend2 () const {
             return const_reverse_iterator2 (begin2 ());
-        }
-        BOOST_UBLAS_INLINE
-        const_reverse_iterator2 crend2 () const {
-            return rend2 ();
         }
 
         BOOST_UBLAS_INLINE
@@ -2324,18 +1987,7 @@ public:
     template<class M>
     typename banded_adaptor<M>::const_value_type banded_adaptor<M>::zero_ = value_type/*zero*/();
 
-    /** \brief A diagonal matrix adaptator: convert a any matrix into a diagonal matrix expression
-     *
-     * For a \f$(m\times m)\f$-dimensional matrix, the \c diagonal_adaptor will provide a diagonal matrix
-     * with \f$0 \leq i < m\f$ and \f$0 \leq j < m\f$, if \f$i\neq j\f$ then \f$b_{i,j}=0\f$. 
-     *
-     * Storage and location are based on those of the underlying matrix. This is important because
-     * a \c diagonal_adaptor does not copy the matrix data to a new place. Therefore, modifying values
-     * in a \c diagonal_adaptor matrix will also modify the underlying matrix too.
-     *
-     * \tparam M the type of matrix used to generate the diagonal matrix
-     */
-
+    // Diagonal matrix adaptor class
     template<class M>
     class diagonal_adaptor:
         public banded_adaptor<M> {

@@ -10,7 +10,10 @@
 #ifndef BOOST_TT_ADD_CONST_HPP_INCLUDED
 #define BOOST_TT_ADD_CONST_HPP_INCLUDED
 
-#include <boost/type_traits/detail/config.hpp>
+#include <boost/config.hpp>
+
+// should be the last #include
+#include <boost/type_traits/detail/type_trait_def.hpp>
 
 namespace boost {
 
@@ -27,26 +30,18 @@ namespace boost {
 #   pragma warning(disable:4181) // warning C4181: qualifier applied to reference type ignored
 #endif 
 
-   template <class T> struct add_const
-   {
-      typedef T const type;
-   };
+BOOST_TT_AUX_TYPE_TRAIT_DEF1(add_const,T,T const)
 
 #if defined(BOOST_MSVC)
 #   pragma warning(pop)
 #endif 
 
-   template <class T> struct add_const<T&>
-   {
-      typedef T& type;
-   };
-
-#if !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES)
-
-   template <class T> using add_const_t = typename add_const<T>::type;
-
+#ifndef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
+BOOST_TT_AUX_TYPE_TRAIT_PARTIAL_SPEC1_1(typename T,add_const,T&,T&)
 #endif
 
 } // namespace boost
+
+#include <boost/type_traits/detail/type_trait_undef.hpp>
 
 #endif // BOOST_TT_ADD_CONST_HPP_INCLUDED

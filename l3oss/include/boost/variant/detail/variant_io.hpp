@@ -15,10 +15,10 @@
 
 #include <iosfwd> // for std::basic_ostream forward declare
 
-#include <boost/variant/variant_fwd.hpp>
+#include "boost/variant/variant_fwd.hpp"
 
-#include <boost/detail/templated_streams.hpp>
-#include <boost/variant/static_visitor.hpp>
+#include "boost/detail/templated_streams.hpp"
+#include "boost/variant/static_visitor.hpp"
 
 namespace boost {
 
@@ -63,9 +63,6 @@ public: // visitor interface
     {
         out_ << operand;
     }
-
-private:
-    printer& operator=(const printer&);
 
 };
 

@@ -67,9 +67,6 @@ public:
    std_real_concept(float c) : m_value(c){}
    std_real_concept(double c) : m_value(c){}
    std_real_concept(long double c) : m_value(c){}
-#ifdef BOOST_MATH_USE_FLOAT128
-   std_real_concept(BOOST_MATH_FLOAT128_TYPE c) : m_value(c){}
-#endif
 
    // Assignment:
    std_real_concept& operator=(char c) { m_value = c; return *this; }
@@ -226,18 +223,6 @@ inline boost::math::concepts::std_real_concept sqrt(boost::math::concepts::std_r
 { return std::sqrt(a.value()); }
 inline boost::math::concepts::std_real_concept tanh(boost::math::concepts::std_real_concept a)
 { return std::tanh(a.value()); }
-//
-// C++11 ism's
-// Note that these must not actually call the std:: versions as that precludes using this
-// header to test in C++03 mode, call the Boost versions instead:
-//
-inline boost::math::concepts::std_real_concept asinh(boost::math::concepts::std_real_concept a)
-{ return boost::math::asinh(a.value(), boost::math::policies::make_policy(boost::math::policies::overflow_error<boost::math::policies::ignore_error>())); }
-inline boost::math::concepts::std_real_concept acosh(boost::math::concepts::std_real_concept a)
-{ return boost::math::acosh(a.value(), boost::math::policies::make_policy(boost::math::policies::overflow_error<boost::math::policies::ignore_error>())); }
-inline boost::math::concepts::std_real_concept atanh(boost::math::concepts::std_real_concept a)
-{ return boost::math::atanh(a.value(), boost::math::policies::make_policy(boost::math::policies::overflow_error<boost::math::policies::ignore_error>())); }
-
 
 } // namespace std
 
@@ -328,36 +313,20 @@ inline std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, t
 template <class charT, class traits>
 inline std::basic_istream<charT, traits>& operator>>(std::basic_istream<charT, traits>& is, std_real_concept& a)
 {
-#if defined(__SGI_STL_PORT) || defined(_RWSTD_VER) || defined(__LIBCOMO__) || defined(_LIBCPP_VERSION)
-   std::string s;
-   std_real_concept_base_type d;
-   is >> s;
-   std::sscanf(s.c_str(), "%Lf", &d);
-   a = d;
-   return is;
-#else
    std_real_concept_base_type v;
    is >> v;
    a = v;
    return is;
-#endif
 }
 
 } // namespace concepts
 }}
 
 #include <boost/math/tools/precision.hpp>
-#include <boost/math/tools/big_constant.hpp>
 
 namespace boost{ namespace math{
 namespace tools
 {
-
-template <>
-inline concepts::std_real_concept make_big_value<concepts::std_real_concept>(boost::math::tools::largest_float val, const char*, mpl::false_ const&, mpl::false_ const&)
-{
-   return val;  // Can't use lexical_cast here, sometimes it fails....
-}
 
 template <>
 inline concepts::std_real_concept max_value<concepts::std_real_concept>(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(concepts::std_real_concept))
@@ -390,7 +359,7 @@ inline concepts::std_real_concept epsilon(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC
 }
 
 template <>
-inline BOOST_MATH_CONSTEXPR int digits<concepts::std_real_concept>(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(concepts::std_real_concept)) BOOST_NOEXCEPT
+inline int digits<concepts::std_real_concept>(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(concepts::std_real_concept))
 { // Assume number of significand bits is same as std_real_concept_base_type,
   // unless std::numeric_limits<T>::is_specialized to provide digits.
    return digits<concepts::std_real_concept_base_type>();
@@ -410,12 +379,8 @@ using concepts::llround;
 } // namespace math
 } // namespace boost
 
-//
-// These must go at the end, as they include stuff that won't compile until
-// after std_real_concept has been defined:
-//
-#include <boost/math/special_functions/acosh.hpp>
-#include <boost/math/special_functions/asinh.hpp>
-#include <boost/math/special_functions/atanh.hpp>
-
 #endif // BOOST_MATH_STD_REAL_CONCEPT_HPP
+
+
+
+

@@ -1,5 +1,5 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
-//  Copyright (c) 2001-2011 Joel de Guzman
+//  Copyright (c) 2001-2009 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Joel de Guzman
 //  Copyright (c) 2003 Vaclav Vesely
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -21,7 +21,7 @@
 #include <boost/spirit/home/support/make_component.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/string_traits.hpp>
 #include <boost/spirit/home/qi/auxiliary/eps.hpp>
 #include <boost/spirit/home/qi/auxiliary/lazy.hpp>

@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,13 +13,12 @@
 
 #include <boost/spirit/home/qi/meta_compiler.hpp>
 #include <boost/spirit/home/qi/parser.hpp>
-#include <boost/spirit/home/qi/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/argument.hpp>
 #include <boost/spirit/home/support/context.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/action_dispatch.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/if.hpp>
@@ -41,10 +40,9 @@ namespace boost { namespace spirit { namespace qi
           : traits::attribute_of<Subject, Context, Iterator>
         {};
 
-        action(Subject const& subject_, Action f_)
-          : subject(subject_), f(f_) {}
+        action(Subject const& subject, Action f)
+          : subject(subject), f(f) {}
 
-#ifndef BOOST_SPIRIT_ACTIONS_ALLOW_ATTR_COMPAT
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
@@ -55,84 +53,16 @@ namespace boost { namespace spirit { namespace qi
             typedef traits::make_attribute<attr_type, Attribute> make_attribute;
 
             // create an attribute if one is not supplied
-            typedef traits::transform_attribute<
-                typename make_attribute::type, attr_type, domain> transform;
+            typename make_attribute::type attr = make_attribute::call(attr_);
 
-            typename make_attribute::type made_attr = make_attribute::call(attr_);
-            typename transform::type attr = transform::pre(made_attr);
-
-            Iterator save = first;
             if (subject.parse(first, last, context, skipper, attr))
             {
                 // call the function, passing the attribute, the context.
                 // The client can return false to fail parsing.
-                if (traits::action_dispatch<Subject>()(f, attr, context)) 
-                {
-                    // Do up-stream transformation, this integrates the results
-                    // back into the original attribute value, if appropriate.
-                    traits::post_transform(attr_, attr);
-                    return true;
-                }
-
-                // reset iterators if semantic action failed the match
-                // retrospectively
-                first = save;
+                return traits::action_dispatch<Subject>()(f, attr, context);
             }
             return false;
         }
-#else
-        template <typename Iterator, typename Context
-          , typename Skipper, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last
-          , Context& context, Skipper const& skipper
-          , Attribute& attr) const
-        {
-            Iterator save = first;
-            if (subject.parse(first, last, context, skipper, attr)) // Use the attribute as-is
-            {
-                // call the function, passing the attribute, the context.
-                // The client can return false to fail parsing.
-                if (traits::action_dispatch<Subject>()(f, attr, context))
-                    return true;
-
-                // reset iterators if semantic action failed the match
-                // retrospectively
-                first = save;
-            }
-            return false;
-        }
-
-        template <typename Iterator, typename Context
-          , typename Skipper>
-        bool parse(Iterator& first, Iterator const& last
-          , Context& context, Skipper const& skipper
-          , unused_type) const
-        {
-            typedef typename attribute<Context, Iterator>::type attr_type;
-            typedef traits::make_attribute<attr_type, unused_type> make_attribute;
-
-            // synthesize the attribute since one is not supplied
-            typedef traits::transform_attribute<
-                typename make_attribute::type, attr_type, domain> transform;
-
-            typename make_attribute::type made_attr = make_attribute::call(unused_type());
-            typename transform::type attr = transform::pre(made_attr);
-
-            Iterator save = first;
-            if (subject.parse(first, last, context, skipper, attr))
-            {
-                // call the function, passing the attribute, the context.
-                // The client can return false to fail parsing.
-                if (traits::action_dispatch<Subject>()(f, attr, context))
-                    return true;
-
-                // reset iterators if semantic action failed the match
-                // retrospectively
-                first = save;
-            }
-            return false;
-        }
-#endif
 
         template <typename Context>
         info what(Context& context) const
@@ -186,17 +116,10 @@ namespace boost { namespace spirit
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Subject, typename Action>
     struct has_semantic_action<qi::action<Subject, Action> >
       : mpl::true_ {};
 
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Action, typename Attribute
-        , typename Context, typename Iterator>
-    struct handles_container<qi::action<Subject, Action>, Attribute
-        , Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
 }}}
 
 #endif

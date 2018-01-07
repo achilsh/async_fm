@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_XML_TEXT_ARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -16,9 +16,9 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
+#include <boost/archive/detail/auto_link_archive.hpp>
 #include <boost/archive/archive_exception.hpp>
 
-#include <boost/archive/detail/auto_link_archive.hpp>
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 namespace boost { 
@@ -27,35 +27,35 @@ namespace archive {
 // constant strings used in xml i/o
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_OBJECT_ID();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_OBJECT_REFERENCE();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_CLASS_ID();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_CLASS_ID_REFERENCE();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_CLASS_NAME();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_TRACKING();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_VERSION();
 
 extern 
-BOOST_ARCHIVE_DECL const char *
+BOOST_ARCHIVE_DECL(const char *)
 BOOST_ARCHIVE_XML_SIGNATURE();
 
 }// namespace archive

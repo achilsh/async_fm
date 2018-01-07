@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,11 +7,10 @@
 #if !defined(FUSION_AT_IMPL_07172005_0726)
 #define FUSION_AT_IMPL_07172005_0726
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/add_const.hpp>
-#include <boost/mpl/if.hpp>
+#include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/bool.hpp>
 
 namespace boost { namespace fusion
@@ -94,20 +93,19 @@ namespace boost { namespace fusion
             template <typename Sequence, typename N>
             struct apply
             {
-                typedef typename detail::cons_deref<
-                    typename detail::cons_advance<Sequence, N::value>::type>::type
+                typedef detail::cons_deref<
+                    typename detail::cons_advance<Sequence, N::value>::type>
                 element;
 
                 typedef typename
-                    mpl::if_<
+                    mpl::eval_if<
                         is_const<Sequence>
-                      , typename detail::cref_result<element>::type
-                      , typename detail::ref_result<element>::type
+                      , detail::cref_result<element>
+                      , detail::ref_result<element>
                     >::type
                 type;
 
                 template <typename Cons, int N2>
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
                 static type
                 call(Cons& s, mpl::int_<N2>)
                 {
@@ -115,14 +113,12 @@ namespace boost { namespace fusion
                 }
 
                 template <typename Cons>
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
                 static type
                 call(Cons& s, mpl::int_<0>)
                 {
                     return s.car;
                 }
 
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
                 static type
                 call(Sequence& s)
                 {

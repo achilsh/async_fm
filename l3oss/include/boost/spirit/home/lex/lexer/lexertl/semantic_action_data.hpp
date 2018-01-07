@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -35,8 +35,8 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
             typedef boost::function<functor_type> functor_wrapper_type;
 
             // add a semantic action function object
-            template <typename F>
-            void add_action(std::size_t unique_id, std::size_t, F act) 
+            template <typename Idtype, typename F>
+            void add_action(Idtype unique_id, std::size_t, F act) 
             {
                 if (actions_.size() <= unique_id)
                     actions_.resize(unique_id + 1); 
@@ -75,8 +75,8 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
             typedef boost::function<functor_type> functor_wrapper_type;
 
             // add a semantic action function object
-            template <typename F>
-            void add_action(std::size_t unique_id, std::size_t state, F act) 
+            template <typename Idtype, typename F>
+            void add_action(Idtype unique_id, std::size_t state, F act) 
             {
                 if (actions_.size() <= state)
                     actions_.resize(state + 1); 
@@ -101,9 +101,6 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
                 std::vector<functor_wrapper_type> const& actions = actions_[state];
                 if (unique_id >= actions.size() || !actions[unique_id]) 
                     return pass_flags::pass_normal;
-
-                // set token value 
-                data.set_end(end);
 
                 // Note: all arguments might be changed by the invoked semantic 
                 //       action

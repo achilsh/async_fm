@@ -5,8 +5,6 @@
 #ifndef OBJECT_CORE_DWA2002615_HPP
 # define OBJECT_CORE_DWA2002615_HPP
 
-# define BOOST_PYTHON_OBJECT_HAS_IS_NONE // added 2010-03-15 by rwgk
-
 # include <boost/python/detail/prefix.hpp>
 
 # include <boost/type.hpp>
@@ -31,7 +29,16 @@
 # include <boost/python/detail/is_xxx.hpp>
 # include <boost/python/detail/string_literal.hpp>
 # include <boost/python/detail/def_helper_fwd.hpp>
-# include <boost/python/detail/type_traits.hpp>
+
+# include <boost/type_traits/is_same.hpp>
+# include <boost/type_traits/is_convertible.hpp>
+# include <boost/type_traits/remove_reference.hpp>
+
+# if BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
+#  include <boost/type_traits/add_pointer.hpp>
+# endif
+
+# include <boost/mpl/if.hpp>
 
 namespace boost { namespace python { 
 
@@ -89,7 +96,11 @@ namespace api
   class object_operators : public def_visitor<U>
   {
    protected:
+# if !defined(BOOST_MSVC) || BOOST_MSVC >= 1300
       typedef object const& object_cref;
+# else 
+      typedef object object_cref;
+# endif
    public:
       // function call
       //
@@ -126,11 +137,25 @@ namespace api
     
       template <class T>
       const_object_item
-      operator[](T const& key) const;
+      operator[](T const& key) const
+# if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
+          ;
+# else 
+      {
+          return (*this)[object(key)];
+      }
+# endif 
     
       template <class T>
       object_item
-      operator[](T const& key);
+      operator[](T const& key)
+# if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
+          ;
+# else 
+      {
+          return (*this)[object(key)];
+      }
+# endif
 
       // slicing
       //
@@ -148,11 +173,29 @@ namespace api
 
       template <class T, class V>
       const_object_slice
-      slice(T const& start, V const& end) const;
+      slice(T const& start, V const& end) const
+# if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
+          ;
+# else
+      {
+          return this->slice(
+               slice_bound<T>::type(start)
+              ,  slice_bound<V>::type(end));
+      }
+# endif
     
       template <class T, class V>
       object_slice
-      slice(T const& start, V const& end);
+      slice(T const& start, V const& end)
+# if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
+          ;
+# else
+      {
+          return this->slice(
+              slice_bound<T>::type(start)
+              , slice_bound<V>::type(end));
+      }
+# endif
       
    private: // def visitation for adding callable objects as class methods
       
@@ -162,7 +205,7 @@ namespace api
           // It's too late to specify anything other than docstrings if
           // the callable object is already wrapped.
           BOOST_STATIC_ASSERT(
-              (detail::is_same<char const*,DocStringT>::value
+              (is_same<char const*,DocStringT>::value
                || detail::is_string_literal<DocStringT const>::value));
         
           objects::add_to_namespace(cl, name, this->derived_visitor(), helper.doc());
@@ -196,27 +239,60 @@ namespace api
         
       // Underlying object access -- returns a borrowed reference
       inline PyObject* ptr() const;
-
-      inline bool is_none() const;
-
+      
    private:
       PyObject* m_ptr;
   };
 
+# ifdef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
+  template <class T, class U>
+  struct is_derived_impl
+  {
+      static T x;
+      template <class X>
+      static X* to_pointer(X const&);
+      
+      static char test(U const*);
+      typedef char (&no)[2];
+      static no test(...);
+
+      BOOST_STATIC_CONSTANT(bool, value = sizeof(test(to_pointer(x))) == 1);
+  };
+  
   template <class T, class U>
   struct is_derived
-    : boost::python::detail::is_convertible<
-          typename detail::remove_reference<T>::type*
+    : mpl::bool_<is_derived_impl<T,U>::value>
+  {};
+# else
+  template <class T, class U>
+  struct is_derived
+    : is_convertible<
+          typename remove_reference<T>::type*
         , U const*
       >
   {};
+# endif 
 
   template <class T>
   typename objects::unforward_cref<T>::type do_unforward_cref(T const& x)
   {
+# if BOOST_WORKAROUND(__GNUC__, == 2)
+      typedef typename objects::unforward_cref<T>::type ret;
+      return ret(x);
+# else
       return x;
+# endif 
   }
 
+# if BOOST_WORKAROUND(__GNUC__, == 2)
+  // GCC 2.x has non-const string literals; this hacks around that problem.
+  template <unsigned N>
+  char const (& do_unforward_cref(char const(&x)[N]) )[N]
+  {
+      return x;
+  }
+# endif
+  
   class object;
   
   template <class T>
@@ -243,7 +319,14 @@ namespace api
       
       // explicit conversion from any C++ object to Python
       template <class T>
-      explicit object(T const& x)
+      explicit object(
+          T const& x
+# if BOOST_WORKAROUND(BOOST_MSVC, < 1300)
+          // use some SFINAE to un-confuse MSVC about its
+          // copy-initialization ambiguity claim.
+        , typename mpl::if_<is_proxy<T>,int&,int>::type* = 0
+# endif 
+      )
         : object_base(object_base_initializer(x))
       {
       }
@@ -261,13 +344,30 @@ namespace api
   // Macros for forwarding constructors in classes derived from
   // object. Derived classes will usually want these as an
   // implementation detail
-# define BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS(derived, base)               \
-    inline explicit derived(::boost::python::detail::borrowed_reference p)     \
-        : base(p) {}                                                           \
-    inline explicit derived(::boost::python::detail::new_reference p)          \
-        : base(p) {}                                                           \
-    inline explicit derived(::boost::python::detail::new_non_null_reference p) \
+# define BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS_(derived, base)       \
+    inline explicit derived(python::detail::borrowed_reference p)       \
+        : base(p) {}                                                    \
+    inline explicit derived(python::detail::new_reference p)            \
+        : base(p) {}                                                    \
+    inline explicit derived(python::detail::new_non_null_reference p)   \
         : base(p) {}
+
+# if !defined(BOOST_MSVC) || BOOST_MSVC >= 1300
+#  define BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS_
+# else
+  // MSVC6 has a bug which causes an explicit template constructor to
+  // be preferred over an appropriate implicit conversion operator
+  // declared on the argument type. Normally, that would cause a
+  // runtime failure when using extract<T> to extract a type with a
+  // templated constructor. This additional constructor will turn that
+  // runtime failure into an ambiguity error at compile-time due to
+  // the lack of partial ordering, or at least a link-time error if no
+  // generalized template constructor is declared.
+#  define BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS(derived, base)       \
+    BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS_(derived, base)            \
+    template <class T>                                                  \
+    explicit derived(extract<T> const&);
+# endif
 
   //
   // object_initializer -- get the handle to construct the object with,
@@ -277,14 +377,14 @@ namespace api
   struct object_initializer_impl
   {
       static PyObject*
-      get(object const& x, detail::true_)
+      get(object const& x, mpl::true_)
       {
           return python::incref(x.ptr());
       }
       
       template <class T>
       static PyObject*
-      get(T const& x, detail::false_)
+      get(T const& x, mpl::false_)
       {
           return python::incref(converter::arg_to_python<T>(x).get());
       }
@@ -295,7 +395,7 @@ namespace api
   {
       template <class Policies>
       static PyObject* 
-      get(proxy<Policies> const& x, detail::false_)
+      get(proxy<Policies> const& x, mpl::false_)
       {
           return python::incref(x.operator object().ptr());
       }
@@ -419,7 +519,6 @@ inline api::object_base& api::object_base::operator=(api::object_base const& rhs
 
 inline api::object_base::~object_base()
 {
-    assert( Py_REFCNT(m_ptr) > 0 );
     Py_DECREF(m_ptr);
 }
 
@@ -438,11 +537,6 @@ inline object::object(detail::new_non_null_reference p)
 inline PyObject* api::object_base::ptr() const
 {
     return m_ptr;
-}
-
-inline bool api::object_base::is_none() const
-{
-    return (m_ptr == Py_None);
 }
 
 //

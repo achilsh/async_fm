@@ -1,5 +1,5 @@
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
-// xml_wiarchive_impl.ipp:
+// xml_wiprimitive.cpp:
 
 // (C) Copyright 2002 Robert Ramey - http://www.rrsd.com .
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -7,6 +7,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org for updates, documentation, and revision history.
+
+#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
 
 #include <cstring>
 #if defined(BOOST_NO_STDC_NAMESPACE)
@@ -18,25 +20,27 @@ namespace std{
 #include <boost/config.hpp> // msvc 6.0 needs this to suppress warnings
 #ifndef BOOST_NO_STD_WSTREAMBUF
 
-#include <boost/assert.hpp>
-#include <algorithm> // std::copy
-#include <exception> // uncaught exception
+#include <cassert>
+#include <algorithm>
+
 #include <boost/detail/workaround.hpp> // Dinkumware and RogueWave
 #if BOOST_WORKAROUND(BOOST_DINKUMWARE_STDLIB, == 1)
 #include <boost/archive/dinkumware.hpp>
 #endif
 
 #include <boost/io/ios_state.hpp>
-#include <boost/core/no_exceptions_support.hpp>
+#include <boost/detail/no_exceptions_support.hpp>
+#include <boost/serialization/pfto.hpp>
+
 #include <boost/serialization/string.hpp>
+#include <boost/archive/add_facet.hpp>
+#include <boost/archive/xml_archive_exception.hpp>
+#include <boost/archive/detail/utf8_codecvt_facet.hpp>
+
+#include <boost/archive/iterators/mb_from_wchar.hpp>
 
 #include <boost/archive/basic_xml_archive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-
-#include <boost/archive/xml_archive_exception.hpp>
-#include <boost/archive/iterators/mb_from_wchar.hpp>
-
-#include <boost/archive/detail/utf8_codecvt_facet.hpp>
 
 #include "basic_xml_grammar.hpp"
 
@@ -51,10 +55,10 @@ namespace { // anonymous
 void copy_to_ptr(char * s, const std::wstring & ws){
     std::copy(
         iterators::mb_from_wchar<std::wstring::const_iterator>(
-            ws.begin()
+            BOOST_MAKE_PFTO_WRAPPER(ws.begin())
         ), 
         iterators::mb_from_wchar<std::wstring::const_iterator>(
-            ws.end()
+            BOOST_MAKE_PFTO_WRAPPER(ws.end())
         ), 
         s
     );
@@ -64,7 +68,7 @@ void copy_to_ptr(char * s, const std::wstring & ws){
 } // anonymous
 
 template<class Archive>
-BOOST_WARCHIVE_DECL void
+BOOST_WARCHIVE_DECL(void)
 xml_wiarchive_impl<Archive>::load(std::string & s){
     std::wstring ws;
     bool result = gimpl->parse_string(is, ws);
@@ -79,10 +83,10 @@ xml_wiarchive_impl<Archive>::load(std::string & s){
     s.reserve(ws.size());
     std::copy(
         iterators::mb_from_wchar<std::wstring::iterator>(
-            ws.begin()
+            BOOST_MAKE_PFTO_WRAPPER(ws.begin())
         ), 
         iterators::mb_from_wchar<std::wstring::iterator>(
-            ws.end()
+            BOOST_MAKE_PFTO_WRAPPER(ws.end())
         ), 
         std::back_inserter(s)
     );
@@ -90,7 +94,7 @@ xml_wiarchive_impl<Archive>::load(std::string & s){
 
 #ifndef BOOST_NO_STD_WSTRING
 template<class Archive>
-BOOST_WARCHIVE_DECL void
+BOOST_WARCHIVE_DECL(void)
 xml_wiarchive_impl<Archive>::load(std::wstring & ws){
     bool result = gimpl->parse_string(is, ws);
     if(! result)
@@ -101,7 +105,7 @@ xml_wiarchive_impl<Archive>::load(std::wstring & ws){
 #endif
 
 template<class Archive>
-BOOST_WARCHIVE_DECL void
+BOOST_WARCHIVE_DECL(void)
 xml_wiarchive_impl<Archive>::load(char * s){
     std::wstring ws;
     bool result = gimpl->parse_string(is, ws);
@@ -114,7 +118,7 @@ xml_wiarchive_impl<Archive>::load(char * s){
 
 #ifndef BOOST_NO_INTRINSIC_WCHAR_T
 template<class Archive>
-BOOST_WARCHIVE_DECL void
+BOOST_WARCHIVE_DECL(void)
 xml_wiarchive_impl<Archive>::load(wchar_t * ws){
     std::wstring twstring;
     bool result = gimpl->parse_string(is, twstring);
@@ -128,8 +132,8 @@ xml_wiarchive_impl<Archive>::load(wchar_t * ws){
 #endif
 
 template<class Archive>
-BOOST_WARCHIVE_DECL void
-xml_wiarchive_impl<Archive>::load_override(class_name_type & t){
+BOOST_WARCHIVE_DECL(void)
+xml_wiarchive_impl<Archive>::load_override(class_name_type & t, int){
     const std::wstring & ws = gimpl->rv.class_name;
     if(ws.size() > BOOST_SERIALIZATION_MAX_KEY_SIZE - 1)
         boost::serialization::throw_exception(
@@ -139,16 +143,14 @@ xml_wiarchive_impl<Archive>::load_override(class_name_type & t){
 }
 
 template<class Archive>
-BOOST_WARCHIVE_DECL void
+BOOST_WARCHIVE_DECL(void)
 xml_wiarchive_impl<Archive>::init(){
     gimpl->init(is);
-    this->set_library_version(
-        library_version_type(gimpl->rv.version)
-    );
+    this->set_library_version(gimpl->rv.version);
 }
 
 template<class Archive>
-BOOST_WARCHIVE_DECL
+BOOST_WARCHIVE_DECL(BOOST_PP_EMPTY())
 xml_wiarchive_impl<Archive>::xml_wiarchive_impl(
     std::wistream &is_,
     unsigned int flags
@@ -161,26 +163,39 @@ xml_wiarchive_impl<Archive>::xml_wiarchive_impl(
     gimpl(new xml_wgrammar())
 {
     if(0 == (flags & no_codecvt)){
-        archive_locale = std::locale(
-            is_.getloc(),
-            new boost::archive::detail::utf8_codecvt_facet
+        archive_locale.reset(
+            add_facet(
+                std::locale::classic(),
+                new boost::archive::detail::utf8_codecvt_facet
+            )
         );
-        // libstdc++ crashes without this
-        is_.sync();
-        is_.imbue(archive_locale);
+        is.imbue(* archive_locale);
     }
-    if(0 == (flags & no_header))
-        init();
+    if(0 == (flags & no_header)){
+        BOOST_TRY{
+            this->init();
+        }
+        BOOST_CATCH(...){
+            delete gimpl;
+            #ifndef BOOST_NO_EXCEPTIONS
+                throw; // re-throw
+            #endif
+        }
+        BOOST_CATCH_END
+    }
 }
 
 template<class Archive>
-BOOST_WARCHIVE_DECL
+BOOST_WARCHIVE_DECL(BOOST_PP_EMPTY())
 xml_wiarchive_impl<Archive>::~xml_wiarchive_impl(){
-    if(std::uncaught_exception())
-        return;
     if(0 == (this->get_flags() & no_header)){
-        gimpl->windup(is);
+        BOOST_TRY{
+            gimpl->windup(is);
+        }
+        BOOST_CATCH(...){}
+        BOOST_CATCH_END
     }
+    delete gimpl;
 }
 
 } // namespace archive

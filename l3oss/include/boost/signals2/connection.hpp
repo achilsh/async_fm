@@ -18,7 +18,6 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/signals2/detail/auto_buffer.hpp>
 #include <boost/signals2/detail/null_output_iterator.hpp>
 #include <boost/signals2/detail/unique_lock.hpp>
 #include <boost/signals2/slot.hpp>
@@ -28,58 +27,30 @@ namespace boost
 {
   namespace signals2
   {
-    inline void null_deleter(const void*) {}
+    extern inline void null_deleter(const void*) {}
     namespace detail
     {
-      // This lock maintains a list of shared_ptr<void>
-      // which will be destroyed only after the lock
-      // has released its mutex.  Used to garbage
-      // collect disconnected slots
-      template<typename Mutex>
-      class garbage_collecting_lock: public noncopyable
-      {
-      public:
-        garbage_collecting_lock(Mutex &m):
-          lock(m)
-        {}
-        void add_trash(const shared_ptr<void> &piece_of_trash)
-        {
-          garbage.push_back(piece_of_trash);
-        }
-      private:
-        // garbage must be declared before lock
-        // to insure it is destroyed after lock is
-        // destroyed.
-        auto_buffer<shared_ptr<void>, store_n_objects<10> > garbage;
-        unique_lock<Mutex> lock;
-      };
-      
       class connection_body_base
       {
       public:
         connection_body_base():
-          _connected(true), m_slot_refcount(1)
+          _connected(true)
         {
         }
         virtual ~connection_body_base() {}
         void disconnect()
         {
-          garbage_collecting_lock<connection_body_base> local_lock(*this);
-          nolock_disconnect(local_lock);
+          unique_lock<connection_body_base> lock(*this);
+          nolock_disconnect();
         }
-        template<typename Mutex>
-        void nolock_disconnect(garbage_collecting_lock<Mutex> &lock_arg) const
+        void nolock_disconnect()
         {
-          if(_connected)
-          {
-            _connected = false;
-            dec_slot_refcount(lock_arg);
-          }
+          _connected = false;
         }
         virtual bool connected() const = 0;
         shared_ptr<void> get_blocker()
         {
-          unique_lock<connection_body_base> local_lock(*this);
+          unique_lock<connection_body_base> lock(*this);
           shared_ptr<void> blocker = _weak_blocker.lock();
           if(blocker == shared_ptr<void>())
           {
@@ -101,39 +72,10 @@ namespace boost
         virtual void lock() = 0;
         virtual void unlock() = 0;
 
-        // Slot refcount should be incremented while
-        // a signal invocation is using the slot, in order
-        // to prevent slot from being destroyed mid-invocation.
-        // garbage_collecting_lock parameter enforces 
-        // the existance of a lock before this
-        // method is called
-        template<typename Mutex>
-        void inc_slot_refcount(const garbage_collecting_lock<Mutex> &)
-        {
-          BOOST_ASSERT(m_slot_refcount != 0);
-          ++m_slot_refcount;
-        }
-        // if slot refcount decrements to zero due to this call, 
-        // it puts a
-        // shared_ptr to the slot in the garbage collecting lock,
-        // which will destroy the slot only after it unlocks.
-        template<typename Mutex>
-        void dec_slot_refcount(garbage_collecting_lock<Mutex> &lock_arg) const
-        {
-          BOOST_ASSERT(m_slot_refcount != 0);
-          if(--m_slot_refcount == 0)
-          {
-            lock_arg.add_trash(release_slot());
-          }
-        }
-
       protected:
-        virtual shared_ptr<void> release_slot() const = 0;
 
-        weak_ptr<void> _weak_blocker;
-      private:
         mutable bool _connected;
-        mutable unsigned m_slot_refcount;
+        weak_ptr<void> _weak_blocker;
       };
 
       template<typename GroupKey, typename SlotType, typename Mutex>
@@ -141,83 +83,58 @@ namespace boost
       {
       public:
         typedef Mutex mutex_type;
-        connection_body(const SlotType &slot_in, const boost::shared_ptr<mutex_type> &signal_mutex):
-          m_slot(new SlotType(slot_in)), _mutex(signal_mutex)
+        connection_body(const SlotType &slot_in):
+          slot(slot_in)
         {
         }
         virtual ~connection_body() {}
         virtual bool connected() const
         {
-          garbage_collecting_lock<mutex_type> local_lock(*_mutex);
-          nolock_grab_tracked_objects(local_lock, detail::null_output_iterator());
+          unique_lock<mutex_type> lock(_mutex);
+          nolock_grab_tracked_objects(detail::null_output_iterator());
           return nolock_nograb_connected();
         }
         const GroupKey& group_key() const {return _group_key;}
         void set_group_key(const GroupKey &key) {_group_key = key;}
-        template<typename M>
-        void disconnect_expired_slot(garbage_collecting_lock<M> &lock_arg)
+        bool nolock_slot_expired() const
         {
-          if(!m_slot) return;
-          bool expired = slot().expired();
+          bool expired = slot.expired();
           if(expired == true)
           {
-            nolock_disconnect(lock_arg);
+            _connected = false;
           }
+          return expired;
         }
-        template<typename M, typename OutputIterator>
-        void nolock_grab_tracked_objects(garbage_collecting_lock<M> &lock_arg,
-          OutputIterator inserter) const
+        template<typename OutputIterator>
+          void nolock_grab_tracked_objects(OutputIterator inserter) const
         {
-          if(!m_slot) return;
-          slot_base::tracked_container_type::const_iterator it;
-          for(it = slot().tracked_objects().begin();
-            it != slot().tracked_objects().end();
-            ++it)
-          {
-            void_shared_ptr_variant locked_object
-            (
-              apply_visitor
-              (
-                detail::lock_weak_ptr_visitor(),
-                *it
-              )
-            );
-            if(apply_visitor(detail::expired_weak_ptr_visitor(), *it))
+            slot_base::tracked_container_type::const_iterator it;
+            for(it = slot.tracked_objects().begin();
+              it != slot.tracked_objects().end();
+              ++it)
             {
-              nolock_disconnect(lock_arg);
-              return;
-            }
-            *inserter++ = locked_object;
+              boost::shared_ptr<void> locked_object = it->lock();
+              boost::shared_ptr<void> empty;
+              if(!(empty < locked_object) && !(locked_object < empty))
+              {
+                _connected = false;
+                return;
+              }
+              *inserter++ = locked_object;
           }
         }
         // expose Lockable concept of mutex
         virtual void lock()
         {
-          _mutex->lock();
+          _mutex.lock();
         }
         virtual void unlock()
         {
-          _mutex->unlock();
+          _mutex.unlock();
         }
-        SlotType &slot()
-        {
-          return *m_slot;
-        }
-        const SlotType &slot() const
-        {
-          return *m_slot;
-        }
-      protected:
-        virtual shared_ptr<void> release_slot() const
-        {
-          
-          shared_ptr<void> released_slot = m_slot;
-          m_slot.reset();
-          return released_slot;
-        }
+        SlotType slot;
       private:
-        mutable boost::shared_ptr<SlotType> m_slot;
-        const boost::shared_ptr<mutex_type> _mutex;
+        mutable mutex_type _mutex;
         GroupKey _group_key;
       };
     }
@@ -235,32 +152,6 @@ namespace boost
       connection(const boost::weak_ptr<detail::connection_body_base> &connectionBody):
         _weak_connection_body(connectionBody)
       {}
-      
-      // move support
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-      connection(connection && other): _weak_connection_body(std::move(other._weak_connection_body))
-      {
-        // make sure other is reset, in case it is a scoped_connection (so it
-        // won't disconnect on destruction after being moved away from).
-        other._weak_connection_body.reset();
-      }
-      connection & operator=(connection && other)
-      {
-        if(&other == this) return *this;
-        _weak_connection_body = std::move(other._weak_connection_body);
-        // make sure other is reset, in case it is a scoped_connection (so it
-        // won't disconnect on destruction after being moved away from).
-        other._weak_connection_body.reset();
-        return *this;
-      }
-#endif // !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-      connection & operator=(const connection & other)
-      {
-        if(&other == this) return *this;
-        _weak_connection_body = other._weak_connection_body;
-        return *this;
-      }
-
       ~connection() {}
       void disconnect() const
       {
@@ -327,31 +218,6 @@ namespace boost
         connection::operator=(rhs);
         return *this;
       }
-
-      // move support
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-      scoped_connection(scoped_connection && other): connection(std::move(other))
-      {
-      }
-      scoped_connection(connection && other): connection(std::move(other))
-      {
-      }
-      scoped_connection & operator=(scoped_connection && other)
-      {
-        if(&other == this) return *this;
-        disconnect();
-        connection::operator=(std::move(other));
-        return *this;
-      }
-      scoped_connection & operator=(connection && other)
-      {
-        if(&other == this) return *this;
-        disconnect();
-        connection::operator=(std::move(other));
-        return *this;
-      }
-#endif // !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-
       connection release()
       {
         connection conn(_weak_connection_body);

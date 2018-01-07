@@ -37,7 +37,8 @@ namespace aux {
       static const unsigned value = 1;
   };
 #endif
-} // namespace aux
+} // namespace aux 
+
 
 template <class T>
 struct print
@@ -46,12 +47,7 @@ struct print
     , aux::print_base
 #endif 
 {
-#if defined(__clang__)
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Wc++11-extensions"
-    const int m_x = 1 / (sizeof(T) - sizeof(T));
-# pragma clang diagnostic pop
-#elif defined(BOOST_MSVC)
+#if defined(BOOST_MSVC)
     enum { n = sizeof(T) + -1 };
 #elif defined(__MWERKS__)
     void f(int);

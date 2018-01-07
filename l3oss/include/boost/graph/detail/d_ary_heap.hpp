@@ -15,15 +15,10 @@
 #include <cstddef>
 #include <algorithm>
 #include <utility>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <boost/static_assert.hpp>
 #include <boost/shared_array.hpp>
 #include <boost/property_map/property_map.hpp>
-
-// WARNING: it is not safe to copy a d_ary_heap_indirect and then modify one of
-// the copies.  The class is required to be copyable so it can be passed around
-// (without move support from C++11), but it deep-copies the heap contents yet
-// shallow-copies the index_in_heap_map.
 
 namespace boost {
 
@@ -97,8 +92,6 @@ namespace boost {
     public:
     typedef typename Container::size_type size_type;
     typedef Value value_type;
-    typedef typename boost::property_traits<DistanceMap>::value_type key_type;
-    typedef DistanceMap key_map;
 
     d_ary_heap_indirect(DistanceMap distance,
                         IndexInHeapPropertyMap index_in_heap,
@@ -126,21 +119,18 @@ namespace boost {
     }
 
     Value& top() {
-      BOOST_ASSERT (!this->empty());
       return data[0];
     }
 
     const Value& top() const {
-      BOOST_ASSERT (!this->empty());
       return data[0];
     }
 
     void pop() {
-      BOOST_ASSERT (!this->empty());
       put(index_in_heap, data[0], (size_type)(-1));
       if (data.size() != 1) {
         data[0] = data.back();
-        put(index_in_heap, data[0], (size_type)(0));
+        put(index_in_heap, data[0], 0);
         data.pop_back();
         preserve_heap_property_down();
         verify_heap();
@@ -172,10 +162,6 @@ namespace boost {
       }
       preserve_heap_property_up(index);
       verify_heap();
-    }
-
-    DistanceMap keys() const {
-      return distance;
     }
 
     private:
@@ -221,7 +207,7 @@ namespace boost {
 #if 0
       for (size_t i = 1; i < data.size(); ++i) {
         if (compare_indirect(data[i], data[parent(i)])) {
-          BOOST_ASSERT (!"Element is smaller than its parent");
+          assert (!"Element is smaller than its parent");
         }
       }
 #endif

@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_DETAIL_CONCEPT_TAGS_HPP
 #define BOOST_BIMAP_DETAIL_CONCEPT_TAGS_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 

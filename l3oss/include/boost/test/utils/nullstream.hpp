@@ -1,7 +1,7 @@
-//  (C) Copyright Gennadiy Rozental 2001.
-//  (C) Copyright Daryle Walker 2000-2001.
+//  (C) Copyright Gennadiy Rozental 2002-2008.
+//  (C) Copyright Daryle Walker 2000-2001. 
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
@@ -13,15 +13,13 @@
 //  Description : simulate /dev/null stream
 // ***************************************************************************
 
-#ifndef BOOST_TEST_UTILS_NULLSTREAM_HPP
-#define BOOST_TEST_UTILS_NULLSTREAM_HPP
+#ifndef BOOST_NULLSTREAM_HPP_071894GER
+#define BOOST_NULLSTREAM_HPP_071894GER
 
-// STL
 #include <ostream>    // for std::basic_ostream
 #include <streambuf>  // for std::basic_streambuf
 #include <string>     // for std::char_traits
 
-// Boost
 #include <boost/utility/base_from_member.hpp>
 
 #include <boost/test/detail/suppress_warnings.hpp>
@@ -88,7 +86,6 @@ public:
 
 #ifdef BOOST_MSVC
 # pragma warning(default: 4355)
-# pragma warning(pop)
 #endif
 
 typedef basic_onullstream<char>      onullstream;
@@ -100,4 +97,4 @@ typedef basic_onullstream<wchar_t>  wonullstream;
 
 #include <boost/test/detail/enable_warnings.hpp>
 
-#endif  // BOOST_TEST_UTILS_NULLSTREAM_HPP
+#endif  // BOOST_NULLSTREAM_HPP_071894GER

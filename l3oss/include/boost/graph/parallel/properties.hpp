@@ -92,10 +92,8 @@ namespace boost {
     public:
       BOOST_STATIC_CONSTANT(bool, non_default_resolver = true);
 
-      template<typename Key>
-      T operator()(Key key) const { return key; }
-      template<typename Key>
-      T operator()(Key key, T, T y) const { return y; }
+      T operator()(T key) const { return key; }
+      T operator()(T key, T, T y) const { return y; }
     };
   };
 

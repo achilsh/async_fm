@@ -1,5 +1,5 @@
 /*=============================================================================
-  Copyright (c) 2001-2011 Joel de Guzman
+  Copyright (c) 2001-2009 Joel de Guzman
   http://spirit.sourceforge.net/
 
   Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -12,7 +12,6 @@
 #pragma once
 #endif
 
-#include <boost/spirit/include/phoenix_limits.hpp>      // needs to be included before proto
 #include <boost/proto/proto.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/fusion/include/cons.hpp>
@@ -42,10 +41,11 @@ namespace boost { namespace spirit { namespace detail
 
     namespace result_of
     {
-        template <typename Car, typename Cdr = fusion::nil_>
+        template <typename Car, typename Cdr = fusion::nil>
         struct make_cons
         {
-            typedef typename as_meta_element<Car>::type car_type;            typedef typename fusion::cons<car_type, Cdr> type;
+            typedef typename as_meta_element<Car>::type car_type;
+            typedef typename fusion::cons<car_type, Cdr> type;
         };
     }
 

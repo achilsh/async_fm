@@ -69,7 +69,6 @@ namespace boost { namespace property_tree { namespace ini_parser
         typedef typename Ptree::key_type::value_type Ch;
         typedef std::basic_string<Ch> Str;
         const Ch semicolon = stream.widen(';');
-        const Ch hash = stream.widen('#');
         const Ch lbracket = stream.widen('[');
         const Ch rbracket = stream.widen(']');
 
@@ -94,7 +93,7 @@ namespace boost { namespace property_tree { namespace ini_parser
             if (!line.empty())
             {
                 // Comment, section or key?
-                if (line[0] == semicolon || line[0] == hash)
+                if (line[0] == semicolon)
                 {
                     // Ignore comments
                 }
@@ -192,61 +191,6 @@ namespace boost { namespace property_tree { namespace ini_parser
                 lastkey = &it->first;
             }
         }
-
-        template <typename Ptree>
-        void write_keys(std::basic_ostream<
-                                      typename Ptree::key_type::value_type
-                                  > &stream,
-                                  const Ptree& pt,
-                                  bool throw_on_children)
-        {
-            typedef typename Ptree::key_type::value_type Ch;
-            for (typename Ptree::const_iterator it = pt.begin(), end = pt.end();
-                 it != end; ++it)
-            {
-                if (!it->second.empty()) {
-                    if (throw_on_children) {
-                        BOOST_PROPERTY_TREE_THROW(ini_parser_error(
-                            "ptree is too deep", "", 0));
-                    }
-                    continue;
-                }
-                stream << it->first << Ch('=')
-                    << it->second.template get_value<
-                        std::basic_string<Ch> >()
-                    << Ch('\n');
-            }
-        }
-
-        template <typename Ptree>
-        void write_top_level_keys(std::basic_ostream<
-                                      typename Ptree::key_type::value_type
-                                  > &stream,
-                                  const Ptree& pt)
-        {
-            write_keys(stream, pt, false);
-        }
-
-        template <typename Ptree>
-        void write_sections(std::basic_ostream<
-                                typename Ptree::key_type::value_type
-                            > &stream,
-                            const Ptree& pt)
-        {
-            typedef typename Ptree::key_type::value_type Ch;
-            for (typename Ptree::const_iterator it = pt.begin(), end = pt.end();
-                 it != end; ++it)
-            {
-                if (!it->second.empty()) {
-                    check_dupes(it->second);
-                    if (!it->second.data().empty())
-                        BOOST_PROPERTY_TREE_THROW(ini_parser_error(
-                            "mixed data and children", "", 0));
-                    stream << Ch('[') << it->first << Ch(']') << Ch('\n');
-                    write_keys(stream, it->second, true);
-                }
-            }
-        }
     }
 
     /**
@@ -271,16 +215,47 @@ namespace boost { namespace property_tree { namespace ini_parser
                    const Ptree &pt,
                    int flags = 0)
     {
+        using detail::check_dupes;
+
+        typedef typename Ptree::key_type::value_type Ch;
+        typedef std::basic_string<Ch> Str;
+
         BOOST_ASSERT(validate_flags(flags));
         (void)flags;
 
         if (!pt.data().empty())
             BOOST_PROPERTY_TREE_THROW(ini_parser_error(
                 "ptree has data on root", "", 0));
-        detail::check_dupes(pt);
+        check_dupes(pt);
 
-        detail::write_top_level_keys(stream, pt);
-        detail::write_sections(stream, pt);
+        for (typename Ptree::const_iterator it = pt.begin(), end = pt.end();
+             it != end; ++it)
+        {
+            check_dupes(it->second);
+            if (it->second.empty()) {
+                stream << it->first << Ch('=')
+                    << it->second.template get_value<
+                        std::basic_string<Ch> >()
+                    << Ch('\n');
+            } else {
+                if (!it->second.data().empty())
+                    BOOST_PROPERTY_TREE_THROW(ini_parser_error(
+                        "mixed data and children", "", 0));
+                stream << Ch('[') << it->first << Ch(']') << Ch('\n');
+                for (typename Ptree::const_iterator it2 = it->second.begin(),
+                         end2 = it->second.end(); it2 != end2; ++it2)
+                {
+                    if (!it2->second.empty())
+                        BOOST_PROPERTY_TREE_THROW(ini_parser_error(
+                            "ptree is too deep", "", 0));
+                    stream << it2->first << Ch('=')
+                        << it2->second.template get_value<
+                            std::basic_string<Ch> >()
+                        << Ch('\n');
+                }
+            }
+        }
+
     }
 
     /**

@@ -1,4 +1,4 @@
-/* Copyright 2006-2014 Joaquin M Lopez Munoz.
+/* Copyright 2006-2009 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -9,21 +9,18 @@
 #ifndef BOOST_FLYWEIGHT_REFCOUNTED_HPP
 #define BOOST_FLYWEIGHT_REFCOUNTED_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER)&&(_MSC_VER>=1200)
 #pragma once
 #endif
 
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
 #include <algorithm>
+#include <boost/assert.hpp>
 #include <boost/detail/atomic_count.hpp>
 #include <boost/detail/workaround.hpp>
 #include <boost/flyweight/refcounted_fwd.hpp>
 #include <boost/flyweight/tracking_tag.hpp>
 #include <boost/utility/swap.hpp>
-
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-#include <utility>
-#endif
 
 /* Refcounting tracking policy.
  * The implementation deserves some explanation; values are equipped with two
@@ -39,9 +36,7 @@
  * Here is where the deleter count comes into play. This count is
  * incremented when the reference count changes from 0 to 1, and decremented
  * when a thread is about to check a value for erasure; it can be seen that a
- * value is effectively erasable only when the deleter count goes down to 0
- * (unless there are dangling references due to abnormal program termination,
- * for instance if std::exit is called).
+ * value is effectively erasable only when the deleter count goes down to 0.
  */
 
 namespace boost{
@@ -62,27 +57,22 @@ public:
     x(r.x),ref(0),del_ref(0)
   {}
 
+  ~refcounted_value()
+  {
+    /* count()!=0 most likely indicates that the flyweight factory
+     * has been destructed before some of the flyweight objects using
+     * it. Check for static initialization order problems with this
+     * flyweight type.
+     */
+
+    BOOST_ASSERT(count()==0);
+  }
+
   refcounted_value& operator=(const refcounted_value& r)
   {
     x=r.x;
     return *this;
   }
-
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-  explicit refcounted_value(Value&& x_):
-    x(std::move(x_)),ref(0),del_ref(0)
-  {}
-
-  refcounted_value(refcounted_value&& r):
-    x(std::move(r.x)),ref(0),del_ref(0)
-  {}
-
-  refcounted_value& operator=(refcounted_value&& r)
-  {
-    x=std::move(r.x);
-    return *this;
-  }
-#endif
   
   operator const Value&()const{return x;}
   operator const Key&()const{return x;}
@@ -123,7 +113,7 @@ public:
 
   refcounted_handle& operator=(refcounted_handle x)
   {
-    this->swap(x);
+    swap(*this,x);
     return *this;
   }
 
@@ -136,9 +126,9 @@ public:
 
   operator const Handle&()const{return h;}
 
-  void swap(refcounted_handle& x)
+  friend void swap(refcounted_handle& x, refcounted_handle& y)
   {
-    std::swap(h,x.h);
+    boost::swap(x.h,y.h);
   }
 
 private:
@@ -150,31 +140,7 @@ private:
   Handle h;
 };
 
-template<typename Handle,typename TrackingHelper>
-void swap(
-  refcounted_handle<Handle,TrackingHelper>& x,
-  refcounted_handle<Handle,TrackingHelper>& y)
-{
-  x.swap(y);
-}
-
 } /* namespace flyweights::detail */
-
-#if BOOST_WORKAROUND(BOOST_MSVC,<=1500)
-/* swap lookup by boost::swap fails under obscure circumstances */
-
-} /* namespace flyweights */
-
-template<typename Handle,typename TrackingHelper>
-void swap(
-  ::boost::flyweights::detail::refcounted_handle<Handle,TrackingHelper>& x,
-  ::boost::flyweights::detail::refcounted_handle<Handle,TrackingHelper>& y)
-{
-  ::boost::flyweights::detail::swap(x,y);
-}
-
-namespace flyweights{
-#endif
 
 struct refcounted:tracking_marker
 {

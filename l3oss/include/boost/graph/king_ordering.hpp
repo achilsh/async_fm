@@ -37,6 +37,7 @@ namespace boost {
         typename graph_traits<Graph>::out_edge_iterator ei, ei_end;
         Vertex v, w;
 
+        typedef typename std::deque<Vertex>::iterator iterator;
         typedef typename std::deque<Vertex>::reverse_iterator reverse_iterator;
 
         reverse_iterator rend = Qptr->rend()-index_begin;
@@ -58,7 +59,7 @@ namespace boost {
         for( ; rbegin != rend; rend--){
           percolate_down<Vertex>(i);
           w = (*Qptr)[index_begin+i];
-          for (boost::tie(ei, ei_end) = out_edges(w, g); ei != ei_end; ++ei) {
+          for (tie(ei, ei_end) = out_edges(w, g); ei != ei_end; ++ei) {
             v = target(*ei, g);
             put(degree, v, get(degree, v) - 1);
     
@@ -85,6 +86,8 @@ namespace boost {
       //this function replaces pop_heap, and tracks state information
       template <typename Vertex>
       void percolate_down(int offset){
+        typedef typename std::deque<Vertex>::reverse_iterator reverse_iterator;
+        
         int heap_last = index_begin + offset;
         int heap_first = Qptr->size() - 1;
         
@@ -209,7 +212,7 @@ namespace boost {
     queue Q;
     // Copy degree to pseudo_degree
     // initialize the color map
-    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui){
+    for (tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui){
       put(pseudo_degree, *ui, get(degree, *ui));
       put(color, *ui, Color::white());
     }
@@ -264,6 +267,7 @@ namespace boost {
       return permutation;
 
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename boost::graph_traits<Graph>::vertex_iterator   VerIter;
     typedef typename property_traits<ColorMap>::value_type ColorValue;
     typedef color_traits<ColorValue> Color;
 
@@ -298,6 +302,7 @@ namespace boost {
     if (has_no_vertices(G))
       return permutation;
 
+    typedef out_degree_property_map<Graph> DegreeMap;
     std::vector<default_color_type> colors(num_vertices(G));
     return king_ordering(G, permutation, 
                          make_iterator_property_map(&colors[0], index_map,

@@ -85,22 +85,13 @@
 #if defined(_WIN32) || defined(__CYGWIN__)
 # if defined(__GNUC__) && defined(__CYGWIN__)
 
-#  if defined(__LP64__)
-#   define SIZEOF_LONG 8
-#  else
-#   define SIZEOF_LONG 4
-#  endif
-
+#  define SIZEOF_LONG 4
 
 #  if PY_MAJOR_VERSION < 2 || PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION <= 2
 
 typedef int pid_t;
 
-#   if defined(__LP64__)
-#    define WORD_BIT 64
-#   else
-#    define WORD_BIT 32
-#   endif
+#   define WORD_BIT 32
 #   define hypot _hypot
 #   include <stdio.h>
 
@@ -191,8 +182,8 @@ typedef int pid_t;
 # define Py_REFCNT(o)  (((PyObject*)(o))->ob_refcnt)
 # define Py_SIZE(o)    (((PyVarObject*)(o))->ob_size)
 
-# define PyVarObject_HEAD_INIT(type, size) \
-        PyObject_HEAD_INIT(type) size,
+# define PyVarObject_HEAD_INIT(type, size)	\
+  	PyObject_HEAD_INIT(type) size,
 
 #endif
 

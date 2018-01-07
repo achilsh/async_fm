@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
-#include <boost/spirit/home/karma/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/karma/domain.hpp>
 #include <boost/spirit/home/karma/meta_compiler.hpp>
 

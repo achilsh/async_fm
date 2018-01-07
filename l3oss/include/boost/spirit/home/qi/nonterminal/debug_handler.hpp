@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,8 +13,7 @@
 
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/qi/nonterminal/rule.hpp>
-#include <boost/spirit/home/qi/nonterminal/debug_handler_state.hpp>
-#include <boost/spirit/home/qi/detail/expectation_failure.hpp>
+#include <boost/spirit/home/qi/operator/expect.hpp>
 #include <boost/function.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/vector.hpp>
@@ -23,6 +22,13 @@
 
 namespace boost { namespace spirit { namespace qi
 {
+    enum debug_handler_state
+    {
+        pre_parse
+      , successful_parse
+      , failed_parse
+    };
+
     template <
         typename Iterator, typename Context
       , typename Skipper, typename F>
@@ -36,12 +42,12 @@ namespace boost { namespace spirit { namespace qi
         function_type;
 
         debug_handler(
-            function_type subject_
-          , F f_
-          , std::string const& rule_name_)
-          : subject(subject_)
-          , f(f_)
-          , rule_name(rule_name_)
+            function_type subject
+          , F f
+          , std::string const& rule_name)
+          : subject(subject)
+          , f(f)
+          , rule_name(rule_name)
         {
         }
 
@@ -72,11 +78,12 @@ namespace boost { namespace spirit { namespace qi
         std::string rule_name;
     };
 
-    template <typename Iterator
-      , typename T1, typename T2, typename T3, typename T4, typename F>
-    void debug(rule<Iterator, T1, T2, T3, T4>& r, F f)
+    template <
+        typename Iterator, typename T0, typename T1, typename T2
+      , typename F>
+    void debug(rule<Iterator, T0, T1, T2>& r, F f)
     {
-        typedef rule<Iterator, T1, T2, T3, T4> rule_type;
+        typedef rule<Iterator, T0, T1, T2> rule_type;
 
         typedef
             debug_handler<
@@ -85,30 +92,15 @@ namespace boost { namespace spirit { namespace qi
               , typename rule_type::skipper_type
               , F>
         debug_handler;
-        r.f = debug_handler(r.f, f, r.name());
+        r.f = debug_handler(r.f, f. r.name());
     }
 
     struct simple_trace;
 
-    namespace detail
+    template <typename Iterator, typename T0, typename T1, typename T2>
+    void debug(rule<Iterator, T0, T1, T2>& r)
     {
-        // This class provides an extra level of indirection through a
-        // template to produce the simple_trace type. This way, the use
-        // of simple_trace below is hidden behind a dependent type, so
-        // that compilers eagerly type-checking template definitions
-        // won't complain that simple_trace is incomplete.
-        template<typename T>
-        struct get_simple_trace
-        {
-            typedef simple_trace type;
-        };
-    }
-
-    template <typename Iterator
-      , typename T1, typename T2, typename T3, typename T4>
-    void debug(rule<Iterator, T1, T2, T3, T4>& r)
-    {
-        typedef rule<Iterator, T1, T2, T3, T4> rule_type;
+        typedef rule<Iterator, T0, T1, T2> rule_type;
 
         typedef
             debug_handler<
@@ -117,29 +109,17 @@ namespace boost { namespace spirit { namespace qi
               , typename rule_type::skipper_type
               , simple_trace>
         debug_handler;
-
-        typedef typename qi::detail::get_simple_trace<Iterator>::type trace;
-        r.f = debug_handler(r.f, trace(), r.name());
+        r.f = debug_handler(r.f, simple_trace(), r.name());
     }
 
 }}}
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Utility macro for easy enabling of rule and grammar debugging
-#if !defined(BOOST_SPIRIT_DEBUG_NODE)
-  #if defined(BOOST_SPIRIT_DEBUG) || defined(BOOST_SPIRIT_QI_DEBUG)
-    #define BOOST_SPIRIT_DEBUG_NODE(r)  r.name(#r); debug(r)
-  #else
-    #define BOOST_SPIRIT_DEBUG_NODE(r)  r.name(#r)
-  #endif
+#if defined(BOOST_SPIRIT_DEBUG)
+#define BOOST_SPIRIT_DEBUG_NODE(r)  r.name(#r); debug(r)
+#else
+#define BOOST_SPIRIT_DEBUG_NODE(r)
 #endif
-
-#define BOOST_SPIRIT_DEBUG_NODE_A(r, _, name)                                   \
-    BOOST_SPIRIT_DEBUG_NODE(name);                                              \
-    /***/
-
-#define BOOST_SPIRIT_DEBUG_NODES(seq)                                           \
-    BOOST_PP_SEQ_FOR_EACH(BOOST_SPIRIT_DEBUG_NODE_A, _, seq)                    \
-    /***/
 
 #endif

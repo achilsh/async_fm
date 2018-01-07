@@ -3,7 +3,7 @@
 
     http://www.boost.org/
 
-    Copyright (c) 2001-2012 Hartmut Kaiser. Distributed under the Boost
+    Copyright (c) 2001-2009 Hartmut Kaiser. Distributed under the Boost
     Software License, Version 1.0. (See accompanying file
     LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
@@ -27,7 +27,7 @@ namespace grammars {
 //
 //  value_error enum type
 //
-//    This is used to encode any error occurred during the evaluation of a
+//    This is used to encode any error occurred during the evaluation of a 
 //    conditional preprocessor expression
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,10 +37,10 @@ enum value_error {
     error_integer_overflow = 0x2,
     error_character_overflow = 0x4
 };
-
+    
 ///////////////////////////////////////////////////////////////////////////////
 }   //  namespace grammars
-}   //  namespace wave
+}   //  namespace wave 
 }   //  namespace boost
 
 // the suffix header occurs after all of the code

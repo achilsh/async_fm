@@ -1,294 +1,278 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
     Copyright (c) 2006 Dan Marsden
-    Copyright (c) 2009-2010 Christopher Schmidt
-    Copyright (c) 2015 Kohei Takahashi
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#include <boost/preprocessor/cat.hpp>
+#if !defined(BOOST_FUSION_FOLD_HPP_20070528_1253)
+#define BOOST_FUSION_FOLD_HPP_20070528_1253
 
-#define FUSION_HASH #
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/apply.hpp>
+#include <boost/mpl/identity.hpp>
+#include <boost/fusion/iterator/equal_to.hpp>
+#include <boost/fusion/sequence/intrinsic/begin.hpp>
+#include <boost/fusion/sequence/intrinsic/end.hpp>
+#include <boost/fusion/iterator/deref.hpp>
+#include <boost/fusion/iterator/value_of.hpp>
+#include <boost/fusion/iterator/next.hpp>
+#include <boost/fusion/iterator/distance.hpp>
+#include <boost/utility/result_of.hpp>
 
-#ifdef BOOST_FUSION_REVERSE_FOLD
-#   ifdef BOOST_FUSION_ITER_FOLD
-#       define BOOST_FUSION_FOLD_NAME reverse_iter_fold
-#   else
-#       define BOOST_FUSION_FOLD_NAME reverse_fold
-#   endif
+#include <boost/type_traits/add_const.hpp>
+#include <boost/type_traits/add_reference.hpp>
 
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION end
-#   define BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION prior
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_META_TRANSFORM(IT)                   \
-        typename fusion::result_of::prior<IT>::type
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_TRANSFORM(IT) fusion::prior(IT)
-#else
-#   ifdef BOOST_FUSION_ITER_FOLD
-#       define BOOST_FUSION_FOLD_NAME iter_fold
-#   else
-#       define BOOST_FUSION_FOLD_NAME fold
-#   endif
-
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION begin
-#   define BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION next
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_META_TRANSFORM(IT) IT
-#   define BOOST_FUSION_FOLD_IMPL_FIRST_IT_TRANSFORM(IT) IT
-#endif
-#ifdef BOOST_FUSION_ITER_FOLD
-#   define BOOST_FUSION_FOLD_IMPL_INVOKE_IT_META_TRANSFORM(IT) IT&
-#   define BOOST_FUSION_FOLD_IMPL_INVOKE_IT_TRANSFORM(IT) IT
-#else
-#   define BOOST_FUSION_FOLD_IMPL_INVOKE_IT_META_TRANSFORM(IT)                  \
-        typename fusion::result_of::deref<IT>::type
-#   define BOOST_FUSION_FOLD_IMPL_INVOKE_IT_TRANSFORM(IT) fusion::deref(IT)
-#endif
-
-#if (defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES))
-FUSION_HASH if BOOST_WORKAROUND BOOST_PREVENT_MACRO_SUBSTITUTION (BOOST_MSVC, < 1500)
-FUSION_HASH     define BOOST_FUSION_FOLD_IMPL_ENABLER(T) void
-FUSION_HASH else
-FUSION_HASH     define BOOST_FUSION_FOLD_IMPL_ENABLER(T) typename T::type
-FUSION_HASH endif
-#else
-#   if BOOST_WORKAROUND(BOOST_MSVC, < 1500)
-#       define BOOST_FUSION_FOLD_IMPL_ENABLER(T) void
-#   else
-#       define BOOST_FUSION_FOLD_IMPL_ENABLER(T) typename T::type
-#   endif
-#endif
-
-namespace boost { namespace fusion
+namespace boost { namespace fusion {
+namespace result_of
 {
-    namespace detail
+    template <typename Sequence, typename State, typename F>
+    struct fold;
+}
+namespace detail
+{
+    template <typename F>
+    struct apply_fold_result
     {
-        template<int SeqSize, typename It, typename State, typename F, typename = void
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH if BOOST_WORKAROUND BOOST_PREVENT_MACRO_SUBSTITUTION (BOOST_MSVC, < 1500)
-#endif
-#if BOOST_WORKAROUND(BOOST_MSVC, < 1500) || \
-    (defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES))
-          // Dirty hack: those compilers cannot choose exactly one partial specialization.
-          , bool = SeqSize == 0
-#endif
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH endif
-#endif
-        >
-        struct BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)
+        template <typename Value, typename State>
+        struct apply
+            : boost::result_of<F(Value,State)>
         {};
+    };
 
-        template<typename It, typename State, typename F>
-        struct BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<0,It,State,F
-          , typename boost::enable_if_has_type<BOOST_FUSION_FOLD_IMPL_ENABLER(State)>::type
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH if BOOST_WORKAROUND BOOST_PREVENT_MACRO_SUBSTITUTION (BOOST_MSVC, < 1500)
-#endif
-#if BOOST_WORKAROUND(BOOST_MSVC, < 1500) || \
-    (defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES))
-          , true
-#endif
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH endif
-#endif
-          >
-        {
-            typedef typename State::type type;
-        };
+    template <typename Iterator, typename State, typename F>
+    struct fold_apply
+    {
+        typedef typename result_of::deref<Iterator>::type dereferenced;
+        typedef typename add_reference<typename add_const<State>::type>::type lvalue_state;
+        typedef typename boost::result_of<F(dereferenced, lvalue_state)>::type type;
+    };
 
-        template<int SeqSize, typename It, typename State, typename F>
-        struct BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<SeqSize,It,State,F
-          , typename boost::enable_if_has_type<
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH if BOOST_WORKAROUND BOOST_PREVENT_MACRO_SUBSTITUTION (BOOST_MSVC, >= 1500)
-#endif
-#if BOOST_WORKAROUND(BOOST_MSVC, >= 1500) || \
-    (defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES))
-                // Following SFINAE enables to avoid MSVC 9's partial specialization
-                // ambiguous bug but MSVC 8 don't compile, and moreover MSVC 8 style
-                // workaround won't work with MSVC 9.
-                typename boost::disable_if_c<SeqSize == 0, State>::type::type
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH else
-                BOOST_FUSION_FOLD_IMPL_ENABLER(State)
-#endif
-#else
-                BOOST_FUSION_FOLD_IMPL_ENABLER(State)
-#endif
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH endif
-#endif
+    template <typename First, typename Last, typename State, typename F>
+    struct static_fold;
+
+    template <typename First, typename Last, typename State, typename F>
+    struct next_result_of_fold
+    {
+        typedef typename
+        static_fold<
+            typename result_of::next<First>::type
+            , Last
+            , typename fold_apply<First, State, F>::type
+            , F
             >::type
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH if BOOST_WORKAROUND BOOST_PREVENT_MACRO_SUBSTITUTION (BOOST_MSVC, < 1500)
-#endif
-#if BOOST_WORKAROUND(BOOST_MSVC, < 1500) || \
-    (defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES))
-          , false
-#endif
-#if defined(__WAVE__) && defined(BOOST_FUSION_CREATE_PREPROCESSED_FILES)
-FUSION_HASH endif
-#endif
-          >
-          : BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<
-                SeqSize-1
-              , typename result_of::BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION<It>::type
-              , boost::result_of<
-                    F(
-                        typename add_reference<typename State::type>::type,
-                        BOOST_FUSION_FOLD_IMPL_INVOKE_IT_META_TRANSFORM(It const)
-                    )
-                >
-              , F
-            >
-        {};
+        type;
+    };
 
-        template<typename It, typename State, typename F>
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        inline typename BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<
-            0
-          , It
-          , State
-          , F
+    template <typename First, typename Last, typename State, typename F>
+    struct static_fold
+    {
+        typedef typename
+        mpl::if_<
+            result_of::equal_to<First, Last>
+            , mpl::identity<State>
+            , next_result_of_fold<First, Last, State, F>
         >::type
-        BOOST_PP_CAT(it_,BOOST_FUSION_FOLD_NAME)(mpl::int_<0>, It const&, typename State::type state, F&)
+        result;
+
+        typedef typename result::type type;
+    };
+
+    template<typename I0, typename State, typename F, int N>
+    struct result_of_unrolled_fold;
+
+    template<int N>
+    struct unrolled_fold
+    {
+        template<typename I0, typename State, typename F>
+        static typename result_of_unrolled_fold<I0, State, F, N>::type
+        call(I0 const& i0, State const& state, F f)
+        {
+            typedef typename result_of::next<I0>::type I1;
+            I1 i1 = fusion::next(i0);
+            typedef typename result_of::next<I1>::type I2;
+            I2 i2 = fusion::next(i1);
+            typedef typename result_of::next<I2>::type I3;
+            I3 i3 = fusion::next(i2);
+            typedef typename result_of::next<I3>::type I4;
+            I4 i4 = fusion::next(i3);
+
+            return unrolled_fold<N-4>::call(i4, f(*i3, f(*i2, f(*i1, f(*i0, state)))), f);
+        }
+    };
+
+    template<>
+    struct unrolled_fold<3>
+    {
+        template<typename I0, typename State, typename F>
+        static typename result_of_unrolled_fold<I0, State, F, 3>::type
+        call(I0 const& i0, State const& state, F f)
+        {
+            typedef typename result_of::next<I0>::type I1;
+            I1 i1 = fusion::next(i0);
+            typedef typename result_of::next<I1>::type I2;
+            I2 i2 = fusion::next(i1);
+            return f(*i2, f(*i1, f(*i0, state)));
+        }
+    };
+
+    template<>
+    struct unrolled_fold<2>
+    {
+        template<typename I0, typename State, typename F>
+        static typename result_of_unrolled_fold<I0, State, F, 2>::type
+        call(I0 const& i0, State const& state, F f)
+        {
+            typedef typename result_of::next<I0>::type I1;
+            I1 i1 = fusion::next(i0);
+            return f(*i1, f(*i0, state));
+        }
+    };
+
+    template<>
+    struct unrolled_fold<1>
+    {
+        template<typename I0, typename State, typename F>
+        static typename result_of_unrolled_fold<I0, State, F, 1>::type
+        call(I0 const& i0, State const& state, F f)
+        {
+            return f(*i0, state);
+        }
+    };
+
+    template<>
+    struct unrolled_fold<0>
+    {
+        template<typename I0, typename State, typename F>
+        static State call(I0 const&, State const& state, F)
         {
             return state;
         }
+    };
 
-        template<typename It, typename State, typename F, int SeqSize>
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        inline typename lazy_enable_if_c<
-            SeqSize != 0
-          , BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<
-                SeqSize
-              , It
-              , State
-              , F
-            >
-        >::type
-        BOOST_PP_CAT(it_,BOOST_FUSION_FOLD_NAME)(mpl::int_<SeqSize>, It const& it, typename State::type state, F& f)
-        {
-            return BOOST_PP_CAT(it_,BOOST_FUSION_FOLD_NAME)<
-                typename result_of::BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION<It>::type
-              , boost::result_of<
-                    F(
-                        typename add_reference<typename State::type>::type,
-                        BOOST_FUSION_FOLD_IMPL_INVOKE_IT_META_TRANSFORM(It const)
-                    )
-                >
-              , F
-            >(
-                mpl::int_<SeqSize-1>()
-              , fusion::BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION(it)
-              , f(state, BOOST_FUSION_FOLD_IMPL_INVOKE_IT_TRANSFORM(it))
-              , f
-            );
-        }
-
-        template<typename Seq, typename State, typename F
-          , bool = traits::is_sequence<Seq>::value
-          , bool = traits::is_segmented<Seq>::value>
-        struct BOOST_PP_CAT(result_of_,BOOST_FUSION_FOLD_NAME)
-        {};
-
-        template<typename Seq, typename State, typename F>
-        struct BOOST_PP_CAT(result_of_,BOOST_FUSION_FOLD_NAME)<Seq, State, F, true, false>
-          : BOOST_PP_CAT(result_of_it_,BOOST_FUSION_FOLD_NAME)<
-                result_of::size<Seq>::value
-              , BOOST_FUSION_FOLD_IMPL_FIRST_IT_META_TRANSFORM(
-                    typename result_of::BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION<Seq>::type
-                )
-              , add_reference<State>
-              , F
-            >
-        {};
-
-        template<typename Seq, typename State, typename F>
-        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        inline typename BOOST_PP_CAT(result_of_,BOOST_FUSION_FOLD_NAME)<Seq, State, F>::type
-        BOOST_FUSION_FOLD_NAME(Seq& seq, State& state, F& f)
-        {
-            return BOOST_PP_CAT(it_,BOOST_FUSION_FOLD_NAME)<
-                BOOST_FUSION_FOLD_IMPL_FIRST_IT_META_TRANSFORM(
-                    typename result_of::BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION<Seq>::type
-                )
-              , add_reference<State>
-              , F
-            >(
-                typename result_of::size<Seq>::type()
-              , BOOST_FUSION_FOLD_IMPL_FIRST_IT_TRANSFORM(
-                    fusion::BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION(seq)
-                )
-              , state
-              , f
-            );
-        }
-    }
-
-    namespace result_of
+    // terminal case
+    template <typename First, typename Last, typename State, typename F>
+    inline State const&
+    linear_fold(First const&, Last const&, State const& state, F, mpl::true_)
     {
-        template<typename Seq, typename State, typename F>
-        struct BOOST_FUSION_FOLD_NAME
-          : detail::BOOST_PP_CAT(result_of_,BOOST_FUSION_FOLD_NAME)<Seq, State, F>
-        {};
+        return state;
     }
 
-    template<typename Seq, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::BOOST_FUSION_FOLD_NAME<
-        Seq
-      , State const
-      , F
-    >::type
-    BOOST_FUSION_FOLD_NAME(Seq& seq, State const& state, F f)
+    // non-terminal case
+    template <typename First, typename Last, typename State, typename F>
+    inline typename static_fold<First, Last, State, F>::type
+    linear_fold(
+        First const& first
+      , Last const& last
+      , State const& state
+      , F f
+      , mpl::false_)
     {
-        return detail::BOOST_FUSION_FOLD_NAME<Seq, State const, F>(seq, state, f);
+        return detail::linear_fold(
+            fusion::next(first)
+          , last
+          , f(*first, state)
+          , f
+          , result_of::equal_to<typename result_of::next<First>::type, Last>()
+        );
     }
 
-    template<typename Seq, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::BOOST_FUSION_FOLD_NAME<
-        Seq const
-      , State const
-      , F
-    >::type
-    BOOST_FUSION_FOLD_NAME(Seq const& seq, State const& state, F f)
+    template<typename I0, typename State, typename F, int N>
+    struct result_of_unrolled_fold
     {
-        return detail::BOOST_FUSION_FOLD_NAME<Seq const, State const, F>(seq, state, f);
-    }
+        typedef typename result_of::next<I0>::type I1;
+        typedef typename result_of::next<I1>::type I2;
+        typedef typename result_of::next<I2>::type I3;
+        typedef typename result_of::next<I3>::type I4;
+        typedef typename fold_apply<I0, State, F>::type Rest1;
+        typedef typename fold_apply<I1, Rest1, F>::type Rest2;
+        typedef typename fold_apply<I2, Rest2, F>::type Rest3;
+        typedef typename fold_apply<I3, Rest3, F>::type Rest4;
 
-    template<typename Seq, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::BOOST_FUSION_FOLD_NAME<
-        Seq
-      , State
-      , F
-    >::type
-    BOOST_FUSION_FOLD_NAME(Seq& seq, State& state, F f)
+        typedef typename result_of_unrolled_fold<I4, Rest4, F, N-4>::type type;
+    };
+
+    template<typename I0, typename State, typename F>
+    struct result_of_unrolled_fold<I0, State, F, 3>
     {
-        return detail::BOOST_FUSION_FOLD_NAME<Seq, State, F>(seq, state, f);
-    }
+        typedef typename result_of::next<I0>::type I1;
+        typedef typename result_of::next<I1>::type I2;
+        typedef typename fold_apply<I0, State, F>::type Rest;
+        typedef typename fold_apply<I1, Rest, F>::type Rest2;
+        typedef typename fold_apply<I2, Rest2, F>::type type;
+    };
 
-    template<typename Seq, typename State, typename F>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-    inline typename result_of::BOOST_FUSION_FOLD_NAME<
-        Seq const
-      , State
-      , F
-    >::type
-    BOOST_FUSION_FOLD_NAME(Seq const& seq, State& state, F f)
+    template<typename I0, typename State, typename F>
+    struct result_of_unrolled_fold<I0, State, F, 2>
     {
-        return detail::BOOST_FUSION_FOLD_NAME<Seq const, State, F>(seq, state, f);
-    }
-}}
+        typedef typename result_of::next<I0>::type I1;
+        typedef typename fold_apply<I0, State, F>::type Rest;
+        typedef typename fold_apply<I1, Rest, F>::type type;
+    };
 
-#undef BOOST_FUSION_FOLD_NAME
-#undef BOOST_FUSION_FOLD_IMPL_ENABLER
-#undef BOOST_FUSION_FOLD_IMPL_FIRST_IT_FUNCTION
-#undef BOOST_FUSION_FOLD_IMPL_NEXT_IT_FUNCTION
-#undef BOOST_FUSION_FOLD_IMPL_FIRST_IT_META_TRANSFORM
-#undef BOOST_FUSION_FOLD_IMPL_FIRST_IT_TRANSFORM
-#undef BOOST_FUSION_FOLD_IMPL_INVOKE_IT_META_TRANSFORM
-#undef BOOST_FUSION_FOLD_IMPL_INVOKE_IT_TRANSFORM
-#undef FUSION_HASH
+    template<typename I0, typename State, typename F>
+    struct result_of_unrolled_fold<I0, State, F, 1>
+    {
+        typedef typename fold_apply<I0, State, F>::type type;
+    };
+
+    template<typename I0, typename State, typename F>
+    struct result_of_unrolled_fold<I0, State, F, 0>
+    {
+        typedef State type;
+    };
+
+    template<typename Sequence, typename State, typename F, bool>
+    struct choose_fold;
+
+    template<typename Sequence, typename State, typename F>
+    struct choose_fold<Sequence, State, F, true>
+    {
+        typedef typename result_of::begin<Sequence>::type begin;
+        typedef typename result_of::end<Sequence>::type end;
+        typedef typename result_of_unrolled_fold<
+            begin, State, F, result_of::distance<begin, end>::type::value>::type type;
+    };
+
+    template<typename Sequence, typename State, typename F>
+    struct choose_fold<Sequence, State, F, false>
+    {
+        typedef typename
+        detail::static_fold<
+            typename result_of::begin<Sequence>::type
+            , typename result_of::end<Sequence>::type
+            , State
+            , F
+            >::type
+        type;
+    };
+
+    template<typename Sequence, typename State, typename F, typename Tag>
+    typename result_of::fold<Sequence, State, F>::type
+    fold(Sequence& seq, State const& state, F f, Tag)
+    {
+        return linear_fold(
+            fusion::begin(seq)
+          , fusion::end(seq)
+          , state
+          , f
+          , result_of::equal_to<
+                typename result_of::begin<Sequence>::type
+              , typename result_of::end<Sequence>::type>()
+        );
+    }
+
+    template<typename Sequence, typename State, typename F>
+    typename result_of::fold<Sequence, State, F>::type
+    fold(Sequence& seq, State const& state, F f, random_access_traversal_tag)
+    {
+        typedef typename result_of::begin<Sequence>::type begin;
+        typedef typename result_of::end<Sequence>::type end;
+        return unrolled_fold<result_of::distance<begin, end>::type::value>::call(
+            fusion::begin(seq)
+            , state
+            , f);
+    }
+}}}
+
+#endif

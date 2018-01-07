@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -32,7 +32,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
             ch_lit = *++lit;
         }
 
-        return !ch_lit && !ch_attr;
+        return true;
     }
 
     template <typename Char>
@@ -48,7 +48,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
     }
 
     template <typename Char, typename CharEncoding, typename Tag>
-    bool string_compare(Char const* attr, Char const* lit, CharEncoding, Tag)
+    bool string_compare(Char const* attr, Char const* lit, CharEncoding ce, Tag tag)
     {
         Char ch_attr = *attr;
         Char ch_lit = spirit::char_class::convert<CharEncoding>::to(Tag(), *lit);
@@ -62,7 +62,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
             ch_lit = spirit::char_class::convert<CharEncoding>::to(Tag(), *++lit);
         }
 
-        return !ch_lit && !ch_attr;
+        return true;
     }
 
     template <typename Char, typename CharEncoding, typename Tag>

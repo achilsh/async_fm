@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -19,9 +19,7 @@
 #include <boost/spirit/home/karma/auxiliary/lazy.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
-#include <boost/spirit/home/karma/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -51,7 +49,7 @@ namespace boost { namespace spirit
           , terminal_ex<tag::right_align, fusion::vector1<T> > >
       : mpl::true_ {};
 
-    // enables *lazy* right_align(d)[g], where d provides a generator
+    // enables *lazy* delimit(d)[g], where d provides a generator
     template <>
     struct use_lazy_directive<karma::domain, tag::right_align, 1> 
       : mpl::true_ {};
@@ -63,8 +61,8 @@ namespace boost { namespace spirit
           , terminal_ex<tag::right_align, fusion::vector2<Width, Padding> > >
       : spirit::traits::matches<karma::domain, Padding> {};
 
-    // enables *lazy* right_align(w, d)[g], where d provides a generator and w 
-    // is a maximum width
+    // enables *lazy* delimit(w, d)[g], where d provides a generator and w is 
+    // a maximum width
     template <>
     struct use_lazy_directive<karma::domain, tag::right_align, 2> 
       : mpl::true_ {};
@@ -74,9 +72,7 @@ namespace boost { namespace spirit
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace karma
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::right_align;
-#endif
     using spirit::right_align_type;
 
     namespace detail
@@ -270,7 +266,7 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    // creates right_align(width, pad)[] directive generator
+    // creates right_align(pad, width)[] directive generator
     template <typename Width, typename Padding, typename Subject
       , typename Modifiers>
     struct make_directive<
@@ -297,7 +293,6 @@ namespace boost { namespace spirit { namespace karma
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Subject, typename Width>
     struct has_semantic_action<karma::simple_right_alignment<Subject, Width> >
       : unary_has_semantic_action<Subject> {};
@@ -307,21 +302,8 @@ namespace boost { namespace spirit { namespace traits
             karma::padding_right_alignment<Subject, Padding, Width> >
       : unary_has_semantic_action<Subject> {};
 
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Width, typename Attribute
-      , typename Context, typename Iterator>
-    struct handles_container<
-            karma::simple_right_alignment<Subject, Width>
-          , Attribute, Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
-
-    template <typename Subject, typename Padding, typename Width
-      , typename Attribute, typename Context, typename Iterator>
-    struct handles_container<
-            karma::padding_right_alignment<Subject, Padding, Width>
-          , Attribute, Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
 }}}
 
 #endif
+
 

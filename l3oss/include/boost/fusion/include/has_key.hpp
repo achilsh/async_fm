@@ -5,9 +5,8 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 #if !defined(FUSION_INCLUDE_HAS_KEY)
-#define FUSION_INCLUDE_HAS_KEY
+#define FUSION_INCLUDE_EMPTY
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/sequence/intrinsic/has_key.hpp>
 
 #endif

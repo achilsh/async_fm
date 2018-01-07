@@ -125,7 +125,6 @@ inline std::streamsize lcast_get_precision(T* = 0)
             limits::radix == 10 && limits::digits10 > 0;
         std::streamsize const streamsize_max =
             (boost::integer_traits<std::streamsize>::max)();
-        (void)streamsize_max;
 
         if(is_specialized_bin)
         { // Floating-point types with
@@ -174,8 +173,8 @@ inline void lcast_set_precision(std::ios_base& stream, T*)
 template<class Source, class Target>
 inline void lcast_set_precision(std::ios_base& stream, Source*, Target*)
 {
-    std::streamsize const s = lcast_get_precision(static_cast<Source*>(0));
-    std::streamsize const t = lcast_get_precision(static_cast<Target*>(0));
+    std::streamsize const s = lcast_get_precision((Source*)0);
+    std::streamsize const t = lcast_get_precision((Target*)0);
     stream.precision(s > t ? s : t);
 }
 

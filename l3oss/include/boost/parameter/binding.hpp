@@ -11,13 +11,18 @@
 # include <boost/parameter/aux_/void.hpp>
 # include <boost/type_traits/is_same.hpp>
 
+# if BOOST_WORKAROUND(BOOST_MSVC, < 1300)
+#  include <boost/mpl/eval_if.hpp>
+# endif
+
 namespace boost { namespace parameter { 
 
 // A metafunction that, given an argument pack, returns the type of
 // the parameter identified by the given keyword.  If no such
 // parameter has been specified, returns Default
 
-# if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+# if BOOST_WORKAROUND(BOOST_MSVC, <= 1300) \
+  || BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
 template <class Parameters, class Keyword, class Default>
 struct binding0
 {
@@ -35,9 +40,14 @@ struct binding0
 # endif
 
 template <class Parameters, class Keyword, class Default = void_>
+# if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
 struct binding
+# else
+struct binding_eti
+# endif
 {
-# if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+# if BOOST_WORKAROUND(BOOST_MSVC, <= 1300) \
+  || BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
     typedef typename mpl::eval_if<
         mpl::is_placeholder<Parameters>
       , mpl::identity<int>
@@ -56,8 +66,24 @@ struct binding
     ));
 # endif
 
+# if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
+    BOOST_MPL_AUX_LAMBDA_SUPPORT(3,binding,(Parameters,Keyword,Default))
+# endif
+};
+
+# if BOOST_WORKAROUND(BOOST_MSVC, < 1300)
+template <class Parameters, class Keyword, class Default = void_>
+struct binding
+{
+    typedef typename mpl::eval_if<
+        is_same<Parameters, int>
+      , mpl::identity<int>
+      , binding_eti<Parameters, Keyword, Default>
+    >::type type;
+
     BOOST_MPL_AUX_LAMBDA_SUPPORT(3,binding,(Parameters,Keyword,Default))
 };
+# endif
 
 // A metafunction that, given an argument pack, returns the type of
 // the parameter identified by the given keyword.  If no such

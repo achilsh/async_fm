@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BINARY_IPRIMITIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -28,7 +28,7 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <iosfwd>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <locale>
 #include <cstring> // std::memcpy
 #include <cstddef> // std::size_t
@@ -44,18 +44,17 @@ namespace std{
 #endif
 
 #include <boost/cstdint.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/serialization/throw_exception.hpp>
-#include <boost/integer.hpp>
-#include <boost/integer_traits.hpp>
-
-//#include <boost/mpl/placeholders.hpp>
-#include <boost/serialization/is_bitwise_serializable.hpp>
-#include <boost/serialization/array_wrapper.hpp>
+//#include <boost/limits.hpp>
+//#include <boost/io/ios_state.hpp>
 
 #include <boost/archive/basic_streambuf_locale_saver.hpp>
-#include <boost/archive/codecvt_null.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/detail/auto_link_archive.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/serialization/is_bitwise_serializable.hpp>
+#include <boost/serialization/array.hpp>
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 namespace boost { 
@@ -64,7 +63,8 @@ namespace archive {
 /////////////////////////////////////////////////////////////////////////////
 // class binary_iarchive - read serialized objects from a input binary stream
 template<class Archive, class Elem, class Tr>
-class BOOST_SYMBOL_VISIBLE basic_binary_iprimitive {
+class basic_binary_iprimitive
+{
 #ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
     friend class load_access;
 protected:
@@ -78,16 +78,8 @@ public:
     }
 
     #ifndef BOOST_NO_STD_LOCALE
-    // note order! - if you change this, libstd++ will fail!
-    // a) create new locale with new codecvt facet
-    // b) save current locale
-    // c) change locale to new one
-    // d) use stream buffer
-    // e) change locale back to original
-    // f) destroy new codecvt facet
-    boost::archive::codecvt_null<Elem> codecvt_null_facet;
+    boost::scoped_ptr<std::locale> archive_locale;
     basic_streambuf_locale_saver<Elem, Tr> locale_saver;
-    std::locale archive_locale;
     #endif
 
     // main template for serilization of primitive types
@@ -103,28 +95,28 @@ public:
     void load(bool & t){
         load_binary(& t, sizeof(t));
         int i = t;
-        BOOST_ASSERT(0 == i || 1 == i);
+        assert(0 == i || 1 == i);
         (void)i; // warning suppression for release builds.
     }
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     load(std::string &s);
     #ifndef BOOST_NO_STD_WSTRING
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     load(std::wstring &ws);
     #endif
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     load(char * t);
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     load(wchar_t * t);
 
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
     init();
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
     basic_binary_iprimitive(
         std::basic_streambuf<Elem, Tr> & sb, 
         bool no_codecvt
     );
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
     ~basic_binary_iprimitive();
 public:
     // we provide an optimized load for all fundamental types
@@ -134,16 +126,16 @@ public:
         template <class T>  
         #if defined(BOOST_NO_DEPENDENT_NESTED_DERIVATIONS)  
             struct apply {  
-                typedef typename boost::serialization::is_bitwise_serializable< T >::type type;  
+                typedef BOOST_DEDUCED_TYPENAME boost::serialization::is_bitwise_serializable<T>::type type;  
             };
         #else
-            struct apply : public boost::serialization::is_bitwise_serializable< T > {};  
+            struct apply : public boost::serialization::is_bitwise_serializable<T> {};  
         #endif
     };
 
     // the optimized load_array dispatches to load_binary 
     template <class ValueType>
-    void load_array(serialization::array_wrapper<ValueType>& a, unsigned int)
+    void load_array(serialization::array<ValueType>& a, unsigned int)
     {
       load_binary(a.address(),a.count()*sizeof(ValueType));
     }
@@ -159,22 +151,17 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load_binary(
     std::size_t count
 ){
     // note: an optimizer should eliminate the following for char files
-    BOOST_ASSERT(
-        static_cast<std::streamsize>(count / sizeof(Elem)) 
-        <= boost::integer_traits<std::streamsize>::const_max
-    );
-    std::streamsize s = static_cast<std::streamsize>(count / sizeof(Elem));
+    std::streamsize s = count / sizeof(Elem);
     std::streamsize scount = m_sb.sgetn(
         static_cast<Elem *>(address), 
         s
     );
     if(scount != s)
         boost::serialization::throw_exception(
-            archive_exception(archive_exception::input_stream_error)
+            archive_exception(archive_exception::stream_error)
         );
     // note: an optimizer should eliminate the following for char files
-    BOOST_ASSERT(count % sizeof(Elem) <= boost::integer_traits<std::streamsize>::const_max);
-    s = static_cast<std::streamsize>(count % sizeof(Elem));
+    s = count % sizeof(Elem);
     if(0 < s){
 //        if(is.fail())
 //            boost::serialization::throw_exception(
@@ -184,9 +171,9 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load_binary(
         scount = m_sb.sgetn(& t, 1);
         if(scount != 1)
             boost::serialization::throw_exception(
-                archive_exception(archive_exception::input_stream_error)
+                archive_exception(archive_exception::stream_error)
             );
-        std::memcpy(static_cast<char*>(address) + (count - s), &t, static_cast<std::size_t>(s));
+        std::memcpy(static_cast<char*>(address) + (count - s), &t, s);
     }
 }
 

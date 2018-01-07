@@ -12,7 +12,7 @@
 namespace boost { namespace python {
     
 template <class P>
-void register_ptr_to_python()
+void register_ptr_to_python(BOOST_EXPLICIT_TEMPLATE_TYPE(P))
 {
     typedef typename boost::python::pointee<P>::type X;
     objects::class_value_wrapper<

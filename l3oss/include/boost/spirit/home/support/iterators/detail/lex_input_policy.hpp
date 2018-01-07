@@ -1,5 +1,5 @@
 //  Copyright (c) 2001 Daniel C. Nuffer
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -20,13 +20,12 @@ namespace boost { namespace spirit { namespace iterator_policies
     ///////////////////////////////////////////////////////////////////////////
     struct lex_input
     {
-        typedef int value_type;
-
         ///////////////////////////////////////////////////////////////////////
         template <typename T>
         class unique : public detail::default_input_policy
         {
         public:
+            typedef int value_type;
             typedef std::ptrdiff_t difference_type;
             typedef std::ptrdiff_t distance_type;
             typedef int* pointer;
@@ -38,29 +37,17 @@ namespace boost { namespace spirit { namespace iterator_policies
 
         public:
             template <typename MultiPass>
-            static typename MultiPass::reference get_input(MultiPass& mp)
-            {
-                value_type& curtok = mp.shared()->curtok;
-                if (-1 == curtok)
-                {
-                    extern int yylex();
-                    curtok = yylex();
-                }
-                return curtok;
-            }
-
-            template <typename MultiPass>
-            static void advance_input(MultiPass& mp)
+            static value_type& advance_input(MultiPass& mp, value_type& t)
             {
                 extern int yylex();
-                mp.shared()->curtok = yylex();
+                return t = yylex();
             }
 
             // test, whether we reached the end of the underlying stream
             template <typename MultiPass>
-            static bool input_at_eof(MultiPass const& mp) 
+            static bool input_at_eof(MultiPass const&, value_type const& t) 
             {
-                return mp.shared()->curtok == 0;
+                return 0 == t;
             }
 
             template <typename MultiPass>
@@ -74,9 +61,9 @@ namespace boost { namespace spirit { namespace iterator_policies
         template <typename T>
         struct shared
         {
-            explicit shared(T) : curtok(-1) {}
+            explicit shared(T) {}
 
-            value_type curtok;
+            // no shared data elements
         };
     };
 

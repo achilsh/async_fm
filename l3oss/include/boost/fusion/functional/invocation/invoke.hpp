@@ -39,7 +39,6 @@
 #include <boost/function_types/parameter_types.hpp>
 
 #include <boost/utility/result_of.hpp>
-#include <boost/core/enable_if.hpp>
 
 #include <boost/fusion/support/category_of.hpp>
 #include <boost/fusion/sequence/intrinsic/at.hpp>
@@ -53,6 +52,21 @@
 
 namespace boost { namespace fusion
 {
+    namespace result_of
+    {
+        template <typename Function, class Sequence> struct invoke;
+    }
+
+    template <typename Function, class Sequence>
+    inline typename result_of::invoke<Function, Sequence>::type
+    invoke(Function, Sequence &);
+
+    template <typename Function, class Sequence>
+    inline typename result_of::invoke<Function, Sequence const>::type
+    invoke(Function, Sequence const &);
+
+    //----- ---- --- -- - -  -   -
+
     namespace detail
     {
         namespace ft = function_types;
@@ -61,8 +75,7 @@ namespace boost { namespace fusion
             typename Function, class Sequence,
             int N = result_of::size<Sequence>::value,
             bool CBI = ft::is_callable_builtin<Function>::value,
-            bool RandomAccess = traits::is_random_access<Sequence>::value,
-            typename Enable = void
+            bool RandomAccess = traits::is_random_access<Sequence>::value
             >
         struct invoke_impl;
 
@@ -71,9 +84,6 @@ namespace boost { namespace fusion
 
         template <typename T, class Sequence>
         struct invoke_data_member;
-
-        template <typename Function, class Sequence, int N, bool RandomAccess>
-        struct invoke_fn_ptr;
 
         template <typename Function, class Sequence, int N, bool RandomAccess>
         struct invoke_mem_fn;
@@ -85,22 +95,22 @@ namespace boost { namespace fusion
         template <typename F, class Sequence, int N, bool RandomAccess>
         struct invoke_nonmember_builtin
         // use same implementation as for function objects but...
-            : invoke_fn_ptr< // ...work around boost::result_of bugs
+            : invoke_impl< // ...work around boost::result_of bugs
                 typename mpl::eval_if< ft::is_function<F>,
                     boost::add_reference<F>, boost::remove_cv<F> >::type,
-                Sequence, N, RandomAccess >
+                Sequence, N, false, RandomAccess >
         { };
 
-        template <typename Function, class Sequence, int N, bool RandomAccess, typename Enable>
-        struct invoke_impl<Function,Sequence,N,true,RandomAccess,Enable>
+        template <typename Function, class Sequence, int N, bool RandomAccess>
+        struct invoke_impl<Function,Sequence,N,true,RandomAccess>
             : mpl::if_< ft::is_member_function_pointer<Function>,
                 invoke_mem_fn<Function,Sequence,N,RandomAccess>,
                 invoke_nonmember_builtin<Function,Sequence,N,RandomAccess>
             >::type
         { };
 
-        template <typename Function, class Sequence, bool RandomAccess, typename Enable>
-        struct invoke_impl<Function,Sequence,1,true,RandomAccess,Enable>
+        template <typename Function, class Sequence, bool RandomAccess>
+        struct invoke_impl<Function,Sequence,1,true,RandomAccess>
             : mpl::eval_if< ft::is_member_pointer<Function>,
                 mpl::if_< ft::is_member_function_pointer<Function>,
                     invoke_mem_fn<Function,Sequence,1,RandomAccess>,
@@ -132,7 +142,6 @@ namespace boost { namespace fusion
             typedef typename boost::add_reference<qualified_type>::type
                 result_type;
 
-            BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static inline result_type call(T C::* f, Sequence & s)
             {
                 typename result_of::front<Sequence>::type c = fusion::front(s);
@@ -143,25 +152,15 @@ namespace boost { namespace fusion
 
     namespace result_of
     {
-        template <typename Function, class Sequence, typename = void>
-        struct invoke;
-
-        template <typename Function, class Sequence>
-        struct invoke<Function, Sequence,
-                      typename enable_if_has_type<
-                          typename detail::invoke_impl<
-                              typename boost::remove_reference<Function>::type, Sequence
-                          >::result_type
-                      >::type>
+        template <typename Function, class Sequence> struct invoke
         {
             typedef typename detail::invoke_impl<
                 typename boost::remove_reference<Function>::type, Sequence
-            >::result_type type;
+              >::result_type type;
         };
     }
 
     template <typename Function, class Sequence>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
     inline typename result_of::invoke<Function,Sequence>::type
     invoke(Function f, Sequence & s)
     {
@@ -171,7 +170,6 @@ namespace boost { namespace fusion
     }
 
     template <typename Function, class Sequence>
-    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
     inline typename result_of::invoke<Function,Sequence const>::type
     invoke(Function f, Sequence const & s)
     {
@@ -191,73 +189,23 @@ namespace boost { namespace fusion
 ///////////////////////////////////////////////////////////////////////////////
 #define N BOOST_PP_ITERATION()
 
-#define M(z,j,data) typename result_of::at_c<Sequence,j>::type
-
         template <typename Function, class Sequence>
-        struct invoke_impl<Function,Sequence,N,false,true,
-            typename enable_if_has_type<
-                typename boost::result_of<Function(BOOST_PP_ENUM(N,M,~)) >::type
-              >::type>
+        struct invoke_impl<Function,Sequence,N,false,true>
         {
         public:
 
             typedef typename boost::result_of<
+#define M(z,j,data) typename result_of::at_c<Sequence,j>::type
                     Function(BOOST_PP_ENUM(N,M,~)) >::type result_type;
 #undef M
 
-#if N > 0
-
             template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static inline result_type
             call(F & f, Sequence & s)
             {
 #define M(z,j,data) fusion::at_c<j>(s)
                 return f( BOOST_PP_ENUM(N,M,~) );
             }
-
-#else
-            template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & /*s*/)
-            {
-                return f();
-            }
-
-#endif
-
-        };
-
-        template <typename Function, class Sequence>
-        struct invoke_fn_ptr<Function,Sequence,N,true>
-        {
-        public:
-
-            typedef typename ft::result_type<Function>::type result_type;
-
-#if N > 0
-
-            template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & s)
-            {
-#define M(z,j,data) fusion::at_c<j>(s)
-                return f( BOOST_PP_ENUM(N,M,~) );
-            }
-
-#else
-            template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & /*s*/)
-            {
-                return f();
-            }
-
-#endif
-
         };
 
 
@@ -270,7 +218,6 @@ namespace boost { namespace fusion
             typedef typename ft::result_type<Function>::type result_type;
 
             template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static inline result_type
             call(F & f, Sequence & s)
             {
@@ -288,12 +235,7 @@ namespace boost { namespace fusion
                 fusion::next(BOOST_PP_CAT(i,BOOST_PP_DEC(j)));
 
         template <typename Function, class Sequence>
-        struct invoke_impl<Function,Sequence,N,false,false,
-            typename enable_if_has_type<
-#define L(z,j,data) typename invoke_param_types<Sequence,N>::BOOST_PP_CAT(T, j)
-                typename boost::result_of<Function(BOOST_PP_ENUM(N,L,~))>::type
-              >::type>
-#undef L
+        struct invoke_impl<Function,Sequence,N,false,false>
         {
         private:
             typedef invoke_param_types<Sequence,N> seq;
@@ -303,65 +245,16 @@ namespace boost { namespace fusion
                 Function(BOOST_PP_ENUM_PARAMS(N,typename seq::T))
                 >::type result_type;
 
-#if N > 0
-
             template <typename F>
-            BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static inline result_type
             call(F & f, Sequence & s)
             {
-                typename seq::I0 i0 = fusion::begin(s);
-                BOOST_PP_REPEAT_FROM_TO(1,N,M,~)
-                return f( BOOST_PP_ENUM_PARAMS(N,*i) );
-            }
-
-#else
-
-            template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & /*s*/)
-            {
-                return f();
-            }
-
-#endif
-
-        };
-
-        template <typename Function, class Sequence>
-        struct invoke_fn_ptr<Function,Sequence,N,false>
-        {
-        private:
-            typedef invoke_param_types<Sequence,N> seq;
-        public:
-
-            typedef typename ft::result_type<Function>::type result_type;
-
 #if N > 0
-
-            template <typename F>
-            BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & s)
-            {
                 typename seq::I0 i0 = fusion::begin(s);
                 BOOST_PP_REPEAT_FROM_TO(1,N,M,~)
+#endif
                 return f( BOOST_PP_ENUM_PARAMS(N,*i) );
             }
-
-#else
-
-            template <typename F>
-            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-            static inline result_type
-            call(F & f, Sequence & /*s*/)
-            {
-                return f();
-            }
-
-#endif
-
         };
 
 #if N > 0
@@ -375,7 +268,6 @@ namespace boost { namespace fusion
             typedef typename ft::result_type<Function>::type result_type;
 
             template <typename F>
-            BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static inline result_type
             call(F & f, Sequence & s)
             {

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,22 +11,13 @@
 #ifndef BOOST_INTERPROCESS_MAP_INDEX_HPP
 #define BOOST_INTERPROCESS_MAP_INDEX_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
-#  pragma once
-#endif
-
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
 
-#include <boost/intrusive/detail/minimal_pair_header.hpp>
+#include <functional>
+#include <utility>
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/allocators/private_adaptive_pool.hpp>
-#include <boost/intrusive/detail/minimal_pair_header.hpp>         //std::pair
-#include <boost/intrusive/detail/minimal_less_equal_header.hpp>   //std::less
 
 //!\file
 //!Describes index adaptor of boost::map container, to use it
@@ -34,7 +25,7 @@
 
 namespace boost {
 namespace interprocess {
-namespace ipcdetail{
+namespace detail{
 
 //!Helper class to define typedefs from IndexTraits
 template <class MapConfig>
@@ -55,21 +46,21 @@ struct map_index_aux
        key_less, allocator_type>                   index_t;
 };
 
-}  //namespace ipcdetail {
+}  //namespace detail {
 
-//!Index type based in boost::interprocess::map. Just derives from boost::interprocess::map
+//!Index type based in boost::interprocess::map. Just derives from boost::interprocess::map 
 //!and defines the interface needed by managed memory segments
 template <class MapConfig>
 class map_index
    //Derive class from map specialization
-   : public ipcdetail::map_index_aux<MapConfig>::index_t
+   : public detail::map_index_aux<MapConfig>::index_t
 {
-   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-   typedef ipcdetail::map_index_aux<MapConfig>  index_aux;
+   /// @cond
+   typedef detail::map_index_aux<MapConfig>  index_aux;
    typedef typename index_aux::index_t       base_type;
    typedef typename MapConfig::
       segment_manager_base          segment_manager_base;
-   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+   /// @endcond
 
    public:
    //!Constructor. Takes a pointer to the
@@ -80,7 +71,7 @@ class map_index
 
    //!This reserves memory to optimize the insertion of n
    //!elements in the index
-   void reserve(typename segment_manager_base::size_type)
+   void reserve(std::size_t)
       {  /*Does nothing, map has not reserve or rehash*/  }
 
    //!This tries to free previously allocate
@@ -89,7 +80,7 @@ class map_index
    {  base_type::get_stored_allocator().deallocate_free_blocks(); }
 };
 
-#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+/// @cond
 
 //!Trait class to detect if an index is a node
 //!index. This allows more efficient operations
@@ -98,9 +89,9 @@ template<class MapConfig>
 struct is_node_index
    <boost::interprocess::map_index<MapConfig> >
 {
-   static const bool value = true;
+   enum {   value = true };
 };
-#endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
+/// @endcond
 
 }}   //namespace boost { namespace interprocess {
 

@@ -54,9 +54,7 @@ namespace date_time {
           os << std::setw(2) << std::setfill(os.widen('0')) << month.as_number();
           break;
         }
-        default:
-          break;
-          
+     
       }
       return os;
     } // format_month
@@ -81,13 +79,7 @@ namespace date_time {
     {
       typedef typename ymd_type::month_type month_type;
       std::basic_ostringstream<charT> ss;
-
-      // Temporarily switch to classic locale to prevent possible formatting
-      // of year with comma or other character (for example 2,008).
-      ss.imbue(std::locale::classic());
       ss << ymd.year;
-      ss.imbue(std::locale());
-
       if (format_type::has_date_sep_chars()) {
         ss << format_type::month_sep_char();
       }

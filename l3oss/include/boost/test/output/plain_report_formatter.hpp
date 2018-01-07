@@ -1,6 +1,6 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2005-2008.
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
@@ -24,7 +24,9 @@
 //____________________________________________________________________________//
 
 namespace boost {
+
 namespace unit_test {
+
 namespace output {
 
 // ************************************************************************** //
@@ -33,8 +35,6 @@ namespace output {
 
 class plain_report_formatter : public results_reporter::format {
 public:
-    plain_report_formatter() : m_indent( 0 ), m_color_output( false ) {}
-
     // Formatter interface
     void    results_report_start( std::ostream& ostr );
     void    results_report_finish( std::ostream& ostr );
@@ -47,12 +47,15 @@ public:
 private:
     // Data members
     counter_t m_indent;
-    bool    m_color_output;
 };
 
 } // namespace output
+
 } // namespace unit_test
+
 } // namespace boost
+
+//____________________________________________________________________________//
 
 #include <boost/test/detail/enable_warnings.hpp>
 

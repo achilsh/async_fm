@@ -1,8 +1,8 @@
 //
-// windows/basic_random_access_handle.hpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// basic_random_access_handle.hpp
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,21 +15,20 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
 
-#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
-
-#if defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE) \
-  || defined(GENERATING_DOCUMENTATION)
-
+#include <boost/asio/detail/push_options.hpp>
 #include <cstddef>
-#include <boost/asio/detail/handler_type_requirements.hpp>
-#include <boost/asio/detail/throw_error.hpp>
+#include <boost/config.hpp>
+#include <boost/asio/detail/pop_options.hpp>
+
 #include <boost/asio/error.hpp>
 #include <boost/asio/windows/basic_handle.hpp>
 #include <boost/asio/windows/random_access_handle_service.hpp>
+#include <boost/asio/detail/throw_error.hpp>
 
-#include <boost/asio/detail/push_options.hpp>
+#if defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE) \
+  || defined(GENERATING_DOCUMENTATION)
 
 namespace boost {
 namespace asio {
@@ -50,20 +49,19 @@ class basic_random_access_handle
 {
 public:
   /// The native representation of a handle.
-  typedef typename RandomAccessHandleService::native_handle_type
-    native_handle_type;
+  typedef typename RandomAccessHandleService::native_type native_type;
 
   /// Construct a basic_random_access_handle without opening it.
   /**
    * This constructor creates a random-access handle without opening it. The
-   * handle needs to be opened before data can be written to or read from it.
+   * handle needs to be opened before data can be written to or or read from it.
    *
-   * @param io_context The io_context object that the random-access handle will
+   * @param io_service The io_service object that the random-access handle will
    * use to dispatch handlers for any asynchronous operations performed on the
    * handle.
    */
-  explicit basic_random_access_handle(boost::asio::io_context& io_context)
-    : basic_handle<RandomAccessHandleService>(io_context)
+  explicit basic_random_access_handle(boost::asio::io_service& io_service)
+    : basic_handle<RandomAccessHandleService>(io_service)
   {
   }
 
@@ -72,57 +70,19 @@ public:
    * This constructor creates a random-access handle object to hold an existing
    * native handle.
    *
-   * @param io_context The io_context object that the random-access handle will
+   * @param io_service The io_service object that the random-access handle will
    * use to dispatch handlers for any asynchronous operations performed on the
    * handle.
    *
-   * @param handle The new underlying handle implementation.
+   * @param native_handle The new underlying handle implementation.
    *
    * @throws boost::system::system_error Thrown on failure.
    */
-  basic_random_access_handle(boost::asio::io_context& io_context,
-      const native_handle_type& handle)
-    : basic_handle<RandomAccessHandleService>(io_context, handle)
+  basic_random_access_handle(boost::asio::io_service& io_service,
+      const native_type& native_handle)
+    : basic_handle<RandomAccessHandleService>(io_service, native_handle)
   {
   }
-
-#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
-  /// Move-construct a basic_random_access_handle from another.
-  /**
-   * This constructor moves a random-access handle from one object to another.
-   *
-   * @param other The other basic_random_access_handle object from which the
-   * move will occur.
-   *
-   * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_random_access_handle(io_context&)
-   * constructor.
-   */
-  basic_random_access_handle(basic_random_access_handle&& other)
-    : basic_handle<RandomAccessHandleService>(
-        BOOST_ASIO_MOVE_CAST(basic_random_access_handle)(other))
-  {
-  }
-
-  /// Move-assign a basic_random_access_handle from another.
-  /**
-   * This assignment operator moves a random-access handle from one object to
-   * another.
-   *
-   * @param other The other basic_random_access_handle object from which the
-   * move will occur.
-   *
-   * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_random_access_handle(io_context&)
-   * constructor.
-   */
-  basic_random_access_handle& operator=(basic_random_access_handle&& other)
-  {
-    basic_handle<RandomAccessHandleService>::operator=(
-        BOOST_ASIO_MOVE_CAST(basic_random_access_handle)(other));
-    return *this;
-  }
-#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Write some data to the handle at the specified offset.
   /**
@@ -154,13 +114,13 @@ public:
    * std::vector.
    */
   template <typename ConstBufferSequence>
-  std::size_t write_some_at(uint64_t offset,
+  std::size_t write_some_at(boost::uint64_t offset,
       const ConstBufferSequence& buffers)
   {
     boost::system::error_code ec;
-    std::size_t s = this->get_service().write_some_at(
-        this->get_implementation(), offset, buffers, ec);
-    boost::asio::detail::throw_error(ec, "write_some_at");
+    std::size_t s = this->service.write_some_at(
+        this->implementation, offset, buffers, ec);
+    boost::asio::detail::throw_error(ec);
     return s;
   }
 
@@ -183,11 +143,11 @@ public:
    * all data is written before the blocking operation completes.
    */
   template <typename ConstBufferSequence>
-  std::size_t write_some_at(uint64_t offset,
+  std::size_t write_some_at(boost::uint64_t offset,
       const ConstBufferSequence& buffers, boost::system::error_code& ec)
   {
-    return this->get_service().write_some_at(
-        this->get_implementation(), offset, buffers, ec);
+    return this->service.write_some_at(
+        this->implementation, offset, buffers, ec);
   }
 
   /// Start an asynchronous write at the specified offset.
@@ -212,7 +172,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the handler will not be invoked from within this function. Invocation
    * of the handler will be performed in a manner equivalent to using
-   * boost::asio::io_context::post().
+   * boost::asio::io_service::post().
    *
    * @note The write operation may not transmit all of the data to the peer.
    * Consider using the @ref async_write_at function if you need to ensure that
@@ -228,18 +188,11 @@ public:
    * std::vector.
    */
   template <typename ConstBufferSequence, typename WriteHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-      void (boost::system::error_code, std::size_t))
-  async_write_some_at(uint64_t offset,
-      const ConstBufferSequence& buffers,
-      BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
+  void async_write_some_at(boost::uint64_t offset,
+      const ConstBufferSequence& buffers, WriteHandler handler)
   {
-    // If you get an error on the following line it means that your handler does
-    // not meet the documented type requirements for a WriteHandler.
-    BOOST_ASIO_WRITE_HANDLER_CHECK(WriteHandler, handler) type_check;
-
-    return this->get_service().async_write_some_at(this->get_implementation(),
-        offset, buffers, BOOST_ASIO_MOVE_CAST(WriteHandler)(handler));
+    this->service.async_write_some_at(
+        this->implementation, offset, buffers, handler);
   }
 
   /// Read some data from the handle at the specified offset.
@@ -273,13 +226,13 @@ public:
    * std::vector.
    */
   template <typename MutableBufferSequence>
-  std::size_t read_some_at(uint64_t offset,
+  std::size_t read_some_at(boost::uint64_t offset,
       const MutableBufferSequence& buffers)
   {
     boost::system::error_code ec;
-    std::size_t s = this->get_service().read_some_at(
-        this->get_implementation(), offset, buffers, ec);
-    boost::asio::detail::throw_error(ec, "read_some_at");
+    std::size_t s = this->service.read_some_at(
+        this->implementation, offset, buffers, ec);
+    boost::asio::detail::throw_error(ec);
     return s;
   }
 
@@ -303,11 +256,11 @@ public:
    * completes.
    */
   template <typename MutableBufferSequence>
-  std::size_t read_some_at(uint64_t offset,
+  std::size_t read_some_at(boost::uint64_t offset,
       const MutableBufferSequence& buffers, boost::system::error_code& ec)
   {
-    return this->get_service().read_some_at(
-        this->get_implementation(), offset, buffers, ec);
+    return this->service.read_some_at(
+        this->implementation, offset, buffers, ec);
   }
 
   /// Start an asynchronous read at the specified offset.
@@ -332,7 +285,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the handler will not be invoked from within this function. Invocation
    * of the handler will be performed in a manner equivalent to using
-   * boost::asio::io_context::post().
+   * boost::asio::io_service::post().
    *
    * @note The read operation may not read all of the requested number of bytes.
    * Consider using the @ref async_read_at function if you need to ensure that
@@ -349,18 +302,11 @@ public:
    * std::vector.
    */
   template <typename MutableBufferSequence, typename ReadHandler>
-  BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-      void (boost::system::error_code, std::size_t))
-  async_read_some_at(uint64_t offset,
-      const MutableBufferSequence& buffers,
-      BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
+  void async_read_some_at(boost::uint64_t offset,
+      const MutableBufferSequence& buffers, ReadHandler handler)
   {
-    // If you get an error on the following line it means that your handler does
-    // not meet the documented type requirements for a ReadHandler.
-    BOOST_ASIO_READ_HANDLER_CHECK(ReadHandler, handler) type_check;
-
-    return this->get_service().async_read_some_at(this->get_implementation(),
-        offset, buffers, BOOST_ASIO_MOVE_CAST(ReadHandler)(handler));
+    this->service.async_read_some_at(
+        this->implementation, offset, buffers, handler);
   }
 };
 
@@ -368,11 +314,9 @@ public:
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
-
 #endif // defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+#include <boost/asio/detail/pop_options.hpp>
 
 #endif // BOOST_ASIO_WINDOWS_BASIC_RANDOM_ACCESS_HANDLE_HPP

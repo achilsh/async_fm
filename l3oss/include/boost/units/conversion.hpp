@@ -11,9 +11,6 @@
 #ifndef BOOST_UNITS_CONVERSION_HPP
 #define BOOST_UNITS_CONVERSION_HPP
 
-/// \file
-/// \brief Template for defining conversions between quantities.
-
 #include <boost/units/detail/conversion_impl.hpp>
 
 namespace boost {
@@ -159,7 +156,7 @@ namespace namespace_ {                                                      \
 struct name_ ## _base_unit                                                  \
   : base_unit<name_ ## _base_unit, unit::dimension_type, id> {              \
     static const char* name() { return(name_string_); }                     \
-    static const char* symbol() { return(symbol_string_); }                 \
+    static const char* symbol() { return(symbol_string_); };                \
 };                                                                          \
 }                                                                           \
 }                                                                           \
@@ -170,12 +167,10 @@ BOOST_UNITS_DEFAULT_CONVERSION(namespace_::name_ ## _base_unit, unit)
 /// Find the conversion factor between two units.
 template<class FromUnit,class ToUnit>
 inline
-typename one_to_double_type<
-    typename detail::conversion_factor_helper<FromUnit, ToUnit>::type
->::type
+typename detail::conversion_factor_helper<FromUnit, ToUnit>::type
 conversion_factor(const FromUnit&,const ToUnit&)
 {
-    return(one_to_double(detail::conversion_factor_helper<FromUnit, ToUnit>::value()));
+    return(detail::conversion_factor_helper<FromUnit, ToUnit>::value());
 }
 
 } // namespace units

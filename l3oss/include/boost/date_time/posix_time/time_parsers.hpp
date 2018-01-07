@@ -35,10 +35,6 @@ namespace posix_time {
     return date_time::parse_iso_time<ptime>(s, 'T');
   }
 
-  inline ptime from_iso_extended_string(const std::string& s) {
-    return date_time::parse_delimited_time<ptime>(s, 'T');
-  }
-
 
 
 } } //namespace posix_time

@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ARCHIVE_EXCEPTION_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -17,10 +17,11 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <exception>
-#include <boost/assert.hpp>
+#include <cassert>
 #include <string>
 
 #include <boost/config.hpp> 
+#include <boost/preprocessor/empty.hpp>
 #include <boost/archive/detail/decl.hpp>
 
 // note: the only reason this is in here is that windows header
@@ -39,21 +40,14 @@ namespace archive {
 //////////////////////////////////////////////////////////////////////
 // exceptions thrown by archives
 //
-class BOOST_SYMBOL_VISIBLE archive_exception : 
+class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) archive_exception : 
     public virtual std::exception
 {
-private:
-    char m_buffer[128];
-protected:
-    BOOST_ARCHIVE_DECL unsigned int
-    append(unsigned int l, const char * a);
-    BOOST_ARCHIVE_DECL
-    archive_exception() BOOST_NOEXCEPT;
 public:
     typedef enum {
         no_exception,       // initialized without code
         other_exception,    // any excepton not listed below
-        unregistered_class, // attempt to serialize a pointer of
+        unregistered_class, // attempt to serialize a pointer of an
                             // an unregistered class
         invalid_signature,  // first line of archive does not contain
                             // expected string
@@ -61,35 +55,37 @@ public:
                             // subsequent to this one
         pointer_conflict,   // an attempt has been made to directly
                             // serialize an object which has
-                            // already been serialized through a pointer.  
-                            // Were this permitted, the archive load would result 
+                            // already been serialzed through a pointer.  
+                            // Were this permited, the archive load would result 
                             // in the creation of an extra copy of the obect.
         incompatible_native_format, // attempt to read native binary format
                             // on incompatible platform
         array_size_too_short,// array being loaded doesn't fit in array allocated
-        input_stream_error, // error on input stream
+        stream_error,       // i/o error on stream
         invalid_class_name, // class name greater than the maximum permitted.
                             // most likely a corrupted archive or an attempt
                             // to insert virus via buffer overrun method.
         unregistered_cast,   // base - derived relationship not registered with 
                             // void_cast_register
         unsupported_class_version, // type saved with a version # greater than the 
-                            // one used by the program.  This indicates that the program
+                            // one used by the program.  This indicates that the proggram
                             // needs to be rebuilt.
-        multiple_code_instantiation, // code for implementing serialization for some
+        multiple_code_instantiation // code for implementing serialization for some
                             // type has been instantiated in more than one module.
-        output_stream_error // error on input stream
     } exception_code;
+protected:
+    std::string m_msg;
+public:
     exception_code code;
-
-    BOOST_ARCHIVE_DECL archive_exception(
+    archive_exception(
         exception_code c, 
         const char * e1 = NULL,
         const char * e2 = NULL
-    ) BOOST_NOEXCEPT;
-    BOOST_ARCHIVE_DECL archive_exception(archive_exception const &) BOOST_NOEXCEPT ;
-    virtual BOOST_ARCHIVE_DECL ~archive_exception() BOOST_NOEXCEPT_OR_NOTHROW ;
-    virtual BOOST_ARCHIVE_DECL const char * what() const BOOST_NOEXCEPT_OR_NOTHROW ;
+    );
+    ~archive_exception() throw ();
+    virtual const char *what( ) const throw();
+protected:
+    archive_exception();
 };
 
 }// namespace archive

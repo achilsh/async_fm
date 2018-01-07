@@ -13,15 +13,14 @@
 #ifndef BOOST_VARIANT_VISITOR_PTR_HPP
 #define BOOST_VARIANT_VISITOR_PTR_HPP
 
-#include <boost/variant/bad_visit.hpp>
-#include <boost/variant/static_visitor.hpp>
+#include "boost/variant/bad_visit.hpp"
+#include "boost/variant/static_visitor.hpp"
 
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/identity.hpp>
-#include <boost/throw_exception.hpp>
-#include <boost/type_traits/add_reference.hpp>
-#include <boost/type_traits/is_reference.hpp>
-#include <boost/type_traits/is_void.hpp>
+#include "boost/mpl/eval_if.hpp"
+#include "boost/mpl/identity.hpp"
+#include "boost/type_traits/add_reference.hpp"
+#include "boost/type_traits/is_reference.hpp"
+#include "boost/type_traits/is_void.hpp"
 
 namespace boost {
 
@@ -55,7 +54,7 @@ private: // private typedefs
 
 public: // structors
 
-    explicit visitor_ptr_t(visitor_t visitor) BOOST_NOEXCEPT
+    explicit visitor_ptr_t(visitor_t visitor)
       : visitor_(visitor)
     {
     }
@@ -65,7 +64,7 @@ public: // static visitor interfaces
     template <typename U>
     result_type operator()(const U&) const
     {
-        boost::throw_exception(bad_visit());
+        throw bad_visit();
     }
 
 #if !defined(BOOST_NO_VOID_RETURNS)

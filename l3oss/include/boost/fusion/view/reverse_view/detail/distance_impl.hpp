@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2006 Joel de Guzman
     Copyright (c) 2005-2006 Dan Marsden
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -8,7 +8,6 @@
 #if !defined(FUSION_DISTANCE_IMPL_14122005_2104)
 #define FUSION_DISTANCE_IMPL_14122005_2104
 
-#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/iterator/distance.hpp>
 
 namespace boost { namespace fusion {
@@ -33,7 +32,6 @@ namespace boost { namespace fusion {
                 typedef typename Last::first_type last_type;
                 typedef typename result_of::distance<last_type, first_type>::type type;
 
-                BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
                 static type
                 call(First const& first, Last const& last)
                 {

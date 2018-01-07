@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -76,9 +76,9 @@ namespace boost { namespace spirit { namespace qi
             )>
         function_type;
 
-        error_handler(function_type subject_, F f_)
-          : subject(subject_)
-          , f(f_)
+        error_handler(function_type subject, F f)
+          : subject(subject)
+          , f(f)
         {
         }
 
@@ -116,21 +116,21 @@ namespace boost { namespace spirit { namespace qi
 
                     // The assertions below will fire if you are using a
                     // multi_pass as the underlying iterator, one of your error
-                    // handlers forced its guarded rule to 'fail' or 'retry',
+                    // handlers forced to 'fail' or 'retry' its guarded rule,
                     // and the error handler has not been instantiated using
                     // either 'fail' or 'retry' in the first place. Please see 
-                    // the multi_pass docs for more information.
+                    // the mutli_pass docs for more information.
                     switch (r)
                     {
                         case fail: 
                             BOOST_ASSERT(
                                 !traits::is_multi_pass<Iterator>::value ||
-                                    action == retry || action == fail);
+                                (action != retry && action != fail));
                             return false;
                         case retry: 
                             BOOST_ASSERT(
                                 !traits::is_multi_pass<Iterator>::value ||
-                                    action == retry || action == fail);
+                                (action != retry && action != fail));
                             continue;
                         case accept: return true;
                         case rethrow: boost::throw_exception(x);

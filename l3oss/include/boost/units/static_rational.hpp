@@ -11,7 +11,7 @@
 #ifndef BOOST_UNITS_STATIC_RATIONAL_HPP 
 #define BOOST_UNITS_STATIC_RATIONAL_HPP
 
-#include <boost/integer/common_factor_ct.hpp>
+#include <boost/math/common_factor_ct.hpp>
 #include <boost/mpl/less.hpp>
 #include <boost/mpl/arithmetic.hpp>
 
@@ -46,7 +46,7 @@ struct static_abs
     BOOST_STATIC_CONSTANT(integer_type,value = Value < 0 ? -Value : Value);
 };
 
-// Compile time rational number.
+/// Compile time rational number.
 /** 
 This is an implementation of a compile time rational number, where @c static_rational<N,D> represents
 a rational number with numerator @c N and denominator @c D. Because of the potential for ambiguity arising 
@@ -83,7 +83,7 @@ class static_rational
         typedef boost::mpl::integral_c<integer_type, D> D_type;
 
         typedef typename make_integral_c<
-            (::boost::integer::static_gcd<
+            (::boost::math::static_gcd<
                 ::boost::units::static_abs<N>::value,
                 ::boost::units::static_abs<D>::value
             >::value)>::type gcd_type;
@@ -133,7 +133,7 @@ class static_rational
         /// greatest common divisor of N and D
         // need cast to signed because static_gcd returns unsigned long
         static const integer_type   den = 
-            static_cast<integer_type>(boost::integer::static_gcd<nabs,dabs>::value) * ((D < 0) ? -1 : 1);
+            static_cast<integer_type>(boost::math::static_gcd<nabs,dabs>::value) * ((D < 0) ? -1 : 1);
         
     public: 
         // for mpl arithmetic support

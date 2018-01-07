@@ -44,6 +44,7 @@ object_operators<U>::operator[](object_cref key) const
     return const_object_item(x, key);
 }
 
+# if !defined(BOOST_MSVC) || BOOST_MSVC > 1300
 template <class U>
 template <class T>
 inline const_object_item
@@ -59,6 +60,8 @@ object_operators<U>::operator[](T const& key)
 {
     return (*this)[object(key)];
 }
+# endif 
+
 
 inline object const_item_policies::get(object const& target, object const& key)
 {

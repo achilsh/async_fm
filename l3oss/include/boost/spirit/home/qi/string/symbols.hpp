@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -48,7 +48,7 @@ namespace boost { namespace spirit { namespace qi
             >::type
           , symbols<Char, T, Lookup, Filter>
         >
-      , primitive_parser<symbols<Char, T, Lookup, Filter> >
+      , parser<symbols<Char, T, Lookup, Filter> >
     {
         typedef Char char_type; // the character type
         typedef T value_type; // the value associated with each entry
@@ -63,12 +63,11 @@ namespace boost { namespace spirit { namespace qi
             typedef value_type type;
         };
 
-        symbols(std::string const& name = "symbols")
+        symbols()
           : base_type(terminal::make(reference_(*this)))
           , add(*this)
           , remove(*this)
           , lookup(new Lookup())
-          , name_(name)
         {
         }
 
@@ -77,7 +76,6 @@ namespace boost { namespace spirit { namespace qi
           , add(*this)
           , remove(*this)
           , lookup(syms.lookup)
-          , name_(syms.name_)
         {
         }
 
@@ -87,17 +85,15 @@ namespace boost { namespace spirit { namespace qi
           , add(*this)
           , remove(*this)
           , lookup(syms.lookup)
-          , name_(syms.name_)
         {
         }
 
         template <typename Symbols>
-        symbols(Symbols const& syms, std::string const& name = "symbols")
+        symbols(Symbols const& syms)
           : base_type(terminal::make(reference_(*this)))
           , add(*this)
           , remove(*this)
           , lookup(new Lookup())
-          , name_(name)
         {
             typename range_const_iterator<Symbols>::type si = boost::begin(syms);
             while (si != boost::end(syms))
@@ -105,13 +101,11 @@ namespace boost { namespace spirit { namespace qi
         }
 
         template <typename Symbols, typename Data>
-        symbols(Symbols const& syms, Data const& data
-              , std::string const& name = "symbols")
+        symbols(Symbols const& syms, Data const& data)
           : base_type(terminal::make(reference_(*this)))
           , add(*this)
           , remove(*this)
           , lookup(new Lookup())
-          , name_(name)
         {
             typename range_const_iterator<Symbols>::type si = boost::begin(syms);
             typename range_const_iterator<Data>::type di = boost::begin(data);
@@ -122,7 +116,6 @@ namespace boost { namespace spirit { namespace qi
         symbols&
         operator=(symbols const& rhs)
         {
-            name_ = rhs.name_;
             *lookup = *rhs.lookup;
             return *this;
         }
@@ -131,7 +124,6 @@ namespace boost { namespace spirit { namespace qi
         symbols&
         operator=(symbols<Char, T, Lookup, Filter_> const& rhs)
         {
-            name_ = rhs.name_;
             *lookup = *rhs.lookup;
             return *this;
         }
@@ -166,7 +158,6 @@ namespace boost { namespace spirit { namespace qi
             return sym.remove(str);
         }
 
-#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // non-const version needed to suppress proto's += kicking in
         template <typename Str>
         friend adder const&
@@ -182,46 +173,18 @@ namespace boost { namespace spirit { namespace qi
         {
             return sym.remove(str);
         }
-#else
-        // for rvalue references
-        template <typename Str>
-        friend adder const&
-        operator+=(symbols& sym, Str&& str)
-        {
-            return sym.add(str);
-        }
 
-        // for rvalue references
-        template <typename Str>
-        friend remover const&
-        operator-=(symbols& sym, Str&& str)
-        {
-            return sym.remove(str);
-        }
-#endif
         template <typename F>
         void for_each(F f) const
         {
             lookup->for_each(f);
         }
-
+        
         template <typename Str>
         value_type& at(Str const& str)
         {
             return *lookup->add(traits::get_begin<Char>(str)
                 , traits::get_end<Char>(str), T());
-        }
-
-        template <typename Iterator>
-        value_type* prefix_find(Iterator& first, Iterator const& last)
-        {
-            return lookup->find(first, last, Filter());
-        }
-
-        template <typename Iterator>
-        value_type const* prefix_find(Iterator& first, Iterator const& last) const
-        {
-            return lookup->find(first, last, Filter());
         }
 
         template <typename Str>
@@ -242,29 +205,27 @@ private:
         template <typename Iterator>
         value_type* find_impl(Iterator begin, Iterator end)
         {
-            value_type* r = lookup->find(begin, end, Filter());
-            return begin == end ? r : 0;
+            return lookup->find(begin, end, Filter());
         }
 
         template <typename Iterator>
         value_type const* find_impl(Iterator begin, Iterator end) const
         {
-            value_type const* r = lookup->find(begin, end, Filter());
-            return begin == end ? r : 0;
+            return lookup->find(begin, end, Filter());
         }
 
 public:
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context& /*context*/, Skipper const& skipper, Attribute& attr_) const
+          , Context& /*context*/, Skipper const& skipper, Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
 
             if (value_type* val_ptr
                 = lookup->find(first, last, Filter()))
             {
-                spirit::traits::assign_to(*val_ptr, attr_);
+                spirit::traits::assign_to(*val_ptr, attr);
                 return true;
             }
             return false;
@@ -273,16 +234,7 @@ public:
         template <typename Context>
         info what(Context& /*context*/) const
         {
-            return info(name_);
-        }
-
-        void name(std::string const &str)
-        {
-            name_ = str;
-        }
-        std::string const &name() const
-        {
-            return name_;
+            return info("symbols"); // $$$ for now! give symbols a name $$$
         }
 
         struct adder
@@ -290,14 +242,14 @@ public:
             template <typename, typename = unused_type, typename = unused_type>
             struct result { typedef adder const& type; };
 
-            adder(symbols& sym_)
-              : sym(sym_)
+            adder(symbols& sym)
+              : sym(sym)
             {
             }
 
             template <typename Iterator>
             adder const&
-            operator()(Iterator const& first, Iterator const& last, T const& val) const
+            operator()(Iterator const& first, Iterator const& last, T const& val = T()) const
             {
                 sym.lookup->add(first, last, val);
                 return *this;
@@ -333,8 +285,8 @@ public:
             template <typename, typename = unused_type, typename = unused_type>
             struct result { typedef remover const& type; };
 
-            remover(symbols& sym_)
-              : sym(sym_)
+            remover(symbols& sym)
+              : sym(sym)
             {
             }
 
@@ -374,7 +326,6 @@ public:
         adder add;
         remover remove;
         shared_ptr<Lookup> lookup;
-        std::string name_;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -396,7 +347,7 @@ public:
         typedef has_modifier<Modifiers, tag::char_code_base<tag::no_case> > no_case;
         typedef reference<symbols<Char, T, Lookup, Filter> > reference_;
         typedef no_case_filter<
-            typename spirit::detail::get_encoding_with_case<
+            typename spirit::detail::get_encoding<
                 Modifiers
               , char_encoding::standard
               , no_case::value>::type>
@@ -413,15 +364,6 @@ public:
             return result_type(ref.ref.get());
         }
     };
-}}}
-
-namespace boost { namespace spirit { namespace traits
-{
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Char, typename T, typename Lookup, typename Filter
-      , typename Attr, typename Context, typename Iterator>
-    struct handles_container<qi::symbols<Char, T, Lookup, Filter>, Attr, Context, Iterator>
-      : traits::is_container<Attr> {};
 }}}
 
 #if defined(BOOST_MSVC)

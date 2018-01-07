@@ -1,6 +1,6 @@
-//  (C) Copyright Gennadiy Rozental 2001.
-//  Use, modification, and distribution are subject to the
-//  Boost Software License, Version 1.0. (See accompanying file
+//  (C) Copyright Gennadiy Rozental 2005-2008.
+//  Use, modification, and distribution are subject to the 
+//  Boost Software License, Version 1.0. (See accompanying file 
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
@@ -12,94 +12,87 @@
 //  Description : defines facility to hide input traversing details
 // ***************************************************************************
 
-#ifndef BOOST_TEST_UTILS_RUNTIME_CLA_ARGV_TRAVERSER_HPP
-#define BOOST_TEST_UTILS_RUNTIME_CLA_ARGV_TRAVERSER_HPP
+#ifndef BOOST_RT_CLA_ARGV_TRAVERSER_HPP_062604GER
+#define BOOST_RT_CLA_ARGV_TRAVERSER_HPP_062604GER
 
-// Boost.Test Runtime parameters
-#include <boost/test/utils/runtime/fwd.hpp>
+// Boost.Runtime.Parameter
+#include <boost/test/utils/runtime/config.hpp>
 
-#include <boost/test/detail/suppress_warnings.hpp>
+// Boost.Test
+#include <boost/test/utils/class_properties.hpp>
+
+// Boost
+#include <boost/noncopyable.hpp>
+#include <boost/shared_array.hpp>
 
 namespace boost {
-namespace runtime {
+
+namespace BOOST_RT_PARAM_NAMESPACE {
+
 namespace cla {
 
 // ************************************************************************** //
 // **************          runtime::cla::argv_traverser        ************** //
 // ************************************************************************** //
 
-class argv_traverser {
-    typedef char const** argv_type;
+class argv_traverser : noncopyable {
+    class parser;
 public:
-    /// Constructs traverser based on argc/argv pair
-    /// argv is taken "by reference" and later can be
-    /// updated in remainder method
-    argv_traverser( int argc, argv_type argv )
-    : m_argc( argc )
-    , m_curr_token( 0 )
-    , m_token_size( 0 )
-    , m_argv( argv )
-    {
-        // save program name
-        save_token();
-    }
+    // Constructor
+    argv_traverser();
 
-    /// Returns new argc
-    int         remainder()
-    {
-        return m_argc;
-    }
+    // public_properties
+    unit_test::readwrite_property<bool>         p_ignore_mismatch;
+    unit_test::readwrite_property<char_type>    p_separator;
 
-    /// Returns true, if we reached end on input
-    bool        eoi() const
-    {
-        return m_curr_token == m_argc;
-    }
+    // argc+argv <-> internal buffer exchange
+    void            init( int argc, char_type** argv );
+    void            remainder( int& argc, char_type** argv );
 
-    /// Returns current token in the input
-    cstring     current_token()
-    {
-        if( eoi() )
-            return cstring();
+    // token based parsing
+    cstring         token() const;
+    void            next_token();
 
-        return cstring( m_argv[m_curr_token], m_token_size );
-    }
+    // whole input parsing
+    cstring         input() const;
+    void            trim( std::size_t size );
+    bool            match_front( cstring );
+    bool            match_front( char_type c );
+    bool            eoi() const;
 
-    /// Saves current token for remainder
-    void        save_token()
-    {
-        ++m_curr_token;
+    // transaction logic support
+    void            commit();
+    void            rollback();
 
-        if( !eoi() )
-            m_token_size = ::strlen( m_argv[m_curr_token] );
-    }
+    // current position access; used to save some reference points in input
+    std::size_t     input_pos() const;
 
-    /// Commit current token and iterate to next one
-    void        next_token()
-    {
-        if( !eoi() ) {
-            for( std::size_t i = m_curr_token; i < m_argc-1; ++i )
-                m_argv[i] = m_argv[i + 1];
-
-            --m_argc;
-
-            m_token_size = ::strlen( m_argv[m_curr_token] );
-        }
-    }
+    // returns true if mismatch detected during input parsing handled successfully
+    bool            handle_mismatch();
 
 private:
-
     // Data members
-    std::size_t m_argc;         // total number of arguments
-    std::size_t m_curr_token;   // current token index in argv
-    std::size_t m_token_size;   // current token size
-    argv_type   m_argv;         // all arguments
+    dstring              m_buffer;
+    cstring                 m_work_buffer;
+
+    cstring                 m_token;
+    cstring::iterator       m_commited_end;
+
+    shared_array<char_type> m_remainder;
+    std::size_t             m_remainder_size;
 };
 
 } // namespace cla
-} // namespace runtime
+
+} // namespace BOOST_RT_PARAM_NAMESPACE
+
 } // namespace boost
 
-#include <boost/test/detail/enable_warnings.hpp>
+#ifndef BOOST_RT_PARAM_OFFLINE
 
-#endif // BOOST_TEST_UTILS_RUNTIME_CLA_ARGV_TRAVERSER_HPP
+#  define BOOST_RT_PARAM_INLINE inline
+#  include <boost/test/utils/runtime/cla/argv_traverser.ipp>
+
+#endif
+
+#endif // BOOST_RT_CLA_ARGV_TRAVERSER_HPP_062604GER

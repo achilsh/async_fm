@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -19,9 +19,7 @@
 #include <boost/spirit/home/karma/auxiliary/lazy.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/spirit/home/support/has_semantic_action.hpp>
-#include <boost/spirit/home/support/handles_container.hpp>
-#include <boost/spirit/home/karma/detail/attributes.hpp>
+#include <boost/spirit/home/support/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -51,22 +49,22 @@ namespace boost { namespace spirit
           , terminal_ex<tag::center, fusion::vector1<T> > >
       : mpl::true_ {};
 
-    // enables *lazy* center(d)[g], where d provides a generator
+    // enables *lazy* delimit(d)[g], where d provides a generator
     template <>
-    struct use_lazy_directive<karma::domain, tag::center, 1>
+    struct use_lazy_directive<karma::domain, tag::center, 1> 
       : mpl::true_ {};
 
-    // enables center(w, d)[g], where d is a generator and w is a maximum
+    // enables center(w, d)[g], where d is a generator and w is a maximum 
     // width
     template <typename Width, typename Padding>
     struct use_directive<karma::domain
           , terminal_ex<tag::center, fusion::vector2<Width, Padding> > >
       : spirit::traits::matches<karma::domain, Padding> {};
 
-    // enables *lazy* center(w, d)[g], where d provides a generator and w is
+    // enables *lazy* delimit(w, d)[g], where d provides a generator and w is 
     // a maximum width
     template <>
-    struct use_lazy_directive<karma::domain, tag::center, 2>
+    struct use_lazy_directive<karma::domain, tag::center, 2> 
       : mpl::true_ {};
 
 }}
@@ -74,23 +72,21 @@ namespace boost { namespace spirit
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace karma
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::center;
-#endif
     using spirit::center_type;
 
     namespace detail
     {
         ///////////////////////////////////////////////////////////////////////
-        //  The center_generate template function is used for all the
-        //  different flavors of the center[] directive.
+        //  The center_generate template function is used for all the 
+        //  different flavors of the center[] directive. 
         ///////////////////////////////////////////////////////////////////////
-        template <typename OutputIterator, typename Context, typename Delimiter,
+        template <typename OutputIterator, typename Context, typename Delimiter, 
             typename Attribute, typename Embedded, typename Padding>
-        inline static bool
-        center_generate(OutputIterator& sink, Context& ctx,
-            Delimiter const& d, Attribute const& attr, Embedded const& e,
-            unsigned int const width, Padding const& p)
+        inline static bool 
+        center_generate(OutputIterator& sink, Context& ctx, 
+            Delimiter const& d, Attribute const& attr, Embedded const& e, 
+            unsigned int const width, Padding const& p) 
         {
 #if BOOST_WORKAROUND(BOOST_MSVC, BOOST_TESTED_AT(1600))
             e; // suppresses warning: C4100: 'e' : unreferenced formal parameter
@@ -99,7 +95,7 @@ namespace boost { namespace spirit { namespace karma
             detail::enable_buffering<OutputIterator> buffering(sink, width);
             bool r = false;
 
-            // first generate the embedded output
+            // first generate the embedded output 
             {
                 detail::disable_counting<OutputIterator> nocounting(sink);
                 r = e.generate(sink, ctx, d, attr);
@@ -111,7 +107,7 @@ namespace boost { namespace spirit { namespace karma
             detail::enable_counting<OutputIterator> counting(sink);
 
             std::size_t const pre = width - (buffering.buffer_size() + width)/2;
-            while (r && counting.count() < pre)
+            while (r && counting.count() < pre) 
                 r = p.generate(sink, ctx, unused, unused);
 
             if (r) {
@@ -119,7 +115,7 @@ namespace boost { namespace spirit { namespace karma
                 buffering.buffer_copy();
 
                 // generate the right padding
-                while (r && counting.count() < width)
+                while (r && counting.count() < width) 
                     r = p.generate(sink, ctx, unused, unused);
             }
             return r;
@@ -185,12 +181,12 @@ namespace boost { namespace spirit { namespace karma
 
         typedef mpl::int_<
             generator_properties::countingbuffer |
-            subject_type::properties::value | padding_type::properties::value
+            subject_type::properties::value | padding_type::properties::value 
         > properties;
 
         template <typename Context, typename Iterator>
         struct attribute
-          : traits::attribute_of<Subject, Context, Iterator>
+          : traits::attribute_of<Subject, Context, Iterator>::type
         {};
 
         padding_center_alignment(Subject const& subject, Padding const& padding
@@ -277,7 +273,7 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    // creates center(width, pad)[] directive generator
+    // creates center(pad, width)[] directive generator
     template <typename Width, typename Padding, typename Subject
       , typename Modifiers>
     struct make_directive<
@@ -304,7 +300,6 @@ namespace boost { namespace spirit { namespace karma
 
 namespace boost { namespace spirit { namespace traits
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Subject, typename Width>
     struct has_semantic_action<karma::simple_center_alignment<Subject, Width> >
       : unary_has_semantic_action<Subject> {};
@@ -314,20 +309,6 @@ namespace boost { namespace spirit { namespace traits
             karma::padding_center_alignment<Subject, Padding, Width> >
       : unary_has_semantic_action<Subject> {};
 
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject, typename Width, typename Attribute
-      , typename Context, typename Iterator>
-    struct handles_container<
-            karma::simple_center_alignment<Subject, Width>, Attribute
-          , Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
-
-    template <typename Subject, typename Padding, typename Width
-      , typename Attribute, typename Context, typename Iterator>
-    struct handles_container<
-            karma::padding_center_alignment<Subject, Padding, Width>
-          , Attribute, Context, Iterator>
-      : unary_handles_container<Subject, Attribute, Context, Iterator> {};
 }}}
 
 #endif

@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -37,9 +37,9 @@ namespace boost { namespace spirit { namespace qi
 
         template <typename Iterator, typename Attribute>
         static bool
-        parse_n(Iterator& first, Iterator const& last, Attribute& attr_)
+        parse_n(Iterator& first, Iterator const& last, Attribute& attr)
         {
-            return extract_uint<Attribute, 10, 1, -1>::call(first, last, attr_);
+            return extract_uint<T, 10, 1, -1>::call(first, last, attr);
         }
 
         template <typename Iterator>
@@ -54,21 +54,9 @@ namespace boost { namespace spirit { namespace qi
 
         template <typename Iterator, typename Attribute>
         static bool
-        parse_frac_n(Iterator& first, Iterator const& last, Attribute& attr_, int& frac_digits)
+        parse_frac_n(Iterator& first, Iterator const& last, Attribute& attr)
         {
-            Iterator savef = first;
-            bool r = extract_uint<Attribute, 10, 1, -1, true, true>::call(first, last, attr_);
-            if (r)
-            {
-                // Optimization note: don't compute frac_digits if T is
-                // an unused_type. This should be optimized away by the compiler.
-                if (!is_same<T, unused_type>::value)
-                    frac_digits =
-                        static_cast<int>(std::distance(savef, first));
-                // ignore extra (non-significant digits)
-                extract_uint<unused_type, 10, 1, -1>::call(first, last, unused);
-            }
-            return r;
+            return extract_uint<T, 10, 1, -1, true>::call(first, last, attr);
         }
 
         template <typename Iterator>
@@ -83,9 +71,9 @@ namespace boost { namespace spirit { namespace qi
 
         template <typename Iterator>
         static bool
-        parse_exp_n(Iterator& first, Iterator const& last, int& attr_)
+        parse_exp_n(Iterator& first, Iterator const& last, int& attr)
         {
-            return extract_int<int, 10, 1, -1>::call(first, last, attr_);
+            return extract_int<int, 10, 1, -1>::call(first, last, attr);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -117,7 +105,7 @@ namespace boost { namespace spirit { namespace qi
         ///////////////////////////////////////////////////////////////////////
         template <typename Iterator, typename Attribute>
         static bool
-        parse_nan(Iterator& first, Iterator const& last, Attribute& attr_)
+        parse_nan(Iterator& first, Iterator const& last, Attribute& attr)
         {
             if (first == last)
                 return false;   // end of input reached
@@ -128,7 +116,7 @@ namespace boost { namespace spirit { namespace qi
             // nan[(...)] ?
             if (detail::string_parse("nan", "NAN", first, last, unused))
             {
-                if (first != last && *first == '(')
+                if (*first == '(')
                 {
                     // skip trailing (...) part
                     Iterator i = first;
@@ -140,7 +128,7 @@ namespace boost { namespace spirit { namespace qi
 
                     first = ++i;
                 }
-                attr_ = std::numeric_limits<T>::quiet_NaN();
+                attr = std::numeric_limits<T>::quiet_NaN();
                 return true;
             }
             return false;
@@ -148,7 +136,7 @@ namespace boost { namespace spirit { namespace qi
 
         template <typename Iterator, typename Attribute>
         static bool
-        parse_inf(Iterator& first, Iterator const& last, Attribute& attr_)
+        parse_inf(Iterator& first, Iterator const& last, Attribute& attr)
         {
             if (first == last)
                 return false;   // end of input reached
@@ -161,7 +149,7 @@ namespace boost { namespace spirit { namespace qi
             {
                 // skip allowed 'inity' part of infinity
                 detail::string_parse("inity", "INITY", first, last, unused);
-                attr_ = std::numeric_limits<T>::infinity();
+                attr = std::numeric_limits<T>::infinity();
                 return true;
             }
             return false;

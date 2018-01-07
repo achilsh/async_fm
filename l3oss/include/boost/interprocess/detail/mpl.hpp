@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2016.
+// (C) Copyright Ion Gaztanaga 2005-2009.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
@@ -13,19 +13,15 @@
 #ifndef BOOST_INTERPROCESS_DETAIL_MPL_HPP
 #define BOOST_INTERPROCESS_DETAIL_MPL_HPP
 
-#ifndef BOOST_CONFIG_HPP
-#  include <boost/config.hpp>
-#endif
-#
-#if defined(BOOST_HAS_PRAGMA_ONCE)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 
 #include <cstddef>
 
 namespace boost {
-namespace interprocess {
-namespace ipcdetail {
+namespace interprocess { 
+namespace detail {
 
 template <class T, T val>
 struct integral_constant
@@ -66,6 +62,18 @@ struct enable_if : public enable_if_c<Cond::value, T> {};
 template <class Cond, class T = void>
 struct disable_if : public enable_if_c<!Cond::value, T> {};
 
+template <class T, class U>
+class is_convertible
+{
+   typedef char true_t;
+   class false_t { char dummy[2]; };
+   static true_t dispatch(U);
+   static false_t dispatch(...);
+   static T trigger();
+   public:
+   enum { value = sizeof(dispatch(trigger())) == sizeof(true_t) };
+};
+
 template<
       bool C
     , typename T1
@@ -96,6 +104,28 @@ struct if_
 };
 
 
+template <class Pair>
+struct select1st 
+//   : public std::unary_function<Pair, typename Pair::first_type> 
+{
+   template<class OtherPair>
+   const typename Pair::first_type& operator()(const OtherPair& x) const 
+   {  return x.first;   }
+
+   const typename Pair::first_type& operator()(const typename Pair::first_type& x) const 
+   {  return x;   }
+};
+
+// identity is an extension: it is not part of the standard.
+template <class T>
+struct identity 
+//   : public std::unary_function<T,T> 
+{
+   typedef T type;
+   const T& operator()(const T& x) const 
+   { return x; }
+};
+
 template<std::size_t S>
 struct ls_zeros
 {
@@ -114,8 +144,8 @@ struct ls_zeros<1>
    static const std::size_t value = 0;
 };
 
-}  //namespace ipcdetail {
-}  //namespace interprocess {
+}  //namespace detail { 
+}  //namespace interprocess { 
 }  //namespace boost {
 
 #endif   //#ifndef BOOST_INTERPROCESS_DETAIL_MPL_HPP

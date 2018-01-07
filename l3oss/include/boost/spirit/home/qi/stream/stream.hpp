@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
+    Copyright (c) 2001-2009 Hartmut Kaiser
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -37,14 +37,10 @@ namespace boost { namespace spirit
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace qi
 {
-#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::stream;
     using spirit::wstream;
-#endif
-    using spirit::stream_type;
-    using spirit::wstream_type;
 
-    template <typename Char = char, typename T = spirit::basic_hold_any<char> >
+    template <typename Char = char, typename T = spirit::hold_any>
     struct stream_parser
       : primitive_parser<stream_parser<Char, T> >
     {
@@ -58,28 +54,15 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             typedef qi::detail::iterator_source<Iterator> source_device;
             typedef boost::iostreams::stream<source_device> instream;
 
             qi::skip_over(first, last, skipper);
-
-            instream in(first, last);           // copies 'first'
-            in >> attr_;                        // use existing operator>>()
-
-            // advance the iterator if everything is ok
-            if (in) {
-                if (!in.eof()) {
-                    std::streamsize pos = in.tellg();
-                    std::advance(first, pos);
-                } else {
-                    first = last;
-                }
-                return true;
-            }
-
-            return false;
+            instream in(first, last);
+            in >> attr;                       // use existing operator>>()
+            return in.good() || in.eof();
         }
 
         template <typename Context>

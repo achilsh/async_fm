@@ -24,7 +24,6 @@
 #include <boost/spirit/home/classic/core/non_terminal/parser_context.hpp>
 #include <boost/spirit/home/classic/core/non_terminal/parser_id.hpp>
 #include <boost/type_traits/is_base_and_derived.hpp>
-#include <boost/mpl/if.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit {
@@ -232,7 +231,7 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
         template <typename ParserT, typename ScannerT, typename AttrT>
         struct concrete_parser : abstract_parser<ScannerT, AttrT>
         {
-            concrete_parser(ParserT const& p_) : p(p_) {}
+            concrete_parser(ParserT const& p) : p(p) {}
             virtual ~concrete_parser() {}
 
             virtual typename match_result<ScannerT, AttrT>::type

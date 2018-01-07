@@ -1,6 +1,6 @@
-//  (C) Copyright Gennadiy Rozental 2001.
+//  (C) Copyright Gennadiy Rozental 2005-2008.
 //  Distributed under the Boost Software License, Version 1.0.
-//  (See accompanying file LICENSE_1_0.txt or copy at
+//  (See accompanying file LICENSE_1_0.txt or copy at 
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org/libs/test for the library home page.
@@ -12,19 +12,20 @@
 //  Description : simple helpers for creating cusom output manipulators
 // ***************************************************************************
 
-#ifndef BOOST_TEST_UTILS_TRIVIAL_SIGNLETON_HPP
-#define BOOST_TEST_UTILS_TRIVIAL_SIGNLETON_HPP
+#ifndef BOOST_TEST_TRIVIAL_SIGNLETON_HPP_020505GER
+#define BOOST_TEST_TRIVIAL_SIGNLETON_HPP_020505GER
 
-// Boost.Test
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
-// Boost
+#include <boost/noncopyable.hpp>
+
 #include <boost/test/detail/suppress_warnings.hpp>
 
 //____________________________________________________________________________//
 
 namespace boost {
+
 namespace unit_test {
 
 // ************************************************************************** //
@@ -32,19 +33,15 @@ namespace unit_test {
 // ************************************************************************** //
 
 template<typename Derived>
-class singleton {
+class singleton : private boost::noncopyable {
 public:
-    static Derived& instance() { static Derived the_inst; return the_inst; }
-
-    BOOST_DELETED_FUNCTION(singleton(singleton const&))
-    BOOST_DELETED_FUNCTION(singleton& operator=(singleton const&))
-
+    static Derived& instance() { static Derived the_inst; return the_inst; }    
 protected:
-    BOOST_DEFAULTED_FUNCTION(singleton(), {})
-    BOOST_DEFAULTED_FUNCTION(~singleton(), {})
+    singleton()  {}
+    ~singleton() {}
 };
 
-//____________________________________________________________________________//
+} // namespace unit_test
 
 #define BOOST_TEST_SINGLETON_CONS( type )       \
 friend class boost::unit_test::singleton<type>; \
@@ -68,12 +65,10 @@ namespace { BOOST_JOIN( inst, _t)& inst = BOOST_JOIN( inst, _t)::instance(); }
 
 #endif
 
-//____________________________________________________________________________//
-
-} // namespace unit_test
 } // namespace boost
 
+//____________________________________________________________________________//
 
 #include <boost/test/detail/enable_warnings.hpp>
 
-#endif // BOOST_TEST_UTILS_TRIVIAL_SIGNLETON_HPP
+#endif // BOOST_TEST_TRIVIAL_SIGNLETON_HPP_020505GER

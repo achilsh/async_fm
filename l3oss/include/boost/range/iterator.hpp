@@ -11,12 +11,11 @@
 #ifndef BOOST_RANGE_ITERATOR_HPP
 #define BOOST_RANGE_ITERATOR_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
 #include <boost/range/config.hpp>
-#include <boost/range/range_fwd.hpp>
 #include <boost/range/mutable_iterator.hpp>
 #include <boost/range/const_iterator.hpp>
 #include <boost/type_traits/is_const.hpp>
@@ -46,29 +45,28 @@ namespace boost
        };       
     }  
     
-    template< typename C, typename Enabler=void >
+#endif  
+
+    template< typename C >
     struct range_iterator
     {
-
+#if BOOST_WORKAROUND(BOOST_MSVC, == 1310)
+  
         typedef BOOST_RANGE_DEDUCED_TYPENAME  
                range_detail_vc7_1::range_iterator<C>::type type;  
+           
+#else  
 
+        typedef BOOST_RANGE_DEDUCED_TYPENAME 
+            mpl::eval_if_c< is_const<C>::value, 
+                            range_const_iterator< typename remove_const<C>::type >,
+                            range_mutable_iterator<C> >::type type;
+        
+#endif         
     };
-
-#else
-
-    template< typename C, typename Enabler=void >
-    struct range_iterator
-      : mpl::if_c<
-            is_const<typename remove_reference<C>::type>::value,
-            range_const_iterator<typename remove_const<typename remove_reference<C>::type>::type>,
-            range_mutable_iterator<typename remove_reference<C>::type>
-        >::type
-    {
-    };
-
-#endif
-
+    
 } // namespace boost
+
+//#endif // BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
 
 #endif

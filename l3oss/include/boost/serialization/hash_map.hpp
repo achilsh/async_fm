@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_HASH_MAP_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -25,66 +25,9 @@
 #include <boost/serialization/hash_collections_save_imp.hpp>
 #include <boost/serialization/hash_collections_load_imp.hpp>
 #include <boost/serialization/split_free.hpp>
-#include <boost/move/utility_core.hpp>
 
 namespace boost { 
 namespace serialization {
-
-namespace stl {
-
-// map input
-template<class Archive, class Container>
-struct archive_input_hash_map
-{
-    inline void operator()(
-        Archive &ar, 
-        Container &s, 
-        const unsigned int v
-    ){
-        typedef typename Container::value_type type;
-        detail::stack_construct<Archive, type> t(ar, v);
-        // borland fails silently w/o full namespace
-        ar >> boost::serialization::make_nvp("item", t.reference());
-        std::pair<typename Container::const_iterator, bool> result = 
-            s.insert(boost::move(t.reference()));
-        // note: the following presumes that the map::value_type was NOT tracked
-        // in the archive.  This is the usual case, but here there is no way
-        // to determine that.  
-        if(result.second){
-            ar.reset_object_address(
-                & (result.first->second),
-                & t.reference().second
-            );
-        }
-    }
-};
-
-// multimap input
-template<class Archive, class Container>
-struct archive_input_hash_multimap
-{
-    inline void operator()(
-        Archive &ar, 
-        Container &s, 
-        const unsigned int v
-    ){
-        typedef typename Container::value_type type;
-        detail::stack_construct<Archive, type> t(ar, v);
-        // borland fails silently w/o full namespace
-        ar >> boost::serialization::make_nvp("item", t.reference());
-        typename Container::const_iterator result 
-            = s.insert(boost::move(t.reference()));
-        // note: the following presumes that the map::value_type was NOT tracked
-        // in the archive.  This is the usual case, but here there is no way
-        // to determine that.  
-        ar.reset_object_address(
-            & result->second,
-            & t.reference()
-        );
-    }
-};
-
-} // stl
 
 template<
     class Archive, 
@@ -127,7 +70,7 @@ inline void load(
         BOOST_STD_EXTENSION_NAMESPACE::hash_map<
             Key, HashFcn, EqualKey, Allocator
         >,
-        boost::serialization::stl::archive_input_hash_map<
+        boost::serialization::stl::archive_input_map<
             Archive, 
             BOOST_STD_EXTENSION_NAMESPACE::hash_map<
                 Key, HashFcn, EqualKey, Allocator
@@ -197,7 +140,7 @@ inline void load(
         BOOST_STD_EXTENSION_NAMESPACE::hash_multimap<
             Key, HashFcn, EqualKey, Allocator
         >,
-        boost::serialization::stl::archive_input_hash_multimap<
+        boost::serialization::stl::archive_input_multimap<
             Archive, 
             BOOST_STD_EXTENSION_NAMESPACE::hash_multimap<
                 Key, HashFcn, EqualKey, Allocator

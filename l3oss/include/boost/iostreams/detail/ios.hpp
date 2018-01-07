@@ -8,7 +8,7 @@
 #ifndef BOOST_IOSTREAMS_DETAIL_IOS_HPP_INCLUDED
 #define BOOST_IOSTREAMS_DETAIL_IOS_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif              
                  
@@ -32,7 +32,8 @@ namespace boost { namespace iostreams { namespace detail {
 #ifndef BOOST_IOSTREAMS_NO_STREAM_TEMPLATES //--------------------------------//
 # define BOOST_IOSTREAMS_BASIC_IOS(ch, tr)  std::basic_ios< ch, tr >
 # if !BOOST_WORKAROUND(__MWERKS__, <= 0x3003) && \
-     !BOOST_WORKAROUND(__BORLANDC__, < 0x600) \
+     !BOOST_WORKAROUND(__BORLANDC__, < 0x600) && \
+     !BOOST_WORKAROUND(BOOST_MSVC, < 1300) \
      /**/
 
 #define BOOST_IOS                std::ios

@@ -15,7 +15,7 @@
 //  Spirit predefined maximum number of simultaneously usable different
 //  scanner types.
 //
-//  This limit defines the maximum number of possible different scanner
+//  This limit defines the maximum number of of possible different scanner
 //  types for which a specific rule<> may be used. If this isn't defined, a
 //  rule<> may be used with one scanner type only (multiple scanner support
 //  is disabled).
@@ -159,11 +159,11 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
             return ptr.get();
         }
 
-        rule(abstract_parser_t* ptr_)
-        : ptr(ptr_) {}
+        rule(abstract_parser_t* ptr)
+        : ptr(ptr) {}
 
-        rule(abstract_parser_t const* ptr_)
-        : ptr(ptr_) {}
+        rule(abstract_parser_t const* ptr)
+        : ptr(ptr) {}
 
         scoped_ptr<abstract_parser_t> ptr;
     };

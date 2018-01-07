@@ -8,7 +8,7 @@
 #ifndef BOOST_IOSTREAMS_READ_HPP_INCLUDED
 #define BOOST_IOSTREAMS_READ_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -25,6 +25,10 @@
 
 // Must come last.
 #include <boost/iostreams/detail/config/disable_warnings.hpp>
+
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //-----------------------------------//
+# include <boost/iostreams/detail/vc6/read.hpp>
+#else // #if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //--------------------------//
 
 namespace boost { namespace iostreams {
 
@@ -235,6 +239,8 @@ struct read_filter_impl<any_tag> {
 } // End namespace detail.
 
 } } // End namespaces iostreams, boost.
+
+#endif // #if BOOST_WORKAROUND(BOOST_MSVC, < 1300) //-------------------------//
 
 #include <boost/iostreams/detail/config/enable_warnings.hpp>
 

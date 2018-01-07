@@ -1,4 +1,4 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -10,7 +10,6 @@
 #pragma once
 #endif
 
-#include <boost/spirit/home/support/multi_pass_wrapper.hpp>
 #if defined(BOOST_SPIRIT_DEBUG)
 #include <boost/spirit/home/support/iterators/detail/buf_id_check_policy.hpp>
 #else
@@ -90,11 +89,6 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
         // create an end iterator usable for end of range checking
         iterator() {}
 
-        // (wash): < mgaunard> T it; T it2 = ++it; doesn't ocmpile
-        //         < mgaunard> this gets fixed by adding
-        iterator(const base_type& base)
-          : base_type(base) { }
-
         // set the new required state for the underlying lexer object
         std::size_t set_state(std::size_t state)
         {
@@ -116,34 +110,7 @@ namespace boost { namespace spirit { namespace lex { namespace lexertl
               : 0;
         }
     };
-}}
 
-namespace traits 
-{ 
-    template <typename Functor>
-    struct is_multi_pass<spirit::lex::lexertl::iterator<Functor> >
-      : mpl::true_ {};
-
-    template <typename Functor>
-    void clear_queue(spirit::lex::lexertl::iterator<Functor> & mp
-        , BOOST_SCOPED_ENUM(traits::clear_mode) mode)
-    {
-        mp.clear_queue(mode);
-    }
-
-    template <typename Functor>
-    void inhibit_clear_queue(spirit::lex::lexertl::iterator<Functor>& mp, bool flag)
-    {
-        mp.inhibit_clear_queue(flag);
-    }
-
-    template <typename Functor> 
-    bool inhibit_clear_queue(spirit::lex::lexertl::iterator<Functor>& mp)
-    {
-        return mp.inhibit_clear_queue();
-    }
-}
-
-}}
+}}}}
 
 #endif

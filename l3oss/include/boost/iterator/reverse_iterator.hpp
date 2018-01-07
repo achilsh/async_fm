@@ -7,10 +7,12 @@
 #ifndef BOOST_REVERSE_ITERATOR_23022003THW_HPP
 #define BOOST_REVERSE_ITERATOR_23022003THW_HPP
 
+#include <boost/iterator.hpp>
+#include <boost/utility.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 
-namespace boost {
-namespace iterators {
+namespace boost
+{
 
   //
   //
@@ -26,7 +28,7 @@ namespace iterators {
    public:
       reverse_iterator() {}
 
-      explicit reverse_iterator(Iterator x)
+      explicit reverse_iterator(Iterator x) 
           : super_t(x) {}
 
       template<class OtherIterator>
@@ -38,19 +40,14 @@ namespace iterators {
       {}
 
    private:
-      typename super_t::reference dereference() const
-      {
-          Iterator it = this->base_reference();
-          --it;
-          return *it;
-      }
-
+      typename super_t::reference dereference() const { return *boost::prior(this->base()); }
+    
       void increment() { --this->base_reference(); }
       void decrement() { ++this->base_reference(); }
 
       void advance(typename super_t::difference_type n)
       {
-          this->base_reference() -= n;
+          this->base_reference() += -n;
       }
 
       template <class OtherIterator>
@@ -62,15 +59,10 @@ namespace iterators {
   };
 
   template <class BidirectionalIterator>
-  inline reverse_iterator<BidirectionalIterator> make_reverse_iterator(BidirectionalIterator x)
+  reverse_iterator<BidirectionalIterator> make_reverse_iterator(BidirectionalIterator x)
   {
       return reverse_iterator<BidirectionalIterator>(x);
   }
-
-} // namespace iterators
-
-using iterators::reverse_iterator;
-using iterators::make_reverse_iterator;
 
 } // namespace boost
 

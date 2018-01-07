@@ -10,7 +10,7 @@
 #ifndef BOOST_IOSTREAMS_COMPOSE_HPP_INCLUDED
 #define BOOST_IOSTREAMS_COMPOSE_HPP_INCLUDED
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 #endif
 
@@ -55,7 +55,7 @@ struct composite_mode
 //
 // Template name: composite_device.
 // Description: Provides a Device view of a Filter, Device pair.
-// Template parameters:
+// Template paramters:
 //      Filter - A model of Filter.
 //      Device - An indirect model of Device.
 //
@@ -115,7 +115,7 @@ private:
 //
 // Template name: composite_device.
 // Description: Provides a Device view of a Filter, Device pair.
-// Template parameters:
+// Template paramters:
 //      Filter - A model of Filter.
 //      Device - An indirect model of Device.
 //
@@ -379,6 +379,7 @@ compose( const Filter& flt, const FilterOrDevice& fod
 { return compose(flt, fod, is_std_io<FilterOrDevice>()); }
 
 # if !BOOST_WORKAROUND(__BORLANDC__, < 0x600) && \
+     !BOOST_WORKAROUND(BOOST_MSVC, <= 1300) && \
      !defined(__GNUC__) // ---------------------------------------------------//
 
 template<typename Filter, typename FilterOrDevice>
@@ -386,7 +387,7 @@ composite<Filter, FilterOrDevice>
 compose (const Filter& filter, FilterOrDevice& fod)
 { return composite<Filter, FilterOrDevice>(filter, fod); }
 
-# endif // Borland 5.x or GCC //--------------------------------//
+# endif // Borland 5.x, VC6-7.0 or GCC 2.9x //--------------------------------//
 #endif // #ifndef BOOST_IOSTREAMS_BROKEN_OVERLOAD_RESOLUTION //---------------//
 
 //----------------------------------------------------------------------------//

@@ -12,14 +12,18 @@
 #define BOOST_TT_IS_FUNCTION_HPP_INCLUDED
 
 #include <boost/type_traits/is_reference.hpp>
-#include <boost/type_traits/detail/config.hpp>
+#include <boost/type_traits/detail/false_result.hpp>
+#include <boost/config.hpp>
 
-#if !defined(BOOST_TT_TEST_MS_FUNC_SIGS)
+#if !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) && !defined(BOOST_TT_TEST_MS_FUNC_SIGS)
 #   include <boost/type_traits/detail/is_function_ptr_helper.hpp>
 #else
 #   include <boost/type_traits/detail/is_function_ptr_tester.hpp>
 #   include <boost/type_traits/detail/yes_no_type.hpp>
 #endif
+
+// should be the last #include
+#include <boost/type_traits/detail/bool_trait_def.hpp>
 
 // is a type a function?
 // Please note that this implementation is unnecessarily complex:
@@ -33,24 +37,25 @@ namespace boost {
 
 namespace detail {
 
-#if !defined(BOOST_TT_TEST_MS_FUNC_SIGS)
+#if !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) && !defined(BOOST_TT_TEST_MS_FUNC_SIGS)
 template<bool is_ref = true>
 struct is_function_chooser
+    : ::boost::type_traits::false_result
 {
-   template< typename T > struct result_
-      : public false_type {};
 };
 
 template <>
 struct is_function_chooser<false>
 {
     template< typename T > struct result_
-        : public ::boost::type_traits::is_function_ptr_helper<T*> {};
+        : ::boost::type_traits::is_function_ptr_helper<T*>
+    {
+    };
 };
 
 template <typename T>
 struct is_function_impl
-    : public is_function_chooser< ::boost::is_reference<T>::value >
+    : is_function_chooser< ::boost::is_reference<T>::value >
         ::BOOST_NESTED_TEMPLATE result_<T>
 {
 };
@@ -74,12 +79,9 @@ struct is_function_impl
 #endif
 };
 
+#if !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
 template <typename T>
 struct is_function_impl<T&> : public false_type
-{};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-template <typename T>
-struct is_function_impl<T&&> : public false_type
 {};
 #endif
 
@@ -90,13 +92,12 @@ struct is_function_impl<T&&> : public false_type
 #endif // !defined( __CODEGEARC__ )
 
 #if defined( __CODEGEARC__ )
-template <class T> struct is_function : integral_constant<bool, __is_function(T)> {};
+BOOST_TT_AUX_BOOL_TRAIT_DEF1(is_function,T,__is_function(T))
 #else
-template <class T> struct is_function : integral_constant<bool, ::boost::detail::is_function_impl<T>::value> {};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-template <class T> struct is_function<T&&> : public false_type {};
-#endif
+BOOST_TT_AUX_BOOL_TRAIT_DEF1(is_function,T,::boost::detail::is_function_impl<T>::value)
 #endif
 } // namespace boost
+
+#include <boost/type_traits/detail/bool_trait_undef.hpp>
 
 #endif // BOOST_TT_IS_FUNCTION_HPP_INCLUDED

@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_VIEWS_LIST_SET_VIEW_HPP
 #define BOOST_BIMAP_VIEWS_LIST_SET_VIEW_HPP
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER>=1200)
 #pragma once
 #endif
 
@@ -20,7 +20,6 @@
 
 #include <boost/bimap/container_adaptor/list_adaptor.hpp>
 #include <boost/bimap/detail/set_view_base.hpp>
-#include <boost/bimap/detail/map_view_base.hpp>
 
 namespace boost {
 namespace bimaps {

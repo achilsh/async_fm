@@ -2,7 +2,7 @@
 #define _DATE_TIME_TIME_ZONE_BASE__
 
 /* Copyright (c) 2003-2005 CrystalClear Software, Inc.
- * Subject to the Boost Software License, Version 1.0.
+ * Subject to the Boost Software License, Version 1.0. 
  * (See accompanying file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author: Jeff Garland, Bart Garst
  * $Date$
@@ -11,7 +11,6 @@
 
 #include <string>
 #include <sstream>
-#include <boost/date_time/compiler_config.hpp>
 
 namespace boost {
 namespace date_time {
@@ -27,12 +26,12 @@ namespace date_time {
    *  would be to convert from POSIX timezone strings.  Regardless of
    *  the construction technique, this is the interface that these
    *  time zone types must provide.
-   *
+   * 
    * Note that this class is intended to be used as a shared
-   * resource (hence the derivation from boost::counted_base.
+   * resource (hence the derivation from boost::counted_base.  
    */
   template<typename time_type, typename CharT>
-  class BOOST_SYMBOL_VISIBLE time_zone_base  {
+  class time_zone_base  {
   public:
     typedef CharT char_type;
     typedef std::basic_string<CharT> string_type;
@@ -40,8 +39,8 @@ namespace date_time {
     typedef typename time_type::date_type::year_type year_type;
     typedef typename time_type::time_duration_type time_duration_type;
 
-    time_zone_base() {}
-    virtual ~time_zone_base() {}
+    time_zone_base() {};
+    virtual ~time_zone_base() {};
     //!String for the timezone when in daylight savings (eg: EDT)
     virtual string_type dst_zone_abbrev() const=0;
     //!String for the zone when not in daylight savings (eg: EST)
@@ -62,9 +61,9 @@ namespace date_time {
     virtual time_duration_type dst_offset() const=0;
     //! Returns a POSIX time_zone string for this object
     virtual string_type to_posix_string() const =0;
-
+    
   private:
-
+    
   };
 
 
@@ -83,7 +82,7 @@ namespace date_time {
       dst_start_offset_(dst_start_offset),
       dst_end_offset_(dst_end_offset)
     {}
-
+    
     //! Amount DST adjusts the clock eg: plus one hour
     time_duration_type dst_adjust_;
     //! Time past midnight on start transition day that dst starts

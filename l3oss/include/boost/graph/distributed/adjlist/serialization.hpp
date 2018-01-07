@@ -9,7 +9,6 @@
 #error "Parallel BGL files should not be included unless <boost/graph/use_mpi.hpp> has been included"
 #endif
 
-# include <boost/assert.hpp>
 # include <boost/lexical_cast.hpp>
 # include <boost/foreach.hpp>
 # include <boost/filesystem/path.hpp>
@@ -78,7 +77,7 @@ namespace detail { namespace parallel
 
   inline bool is_digit(char c)
   {
-      return std::isdigit(c) != 0;
+      return std::isdigit(c);
   }
 
   inline std::vector<int> 
@@ -94,7 +93,11 @@ namespace detail { namespace parallel
               if (!filesystem::is_regular(*i))
                   boost::throw_exception(std::runtime_error("directory contains non-regular entries"));
 
-              std::string process_name = i->path().filename().string();
+#if BOOST_VERSION >= 103600
+              std::string process_name = i->path().filename();
+#else
+              std::string process_name = i->leaf();
+#endif
               for (std::string::size_type i = 0; i < process_name.size(); ++i)
                 if (!is_digit(process_name[i]))
                   boost::throw_exception(std::runtime_error("directory contains files with invalid names"));
@@ -302,7 +305,7 @@ namespace detail { namespace parallel
           if (is_root())
               std::cout << i << " used to be " << old_ids[i] << "\n"; 
 # endif
-          BOOST_ASSERT(m_id_mapping[old_ids[i]] == -1);
+          assert(m_id_mapping[old_ids[i]] == -1);
           m_id_mapping[old_ids[i]] = i;
       }
 
@@ -510,7 +513,7 @@ namespace detail { namespace parallel
           detail::parallel::add_local_edge(
               local(u), local(v)
             , m_g.build_edge_property(property), m_g.base());
-      BOOST_ASSERT(inserted.second);
+      assert(inserted.second);
       put(edge_target_processor_id, m_g.base(), inserted.first, owner(v));
 
       edge_descriptor e(owner(u), owner(v), true, inserted.first);
@@ -614,7 +617,7 @@ namespace detail { namespace parallel
       boost::parallel::inplace_all_to_all(m_pg, m_remote_vertices);
 
       for (int i = 0; i < num_processes(m_pg); ++i)
-          BOOST_ASSERT(m_remote_vertices[i].size() == m_requested_vertices[i].size());
+          assert(m_remote_vertices[i].size() == m_requested_vertices[i].size());
   }
 
   template <class Graph, class Archive, class VertexListS>
@@ -664,7 +667,7 @@ namespace detail { namespace parallel
           if (i == m_property_ptrs[owner(u)].end()
               || i->first != e.property_ptr)
           {
-              BOOST_ASSERT(false);
+              assert(false);
           }
 
           local_edge_descriptor local_edge(local(u), local(v), i->second);
@@ -695,7 +698,7 @@ namespace detail { namespace parallel
       if (i == m_requested_vertices[owner(u)].end()
           || *i != local(u))
       {
-          BOOST_ASSERT(false);
+          assert(false);
       }
 
       local_vertex_descriptor local =
@@ -776,6 +779,7 @@ void save_in_edges(Archive& ar, Graph const& g, bidirectionalS)
 
     process_id_type id = g.processor();
 
+    typedef std::pair<local_vertex_descriptor, vertex_descriptor> in_edge;
     std::vector<edge_descriptor> saved_in_edges;
 
     BGL_FORALL_VERTICES_T(v, g, Graph) 
@@ -829,8 +833,15 @@ void save_edges(Archive& ar, Graph const& g, DirectedS)
         process_id_type;
     typedef typename graph_traits<
         Graph>::vertex_descriptor vertex_descriptor;
+    typedef typename graph_traits<
+        Graph>::edge_descriptor edge_descriptor;
 
-    typedef typename Graph::edge_property_type edge_property_type;
+    // We retag the property list here so that bundled properties are
+    // properly placed into property<edge_bundle_t, Bundle>.
+    typedef typename boost::detail::retag_property_list<
+              edge_bundle_t,
+              typename Graph::edge_property_type>::type
+      edge_property_type;
 
     int E = num_edges(g);
     ar << BOOST_SERIALIZATION_NVP(E);
@@ -877,6 +888,8 @@ template <PBGL_DISTRIB_ADJLIST_TEMPLATE_PARMS>
 template <class IStreamConstructibleArchive>
 void PBGL_DISTRIB_ADJLIST_TYPE::load(std::string const& filename)
 {
+    typedef typename config_type::VertexListS vertex_list_selector;
+
     process_group_type pg = process_group();
     process_id_type id = process_id(pg);
 
@@ -937,6 +950,12 @@ template <PBGL_DISTRIB_ADJLIST_TEMPLATE_PARMS>
 template <class OStreamConstructibleArchive>
 void PBGL_DISTRIB_ADJLIST_TYPE::save(std::string const& filename) const
 {
+    // We retag the property list here so that bundled properties are
+    // properly placed into property<vertex_bundle_t, Bundle>.
+    typedef typename boost::detail::retag_property_list<
+        vertex_bundle_t, vertex_property_type
+    >::type vertex_property_type;
+
     typedef typename config_type::VertexListS vertex_list_selector;
 
     process_group_type pg = process_group();

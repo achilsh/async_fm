@@ -1,5 +1,5 @@
-//  Copyright (c) 2001-2011 Hartmut Kaiser
-//  Copyright (c) 2001-2011 Joel de Guzman
+//  Copyright (c) 2001-2009 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Joel de Guzman
 //  Copyright (c) 2009 Carl Barron
 // 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
@@ -37,7 +37,6 @@
 
 namespace boost { namespace spirit { namespace qi
 {
-    ///////////////////////////////////////////////////////////////////////////
     template <typename Iterator, typename Expr
       , BOOST_PP_ENUM_PARAMS(N, typename A)>
     inline bool
@@ -47,12 +46,6 @@ namespace boost { namespace spirit { namespace qi
       , Expr const& expr
       , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
     {
-        // Make sure the iterator is at least a forward_iterator. If you got an 
-        // compilation error here, then you are using an input_iterator while
-        // calling this function, you need to supply at least a 
-        // forward_iterator instead.
-        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
-
         // Report invalid expression error as early as possible.
         // If you got an error_invalid_expression error message here,
         // then the expression (expr) is not a valid spirit qi expression.
@@ -62,21 +55,8 @@ namespace boost { namespace spirit { namespace qi
             BOOST_PP_ENUM(N, BOOST_SPIRIT_QI_ATTRIBUTE_REFERENCE, A)
         > vector_type;
 
-        vector_type lattr (BOOST_PP_ENUM_PARAMS(N, attr));
-        return compile<qi::domain>(expr).parse(first, last, unused, unused, lattr);
-    }
-
-    template <typename Iterator, typename Expr
-      , BOOST_PP_ENUM_PARAMS(N, typename A)>
-    inline bool
-    parse(
-        Iterator const& first_
-      , Iterator last
-      , Expr const& expr
-      , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
-    {
-        Iterator first = first_;
-        return qi::parse(first, last, expr, BOOST_PP_ENUM_PARAMS(N, attr));
+        vector_type attr (BOOST_PP_ENUM_PARAMS(N, attr));
+        return compile<qi::domain>(expr).parse(first, last, unused, unused, attr);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -91,12 +71,6 @@ namespace boost { namespace spirit { namespace qi
       , BOOST_SCOPED_ENUM(skip_flag) post_skip
       , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
     {
-        // Make sure the iterator is at least a forward_iterator. If you got an 
-        // compilation error here, then you are using an input_iterator while
-        // calling this function, you need to supply at least a 
-        // forward_iterator instead.
-        BOOST_CONCEPT_ASSERT((ForwardIterator<Iterator>));
-
         // Report invalid expression error as early as possible.
         // If you got an error_invalid_expression error message here,
         // then either the expression (expr) or skipper is not a valid
@@ -113,9 +87,9 @@ namespace boost { namespace spirit { namespace qi
             BOOST_PP_ENUM(N, BOOST_SPIRIT_QI_ATTRIBUTE_REFERENCE, A)
         > vector_type;
 
-        vector_type lattr (BOOST_PP_ENUM_PARAMS(N, attr));
+        vector_type attr (BOOST_PP_ENUM_PARAMS(N, attr));
         if (!compile<qi::domain>(expr).parse(
-                first, last, unused, skipper_, lattr))
+                first, last, unused, skipper_, attr))
             return false;
 
         if (post_skip == skip_flag::postskip)
@@ -127,47 +101,16 @@ namespace boost { namespace spirit { namespace qi
       , BOOST_PP_ENUM_PARAMS(N, typename A)>
     inline bool
     phrase_parse(
-        Iterator const& first_
-      , Iterator last
-      , Expr const& expr
-      , Skipper const& skipper
-      , BOOST_SCOPED_ENUM(skip_flag) post_skip
-      , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
-    {
-        Iterator first = first_;
-        return qi::phrase_parse(first, last, expr, skipper, post_skip
-          , BOOST_PP_ENUM_PARAMS(N, attr));
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Iterator, typename Expr, typename Skipper
-      , BOOST_PP_ENUM_PARAMS(N, typename A)>
-    inline bool
-    phrase_parse(
         Iterator& first
       , Iterator last
       , Expr const& expr
       , Skipper const& skipper
       , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
     {
-        return qi::phrase_parse(first, last, expr, skipper, skip_flag::postskip
+        return phrase_parse(first, last, expr, skipper, skip_flag::postskip
           , BOOST_PP_ENUM_PARAMS(N, attr));
     }
 
-    template <typename Iterator, typename Expr, typename Skipper
-      , BOOST_PP_ENUM_PARAMS(N, typename A)>
-    inline bool
-    phrase_parse(
-        Iterator const& first_
-      , Iterator last
-      , Expr const& expr
-      , Skipper const& skipper
-      , BOOST_PP_ENUM_BINARY_PARAMS(N, A, & attr))
-    {
-        Iterator first = first_;
-        return qi::phrase_parse(first, last, expr, skipper, skip_flag::postskip
-          , BOOST_PP_ENUM_PARAMS(N, attr));
-    }
 }}}
 
 #undef BOOST_SPIRIT_QI_ATTRIBUTE_REFERENCE

@@ -9,7 +9,6 @@
  * $Date$
  */
 
-#include <cstring>
 #include <string>
 #include <stdexcept>
 #include <boost/throw_exception.hpp>
@@ -42,8 +41,7 @@ namespace gregorian {
         boost::throw_exception(std::out_of_range(s));
     }
 
-    std::tm datetm;
-    std::memset(&datetm, 0, sizeof(datetm));
+    std::tm datetm = {}; // zero initialization is needed for extension members, like tm_zone
     boost::gregorian::date::ymd_type ymd = d.year_month_day();
     datetm.tm_year = ymd.year - 1900;
     datetm.tm_mon = ymd.month - 1;

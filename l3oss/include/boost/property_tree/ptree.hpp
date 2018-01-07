@@ -181,9 +181,9 @@ namespace boost { namespace property_tree
 
         // Associative view
 
-        /** Returns an iterator to the first child, in key order. */
+        /** Returns an iterator to the first child, in order. */
         assoc_iterator ordered_begin();
-        /** Returns an iterator to the first child, in key order. */
+        /** Returns an iterator to the first child, in order. */
         const_assoc_iterator ordered_begin() const;
 
         /** Returns the not-found iterator. Equivalent to end() in a real
@@ -247,7 +247,7 @@ namespace boost { namespace property_tree
 
         /** Get the child at the given path, or throw @c ptree_bad_path.
          * @note Depending on the path, the result at each level may not be
-         *       completely deterministic, i.e. if the same key appears multiple
+         *       completely determinate, i.e. if the same key appears multiple
          *       times, which child is chosen is not specified. This can lead
          *       to the path not being resolved even though there is a
          *       descendant with this path. Example:
@@ -432,7 +432,6 @@ namespace boost { namespace property_tree
          *   return node->get_value_optional();
          * return boost::null;
          * @endcode
-         * That is, return the value if it exists and can be converted, or nil.
         */
         template<class Type>
         optional<Type> get_optional(const path_type &path) const;

@@ -21,7 +21,7 @@
 #include <boost/graph/graph_traits.hpp>
 
 // This file implements a utility for creating mappings from arbitrary
-// identifiers to the vertices of a graph.
+// identifers to the vertices of a graph.
 
 namespace boost {
 
@@ -72,6 +72,7 @@ namespace graph_detail {
     struct generate_label_map<multimapS, Label, Vertex>
     { typedef std::multimap<Label, Vertex> type; };
 
+#if !defined BOOST_NO_HASH
     template <typename Label, typename Vertex>
     struct generate_label_map<hash_mapS, Label, Vertex>
     { typedef boost::unordered_map<Label, Vertex> type; };
@@ -79,7 +80,7 @@ namespace graph_detail {
     template <typename Label, typename Vertex>
     struct generate_label_map<hash_multimapS, Label, Vertex>
     { typedef boost::unordered_multimap<Label, Vertex> type; };
-
+#endif
     template <typename Selector, typename Label, typename Vertex>
     struct choose_custom_map {
         typedef typename generate_label_map<Selector, Label, Vertex>::type type;
@@ -104,7 +105,7 @@ namespace graph_detail {
     // Tag dispatch on random access containers (i.e., vectors). This function
     // basically requires a) that Container is vector<Label> and that Label
     // is an unsigned integral value. Note that this will resize the vector
-    // to accommodate indices.
+    // to accomodate indices.
     template <typename Container, typename Graph, typename Label, typename Prop>
     std::pair<typename graph_traits<Graph>::vertex_descriptor, bool>
     insert_labeled_vertex(Container& c, Graph& g, Label const& l, Prop const& p,
@@ -112,7 +113,7 @@ namespace graph_detail {
     {
         typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
 
-        // If the label is out of bounds, resize the vector to accommodate.
+        // If the label is out of bounds, resize the vector to accomodate.
         // Resize by 2x the index so we don't cause quadratic insertions over
         // time.
         if(l >= c.size()) {
@@ -132,7 +133,7 @@ namespace graph_detail {
         // Note that insertion always succeeds so we can add the vertex first
         // and then the mapping to the label.
         typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-        Vertex v = add_vertex(p, g);
+        Vertex v = add_vertex(g);
         c.insert(std::make_pair(l, v));
         return std::make_pair(v, true);
     }
@@ -150,7 +151,6 @@ namespace graph_detail {
         std::pair<Iterator, bool> x = c.insert(std::make_pair(l, Vertex()));
         if(x.second) {
             x.first->second = add_vertex(g);
-            put(boost::vertex_all, g, x.first->second, p);
         }
         return std::make_pair(x.first->second, x.second);
     }
@@ -197,7 +197,7 @@ namespace graph_detail {
     {
         // If the element is already occupied, then we probably don't want to
         // overwrite it.
-        if(c[l] == graph_traits<Graph>::null_vertex()) return false;
+        if(c[l] == Graph::null_vertex()) return false;
         c[l] = v;
         return true;
     }
@@ -247,7 +247,7 @@ struct labeled_graph_types {
  * vertex labels and vertex descriptors.
  *
  * @todo This class is somewhat redundant for adjacency_list<*, vecS>  if
- * the intended label is an unsigned int (and perhaps some other cases), but
+ * the intended label is an unsigned int (and perhpahs some other cases), but
  * it does avoid some weird ambiguities (i.e. adding a vertex with a label that
  * does not match its target index).
  *
@@ -279,13 +279,10 @@ public:
     typedef typename graph_traits<graph_type>::edge_iterator edge_iterator;
     typedef typename graph_traits<graph_type>::edges_size_type edges_size_type;
 
-    typedef typename graph_type::graph_property_type graph_property_type;
-    typedef typename graph_type::graph_bundled graph_bundled;
-
     typedef typename graph_type::vertex_property_type vertex_property_type;
-    typedef typename graph_type::vertex_bundled vertex_bundled;
-
     typedef typename graph_type::edge_property_type edge_property_type;
+    typedef typename graph_type::graph_property_type graph_property_type;
+    typedef typename graph_type::vertex_bundled vertex_bundled;
     typedef typename graph_type::edge_bundled edge_bundled;
 
     typedef typename Base::label_type label_type;
@@ -311,7 +308,7 @@ public:
         _map.insert(_map.end(), rng.first, rng.second);
     }
 
-    // Construct a graph over n vertices, each of which receives a label from
+    // Construct a grpah over n vertices, each of which receives a label from
     // the range [l, l + n). Note that the graph is not directly constructed
     // over the n vertices, but added sequentially. This constructor is
     // necessarily slower than the underlying counterpart.
@@ -319,15 +316,14 @@ public:
     labeled_graph(vertices_size_type n, LabelIter l,
                   graph_property_type const& gp = graph_property_type())
         : _graph(gp)
-    { while(n-- > 0) add_vertex(*l++); }
+    { while(n-- >= 0) add_vertex(*l++); }
 
     // Construct the graph over n vertices each of which has a label in the
     // range [l, l + n) and a property in the range [p, p + n).
     template <typename LabelIter, typename PropIter>
     labeled_graph(vertices_size_type n, LabelIter l, PropIter p,
                   graph_property_type const& gp = graph_property_type())
-        : _graph(gp)
-    { while(n-- > 0) add_vertex(*l++, *p++); }
+    { while(n-- >= 0) add_vertex(*l++, *p++); }
 
     labeled_graph& operator=(labeled_graph const& x) {
         _graph = x._graph;
@@ -413,7 +409,7 @@ public:
 
     /** Return a null descriptor */
     static vertex_descriptor null_vertex()
-    { return graph_traits<graph_type>::null_vertex(); }
+    { return graph_type::null_vertex(); }
 
 private:
     graph_type _graph;
@@ -527,7 +523,7 @@ public:
 #endif
 
     static vertex_descriptor null_vertex()
-    { return graph_traits<graph_type>::null_vertex(); }
+    { return graph_type::null_vertex(); }
 
 private:
     graph_type* _graph;
@@ -546,9 +542,8 @@ inline bool label_vertex(typename LABELED_GRAPH::vertex_descriptor v,
 { return g.label_vertex(v, l); }
 
 template <LABELED_GRAPH_PARAMS>
-inline typename LABELED_GRAPH::vertex_descriptor
-vertex_by_label(typename LABELED_GRAPH::label_type const l,
-                LABELED_GRAPH& g)
+inline bool vertex_by_label(typename LABELED_GRAPH::label_type const l,
+                            LABELED_GRAPH& g)
 { return g.vertex(l); }
 //@}
 
@@ -700,19 +695,19 @@ get(Prop p, LABELED_GRAPH& g)
 template <LABELED_GRAPH_PARAMS, typename Prop>
 inline typename property_map<LABELED_GRAPH, Prop>::const_type
 get(Prop p, LABELED_GRAPH const& g)
-{ return get(p, g.graph()); }
+{ return get(p, g.impl()); }
 
 template <LABELED_GRAPH_PARAMS, typename Prop, typename Key>
 inline typename property_traits<
     typename property_map<typename LABELED_GRAPH::graph_type, Prop>::const_type
 >::value_type
 get(Prop p, LABELED_GRAPH const& g, const Key& k)
-{ return get(p, g.graph(), k); }
+{ return get(p, g.impl(), k); }
 
 template <LABELED_GRAPH_PARAMS, typename Prop, typename Key, typename Value>
 inline void
 put(Prop p, LABELED_GRAPH& g, Key const& k, Value const& v)
-{ put(p, g.graph(), k, v); }
+{ put(p, g.impl(), k, v); }
 //@}
 
 /** @name Mutable Graph */

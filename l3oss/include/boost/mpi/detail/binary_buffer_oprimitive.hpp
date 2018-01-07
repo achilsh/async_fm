@@ -55,7 +55,7 @@ public:
 
     // fast saving of arrays
     template<class T>
-    void save_array(serialization::array_wrapper<T> const& x, unsigned int /* file_version */)
+    void save_array(serialization::array<T> const& x, unsigned int /* file_version */)
     {
     
       BOOST_MPL_ASSERT((serialization::is_bitwise_serializable<BOOST_DEDUCED_TYPENAME remove_const<T>::type>));
@@ -64,7 +64,7 @@ public:
     }
 
     template<class T>
-    void save(serialization::array_wrapper<T> const& x)
+    void save(serialization::array<T> const& x)
     {
       save_array(x,0u);
     }
@@ -79,8 +79,7 @@ public:
       save_impl(&t, sizeof(T));
     }
 
-    template<class CharType>
-    void save(const std::basic_string<CharType> &s)
+    void save(const std::string &s)
     {
       unsigned int l = static_cast<unsigned int>(s.size());
       save(l);

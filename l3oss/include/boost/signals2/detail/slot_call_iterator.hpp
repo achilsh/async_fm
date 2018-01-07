@@ -14,7 +14,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/aligned_storage.hpp>
-#include <boost/core/no_exceptions_support.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/optional.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -22,8 +21,6 @@
 #include <boost/signals2/slot_base.hpp>
 #include <boost/signals2/detail/auto_buffer.hpp>
 #include <boost/signals2/detail/unique_lock.hpp>
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/add_reference.hpp>
 #include <boost/weak_ptr.hpp>
 
 namespace boost {
@@ -33,40 +30,17 @@ namespace boost {
         class slot_call_iterator_cache
       {
       public:
-        slot_call_iterator_cache(const Function &f_arg):
-          f(f_arg),
+        slot_call_iterator_cache(const Function &f):
+          f(f),
           connected_slot_count(0),
-          disconnected_slot_count(0),
-          m_active_slot(0)
+          disconnected_slot_count(0)
         {}
-
-        ~slot_call_iterator_cache()
-        {
-          if(m_active_slot)
-          {
-            garbage_collecting_lock<connection_body_base> lock(*m_active_slot);
-            m_active_slot->dec_slot_refcount(lock);
-          }
-        }
-
-        template<typename M>
-        void set_active_slot(garbage_collecting_lock<M> &lock,
-          connection_body_base *active_slot)
-        {
-          if(m_active_slot)
-            m_active_slot->dec_slot_refcount(lock);
-          m_active_slot = active_slot;
-          if(m_active_slot)
-            m_active_slot->inc_slot_refcount(lock);
-        }
-
         optional<ResultType> result;
-        typedef auto_buffer<void_shared_ptr_variant, store_n_objects<10> > tracked_ptrs_type;
+        typedef auto_buffer<boost::shared_ptr<void>, store_n_objects<10> > tracked_ptrs_type;
         tracked_ptrs_type tracked_ptrs;
         Function f;
         unsigned connected_slot_count;
         unsigned disconnected_slot_count;
-        connection_body_base *m_active_slot;
       };
 
       // Generates a slot call iterator. Essentially, this is an iterator that:
@@ -78,23 +52,21 @@ namespace boost {
         : public boost::iterator_facade<slot_call_iterator_t<Function, Iterator, ConnectionBody>,
         typename Function::result_type,
         boost::single_pass_traversal_tag,
-        typename boost::add_reference<typename boost::add_const<typename Function::result_type>::type>::type >
+        typename Function::result_type const&>
       {
         typedef boost::iterator_facade<slot_call_iterator_t<Function, Iterator, ConnectionBody>,
           typename Function::result_type,
           boost::single_pass_traversal_tag,
-          typename boost::add_reference<typename boost::add_const<typename Function::result_type>::type>::type >
+          typename Function::result_type const&>
         inherited;
 
         typedef typename Function::result_type result_type;
-
-        typedef slot_call_iterator_cache<result_type, Function> cache_type;
 
         friend class boost::iterator_core_access;
 
       public:
         slot_call_iterator_t(Iterator iter_in, Iterator end_in,
-          cache_type &c):
+          slot_call_iterator_cache<result_type, Function> &c):
           iter(iter_in), end(end_in),
           cache(&c), callable_iter(end_in)
         {
@@ -105,16 +77,15 @@ namespace boost {
         dereference() const
         {
           if (!cache->result) {
-            BOOST_TRY
+            try
             {
               cache->result.reset(cache->f(*iter));
             }
-            BOOST_CATCH(expired_slot &)
+            catch(expired_slot &)
             {
               (*iter)->disconnect();
-              BOOST_RETHROW
+              throw;
             }
-            BOOST_CATCH_END
           }
           return cache->result.get();
         }
@@ -132,16 +103,7 @@ namespace boost {
         }
 
       private:
-        typedef garbage_collecting_lock<connection_body_base> lock_type;
-
-        void set_callable_iter(lock_type &lock, Iterator newValue) const
-        {
-          callable_iter = newValue;
-          if(callable_iter == end)
-            cache->set_active_slot(lock, 0);
-          else
-            cache->set_active_slot(lock, (*callable_iter).get());
-        }
+        typedef unique_lock<connection_body_base> lock_type;
 
         void lock_next_callable() const
         {
@@ -149,22 +111,11 @@ namespace boost {
           {
             return;
           }
-          if(iter == end)
-          {
-            if(callable_iter != end)
-            {
-              lock_type lock(**callable_iter);
-              set_callable_iter(lock, end);
-              return;
-            }
-          }
-          // we're only locking the first connection body,
-          // but it doesn't matter they all use the same mutex
-          lock_type lock(**iter);
           for(;iter != end; ++iter)
           {
+            lock_type lock(**iter);
             cache->tracked_ptrs.clear();
-            (*iter)->nolock_grab_tracked_objects(lock, std::back_inserter(cache->tracked_ptrs));
+            (*iter)->nolock_grab_tracked_objects(std::back_inserter(cache->tracked_ptrs));
             if((*iter)->nolock_nograb_connected())
             {
               ++cache->connected_slot_count;
@@ -174,19 +125,19 @@ namespace boost {
             }
             if((*iter)->nolock_nograb_blocked() == false)
             {
-              set_callable_iter(lock, iter);
+              callable_iter = iter;
               break;
             }
           }
           if(iter == end)
           {
-            set_callable_iter(lock, end);
+            callable_iter = end;
           }
         }
 
         mutable Iterator iter;
         Iterator end;
-        cache_type *cache;
+        slot_call_iterator_cache<result_type, Function> *cache;
         mutable Iterator callable_iter;
       };
     } // end namespace detail

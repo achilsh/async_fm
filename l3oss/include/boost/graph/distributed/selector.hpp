@@ -13,8 +13,6 @@
 #error "Parallel BGL files should not be included unless <boost/graph/use_mpi.hpp> has been included"
 #endif
 
-#include <boost/graph/detail/is_distributed_selector.hpp>
-
 namespace boost { 
 
   /* The default local selector for a distributedS selector. */
@@ -33,12 +31,6 @@ namespace boost {
     typedef LocalS local_selector;
     typedef DistributionS distribution;
   };
-
-  namespace detail {
-    template<typename ProcessGroup, typename LocalS, typename DistributionS>
-    struct is_distributed_selector<distributedS<ProcessGroup, LocalS, DistributionS> >: mpl::true_ {};
-  }
-
 }
 
 #endif // BOOST_GRAPH_DISTRIBUTED_SELECTOR_HPP

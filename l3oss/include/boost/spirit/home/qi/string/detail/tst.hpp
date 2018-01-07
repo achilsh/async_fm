@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -24,8 +24,8 @@ namespace boost { namespace spirit { namespace qi { namespace detail
     template <typename Char, typename T>
     struct tst_node
     {
-        tst_node(Char id_)
-          : id(id_), data(0), lt(0), eq(0), gt(0)
+        tst_node(Char id)
+          : id(id), data(0), lt(0), eq(0), gt(0)
         {
         }
 
@@ -66,7 +66,7 @@ namespace boost { namespace spirit { namespace qi { namespace detail
         find(tst_node* start, Iterator& first, Iterator last, Filter filter)
         {
             if (first == last)
-                return 0;
+                return false;
 
             Iterator i = first;
             Iterator latest = first;
@@ -180,7 +180,7 @@ namespace boost { namespace spirit { namespace qi { namespace detail
                 remove(p->gt, first, last, alloc);
             }
 
-            if (p->data == 0 && p->lt == 0 && p->eq == 0 && p->gt == 0)
+            if (p->lt == 0 && p->eq == 0 && p->gt == 0)
             {
                 alloc->delete_node(p);
                 p = 0;

@@ -1,6 +1,6 @@
 /*=============================================================================
-    Copyright (c) 2001-2011 Hartmut Kaiser
-    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2001-2009 Hartmut Kaiser
+    Copyright (c) 2001-2009 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -30,32 +30,31 @@ namespace boost { namespace spirit
     namespace detail
     {
         template <
-            typename Pred, typename First1, typename Last1, typename First2
-          , typename Last2, typename F
+            typename Pred, typename First1, typename Last, typename First2,
+            typename F
         >
         inline bool
-        any_if_ns(First1 const&, First2 const&, Last1 const&, Last2 const&
-          , F const&, mpl::true_)
+        any_if_ns(First1 const&, First2 const&, Last const&, F const&, mpl::true_)
         {
             return false;
         }
 
         template <
-            typename Pred, typename First1, typename Last1, typename First2
-          , typename Last2, typename F
+            typename Pred, typename First1, typename Last, typename First2,
+            typename F
         >
         inline bool
-        any_if_ns(First1 const& first1, First2 const& first2
-          , Last1 const& last1, Last2 const& last2, F& f, mpl::false_)
+        any_if_ns(First1 const& first1, First2 const& first2, Last const& last,
+            F& f, mpl::false_)
         {
-            return (0 != (f(*first1, spirit::detail::attribute_value<Pred, First1, Last2>(first2)) |
+            return (0 != (f(*first1, attribute_value<Pred, First1>(first2)) |
                 detail::any_if_ns<Pred>(
                     fusion::next(first1)
-                  , attribute_next<Pred, First1, Last2>(first2)
-                  , last1, last2
+                  , attribute_next<Pred, First1>(first2)
+                  , last
                   , f
                   , fusion::result_of::equal_to<
-                        typename fusion::result_of::next<First1>::type, Last1>())));
+                        typename fusion::result_of::next<First1>::type, Last>())));
         }
     }
 
@@ -64,8 +63,9 @@ namespace boost { namespace spirit
     any_if_ns(Sequence1 const& seq1, Sequence2& seq2, F f, Pred)
     {
         return detail::any_if_ns<Pred>(
-                fusion::begin(seq1), fusion::begin(seq2)
-              , fusion::end(seq1), fusion::end(seq2)
+                fusion::begin(seq1)
+              , fusion::begin(seq2)
+              , fusion::end(seq1)
               , f
               , fusion::result_of::equal_to<
                     typename fusion::result_of::begin<Sequence1>::type
