@@ -152,7 +152,22 @@ protected:
      */
     Session* GetSession(uint32 uiSessionId, const std::string& strSessionClass = "oss::Session");
     Session* GetSession(const std::string& strSessionId, const std::string& strSessionClass = "oss::Session");
-
+   
+    // alarm data is json
+    // general format: 
+    // {
+    //   "node_type":      "logic",
+    //   "ip":             "192.168.1.1"
+    //   "worker_id":      1
+    //   "note":"上面几项不需要业务填充，接口自行获取填充"
+    //   "call_interface": "GetInfo()",
+    //   "file_name":      "test.cpp",
+    //   "line":           123,
+    //   "time":           "2018-1-1 12:00:00,314"
+    //   "detail":         "get info fail"
+    // }
+    bool SendBusiAlarmReport(loss::CJsonObject& jsReportData);
+    std::string AddDetailContent(const std::string& sData, ...);
 public:
     const std::string& ClassName() const
     {

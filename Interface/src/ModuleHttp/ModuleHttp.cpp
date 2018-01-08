@@ -42,8 +42,10 @@ bool ModuleHttp::AnyMessage(
     m_tagMsgShell = stMsgShell;
     m_oInHttpMsg = oInHttpMsg; 
     LOG4_INFO("method: %d,======> ", oInHttpMsg.method());
+    
     if (HTTP_POST != oInHttpMsg.method()) {
       LOG4_INFO("req not post method");
+      LOG4_ALARM_REPORT("recv http method not: %u, check it", oInHttpMsg.method());
       sErr = "req not post method";
       SendAck(sErr);
       return false;
@@ -53,6 +55,7 @@ bool ModuleHttp::AnyMessage(
       LOG4_ERROR("http not req tye");
       sErr = "http not req type";
       SendAck(sErr);
+      LOG4_ALARM_REPORT("recv http type not: %u, check it", HTTP_REQUEST);
       return false;
     }
 
@@ -61,6 +64,7 @@ bool ModuleHttp::AnyMessage(
       LOG4_ERROR("parse http body failed");
       sErr = "parse http body failed";
       SendAck(sErr);
+      LOG4_ALARM_REPORT("parse recv http msg body json fail");
       return false;
     }
 
@@ -69,23 +73,24 @@ bool ModuleHttp::AnyMessage(
       LOG4_ERROR("Get Name from json failed");
       sErr = "Get Name from json failed";
       SendAck(sErr);
+      LOG4_ALARM_REPORT("recv body has not Name item");
       return false;
     }
-#if 1
     //
     pStepTQry =  new StepTestQuery(m_tagMsgShell, oInHttpMsg, sTestVal);
     if (false == RegisterCallback(pStepTQry)) {
       delete pStepTQry;
       pStepTQry = NULL;
       SendAck("register failed");
+      LOG4_ALARM_REPORT("reg new step fail");
       return false;
     }
     if (oss::STATUS_CMD_RUNNING != pStepTQry->Emit(0)) {
       DeleteCallback(pStepTQry);
       SendAck("run step query faild");
+      LOG4_ALARM_REPORT("new_step run fail");
       return false;
     }
-#endif
     return true;
 }
 

@@ -20,6 +20,7 @@ StepTestQuery::~StepTestQuery() {
 
 oss::E_CMD_STATUS StepTestQuery::Timeout() {
   LOG4_ERROR("StepTestQuery tm out ");
+  LOG4_ALARM_REPORT("resp tm out, key: %s", m_sKey.c_str());
   SendAck("step Test query time out");
   return  oss::STATUS_CMD_FAULT;
 }
@@ -30,7 +31,6 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   MsgBody oOutMsgBody;
   MsgHead oOutMsgHead;
   LOG4_TRACE("===== 54 again =====");
-#if 1 
   /***
   loss::CJsonObject tData; 
   tData.Add("key",m_sKey);
@@ -40,7 +40,8 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   t.__set_fOne(m_sKey); 
   std::string sData;
   ThrifSerialize<OneTest>::ToString(t,sData);
-
+ 
+  
   oOutMsgBody.set_body(sData);
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
@@ -51,15 +52,17 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   std::string strDstNodeType;
   if (false == GetLabor()->QueryNodeTypeByCmd(strDstNodeType, 101)) {
     LOG4_ERROR("get node type fail by cmd: %u", 101);
+    LOG4_ALARM_REPORT("not get node type for cmd: %u", 101);
     return oss::STATUS_CMD_FAULT;
   }
 
   if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody, this)) {
     LOG4_ERROR("send data to TestLogic failed");
+    LOG4_ALARM_REPORT("send to next fail");
+    
     return oss::STATUS_CMD_FAULT;
   }
 
-#endif
   return oss::STATUS_CMD_RUNNING;
 }
 
@@ -68,7 +71,7 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
          const MsgHead& oInMsgHead,
          const MsgBody& oInMsgBody,
          void* data) {
-#if 0 
+  /*****
   loss::CJsonObject jsData;
   std::string sData = oInMsgBody.body();
   if (false == jsData.Parse(sData)) {
@@ -78,12 +81,12 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
     sData= jsData("key");
     SendAck("", sData);
   }
-  //
-#endif
+  ****/
   OneTest t;
   std::string sData = oInMsgBody.body();
   if (0 != ThrifSerialize<OneTest>::FromString(sData,t)) {
     sData = "http parse ret body fail";
+    LOG4_ALARM_REPORT("serialize fail");
     SendAck(sData);
   } else  {
     sData = t.fOne;

@@ -552,6 +552,11 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
     {
         return false;
     }
+    //
+    virtual bool SendBusiAlarmReport(loss::CJsonObject& jsReportData) {
+      return true;
+    }
+
 private:
     std::string m_strNodeTypeTmp;
     std::string m_strHostForServerTmp;
