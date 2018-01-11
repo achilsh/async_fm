@@ -36,8 +36,9 @@ extern "C" {
 #define ALARM_DB_NODTYPE_FIELD_NAME    "node_type"
 #define ALARM_DB_DATA_FIELD_NAME       "alarm_content"
 #define ALARM_DB_INSERT_TM_FIELD_NAME  "insert_time"
-#define ALARM_DB_ISNOTIFY_FIELD_NAME   "is_notify"
-
+#define ALARM_DB_INSERT_ID_FIELD_NAME  "id"
+#define ALARM_DB_INSERT_EMAIL_FIELD_NAME   "is_email_push"
+#define ALARM_DB_INSERT_PH_FIELD_NAME      "is_phone_push"
 //////////////////////////
 class AlamInfoOp {
   public:

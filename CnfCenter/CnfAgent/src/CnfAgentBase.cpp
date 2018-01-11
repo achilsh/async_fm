@@ -170,8 +170,7 @@ namespace SubCnfTask {
     return true;
   }
 
-
-  int SubCnfAgent::HandleLoop() {
+  int SubCnfAgent::HandleLoopCnfCnter() {
     static bool bProcStart = false;
     if (bProcStart == false) {
       TLOG4_INFO("worker [%u] first sync, need to syns full cnf from cnf_srv", m_uiWorkerId);
@@ -196,6 +195,16 @@ namespace SubCnfTask {
     //
     //usleep(10000);
     sleep(5);
+    return 0;
+
+
+  }
+
+  int SubCnfAgent::HandleLoop() {
+    while (1) {
+      HandleLoopCnfCnter();
+      ChildHandleExit();
+    }
     return 0;
   }
 

@@ -49,21 +49,23 @@ bool AlarmInfoDB::WriteAlarm() {
   if (ParseAlarmInfo() == false) {
     return false;
   }
-  std::string alarm_tb_name;
-  alarm_tb_name = m_DbName + "." + m_TabNamePrefix + "0";
 
+  //按服务名来划分告警记录的表结构
+  std::string alarm_tb_name;
+  alarm_tb_name = m_DbName + "." + m_TabNamePrefix + m_AlarmNodeType;
   //---------------------------------------//
   // tab field:
+  // id ======>bigint: primate key
   // node_type  ===>  varchar(128) 
   // alarm_content ===> varchar(1024)
   // insert_time ====> timestamp
-  // is_notify   =====> tinyint
+  // is_email_push ====> tinyint, default is 0; not been insert in this step
+  // is_phone_push ===> tinyint, default is 0; not been insert in this step
   //---------------------------------------//
   MysqlInsert  stSql(alarm_tb_name);
   stSql.Field<std::string>(ALARM_DB_NODTYPE_FIELD_NAME, m_AlarmNodeType);
   stSql.Field<std::string>(ALARM_DB_DATA_FIELD_NAME, m_AlarmData.ToString());
   stSql.Field<std::string>(ALARM_DB_INSERT_TM_FIELD_NAME, "now()");
-  stSql.Field<int>(ALARM_DB_ISNOTIFY_FIELD_NAME,0);
   stSql.End();
   std::string sSql = stSql.sql();
   LOG4_TRACE("insert sql: %s",  sSql.c_str());

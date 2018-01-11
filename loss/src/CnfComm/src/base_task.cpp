@@ -323,10 +323,7 @@ namespace  BASE_TASK {
     }
 
     TLOG4_INFO("work [%u] going to run ", uiWkId);
-    while (1) {
-      HandleLoop();
-      ChildHandleExit();
-    }
+    HandleLoop();
     return true;
   }
 

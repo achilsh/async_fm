@@ -27,6 +27,7 @@ INC := $(INC) \
        -I $(LIB3RD_PATH)/include \
        -I $(LIB3RD_PATH)/include/libevent \
        -I $(LIB3RD_PATH)/include/mysql \
+       -I $(LIB3RD_PATH)/include/jwsmtp \
        -I $(LIB3RD_PATH)/include/boost  \
        -I $(LIB3RD_PATH)/include/thrift  \
        -I $(LIB3RD_PATH)/include/thrift/transport  \
@@ -34,6 +35,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/MySqlDb/include \
        -I $(LOSS_PATH)/src/RedisClient/include \
        -I $(LOSS_PATH)/src/CnfComm/include \
+       -I $(LOSS_PATH)/src/PushEmail/include \
        -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src/thrift_util \
        -I $(LOSS_PATH)/src  
@@ -49,6 +51,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -lhiredis \
            -ltcmalloc_minimal \
            -lthrift \
+           -ljwsmtp \
            -L$(LIB3RD_PATH)/lib/boost -lboost_thread-mt \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -ldl -lrt -liconv

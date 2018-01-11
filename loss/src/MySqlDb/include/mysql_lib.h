@@ -61,6 +61,13 @@ public:
       return *this;
     }
 
+    MysqlSql& Condition(const std::string& field,
+                                  const std::string& value,
+                                  MysqlSql::CMP cmp)  {
+      sql_ += field + Compare(cmp) + "'" + value + "'";
+      return *this;
+    }
+
     MysqlSql& Condition(const std::string& condition) {
       sql_ += condition;
       return *this;
@@ -118,14 +125,6 @@ private:
     uint32_t    length_;
     std::string table_;
 };
-
-template<>
-MysqlSql& MysqlSql::Condition<std::string>(const std::string& field,
-                                           const std::string& value,
-                                           MysqlSql::CMP cmp) {
-  sql_ += field + Compare(cmp) + "'" + value + "'";
-  return *this;
-}
 
 class MysqlSelect : public MysqlSql {
 public:
@@ -200,6 +199,14 @@ public:
       value_ += LibString::type2str<T>(value) + ",";
       return *this;
     }
+
+    MysqlInsert& Field(const std::string& field,
+                       const std::string& value) {
+      field_ += field + "," ;
+      value_ += std::string("'") + value + "',";
+      return *this;
+    }
+
     void End()  {
       field_.erase(field_.end() - 1);
       value_.erase(value_.end() - 1);
@@ -215,15 +222,6 @@ private:
     std::string value_;
 };
 
-template<>
-MysqlInsert& MysqlInsert::Field<std::string>(const std::string& field,
-                                             const std::string& value) {
-  field_ += field + "," ;
-  value_ += std::string("'") + value + "',";
-  return *this;
-}
-
-
 class MysqlReplace : public MysqlSql {
 public:
     explicit MysqlReplace(const std::string& table,
@@ -237,6 +235,13 @@ public:
                         const T& value) {
       field_ += field + ",";
       value_ += LibString::type2str(value) + ",";
+      return *this;
+    }
+
+    MysqlReplace& Field(const std::string& field, 
+                        const std::string& value) {
+      field_ += field + "," ;
+      value_ += std::string("'") + value + "',";
       return *this;
     }
 
@@ -257,14 +262,6 @@ private:
     std::string value_;
 };
 
-template<>
-MysqlReplace& MysqlReplace::Field<std::string>(const std::string& field, 
-                                               const std::string& value) {
-  field_ += field + "," ;
-  value_ += std::string("'") + value + "',";
-  return *this;
-}
-
 //////////////////
 class MysqlUpdate : public MysqlSql {
 public:
@@ -279,6 +276,13 @@ public:
     MysqlUpdate& Field(const std::string& field,const T& value) {
       if (!first_field()) { sql_ += ","; }
       Condition<T>(field, value, MysqlSql::EQ);
+      set_first_field(false);
+      return *this;
+    }
+
+    MysqlUpdate& Field(const std::string& field, const std::string& value) {
+      if (!first_field()) { sql_ += ","; }
+      Condition<std::string>(field, value, MysqlSql::EQ);
       set_first_field(false);
       return *this;
     }
@@ -298,14 +302,6 @@ public:
 private:
     bool first_field_;
 };
-
-template<> 
-MysqlUpdate& MysqlUpdate::Field<std::string>(const std::string& field, const std::string& value) {
-  if (!first_field()) { sql_ += ","; }
-  Condition<std::string>(field, value, MysqlSql::EQ);
-  set_first_field(false);
-  return *this;
-}
 
 class MysqlDelete : public MysqlSql {
 public:

@@ -35,6 +35,7 @@ namespace SubCnfTask {
                               FullSyncHandler syncHandler);
 
       int HandleLoop();
+      int HandleLoopCnfCnter();
       void SetSynTimer(); 
       static void StartSyncTimerWork(int fd, short event, void * arg);
       bool CheckRedisConnected(); 

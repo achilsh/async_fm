@@ -5,6 +5,10 @@
  * @version: 
  * @date: 2017-12-06
  */
+#ifndef __BASE_TASK_H__
+#define __BASE_TASK_H__
+//
+
 #include <map>
 #include <string>
 #include <stdint.h>
@@ -42,7 +46,9 @@ class BaseTask {
     virtual int HandleLoop();
     //client need to call interface.
     int32_t Run(int32_t argc, char *argv[]);
+    //
     log4cplus::Logger GetTLog() { return m_oLogger; }
+    log4cplus::Logger* GetTLogPtr() { return &m_oLogger; }
   protected:
     void ChildHandleExit();
     int32_t CreateWorker();
@@ -81,3 +87,4 @@ class BaseTask {
 //
 }
 
+#endif

@@ -24,10 +24,13 @@ int TestBaseTask::TaskInit(loss::CJsonObject& oJsonConf, uint32_t uiWkId) {
 
 int TestBaseTask::HandleLoop() {
   TLOG4_INFO("child proc is run.... ");
-  static int i = 0;
-  sleep(1);
-  if (++i%10 == 0) {
-    //abort();
+  while(1) {
+    static int i = 0;
+    sleep(1);
+    if (++i%10 == 0) {
+      TLOG4_INFO("i arrive 10, tick");
+      abort();
+    }
   }
   return 0;
 }
