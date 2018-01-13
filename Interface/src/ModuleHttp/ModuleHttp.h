@@ -11,6 +11,7 @@
 #define SRC_MODULEHTTP_MODULEHTTP_HPP_
 
 #include "cmd/Module.hpp"
+#include "ctimer/CTimer.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,8 +21,21 @@ oss::Cmd* create();
 }
 #endif
 
+using namespace oss;
+
 namespace im
 {
+  class TestTimer: public oss::CTimer {
+    public:
+     TestTimer(const std::string& sTimerId, 
+               ev_tstamp dTimerTimeout,int x);
+     virtual ~TestTimer();
+     virtual oss::E_CMD_STATUS TimerDoWork(); 
+    private:
+      int m_X;
+  };
+
+
   class StepTestQuery; 
 	class ModuleHttp: public oss::Module
 	{
@@ -29,6 +43,7 @@ namespace im
 		ModuleHttp();
 		virtual ~ModuleHttp();
 
+    virtual bool Init();
 		virtual bool AnyMessage(
 			const oss::tagMsgShell& stMsgShell,
 			const HttpMsg& oInHttpMsg);
@@ -37,6 +52,9 @@ namespace im
     StepTestQuery* pStepTQry;
     oss::tagMsgShell m_tagMsgShell;
     HttpMsg m_oInHttpMsg;
+    
+    TestTimer* pTimer;
+    std::string m_sTimerId;
 	};
 
 } /* namespace im */

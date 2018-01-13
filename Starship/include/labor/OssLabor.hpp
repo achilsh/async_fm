@@ -30,6 +30,7 @@ class RedisStep;
 class HttpStep;
 class Session;
 
+class CTimer;
 /**
  * @brief 框架层工作者
  * @note 框架层工作者抽象类，框架层工作者包括OssManager和OssWorker
@@ -557,6 +558,13 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
       return true;
     }
 
+    //
+    virtual bool RegisterCallback(CTimer* pTimer) {
+      return false;
+    }
+    virtual bool DeleteCallback(CTimer* pTimer) {
+      return false;
+    }
 private:
     std::string m_strNodeTypeTmp;
     std::string m_strHostForServerTmp;

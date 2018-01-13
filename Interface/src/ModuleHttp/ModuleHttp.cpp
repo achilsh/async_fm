@@ -25,13 +25,42 @@ oss::Cmd* create()
 
 namespace im
 {
+  
+TestTimer::TestTimer(const std::string& sTimerId, ev_tstamp tm,int x)
+    : oss::CTimer(sTimerId,tm), m_X(x) {
+  //
+}
+TestTimer::~TestTimer() {
+}
 
-ModuleHttp::ModuleHttp(): pStepTQry(NULL)
+E_CMD_STATUS TestTimer::TimerDoWork() {
+  LOG4_TRACE("this is test doing for timer,x: %u", m_X);
+  return oss::STATUS_CMD_RUNNING;
+}
+
+//--------------------------------//
+ModuleHttp::ModuleHttp(): pStepTQry(NULL),pTimer(NULL)
 {
 }
 
 ModuleHttp::~ModuleHttp()
 {
+  if (pTimer) {
+    pTimer->StopTimer();
+    pTimer = NULL;
+  }
+}
+
+bool ModuleHttp::Init() {
+  if (pTimer == NULL) {
+    time_t tmNow = time(NULL);
+    std::stringstream ios;
+    ios << tmNow;
+    m_sTimerId = ios.str();
+    pTimer = new TestTimer(m_sTimerId,0.05, 2);
+    pTimer->StartTimer(GetLabor());
+  }
+  return true;
 }
 
 bool ModuleHttp::AnyMessage(

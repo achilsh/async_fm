@@ -7,3 +7,4 @@
 # 分支:alarm_report ===> 框架提供业务错误告警和框架底层错误告警的发送接口，该接口发送告警到agent模块。后续有专门告警模块推送告警.
 #      增加告警邮件推送模块 
 # 分支:monitor_report_childproc ===> 增加独立子进程（非业务子进程）监控业务子进程状态（coredump report, status report and so.)
+#     :暴露框架的定时器功能给业务so 使用 
