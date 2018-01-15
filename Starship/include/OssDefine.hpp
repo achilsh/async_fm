@@ -131,23 +131,23 @@ struct tagSequence
 };
 
 #define LOG4_ALARM_REPORT(format, arg...) do {  \
-  loss::CJsonObject jsRep; \
-  jsRep.Add("node_type", GetLabor()->GetNodeType()); \
-  jsRep.Add("ip", GetLabor()->GetHostForServer());  \
-  jsRep.Add("worker_id", GetLabor()->GetWorkerIndex()); \
-  jsRep.Add("call_interface",__FUNCTION__); \
-  jsRep.Add("file_name", __FILE__ ); \
-  jsRep.Add("line", __LINE__); \
-  time_t t1; \
-  time(&t1); \
-  char buf[32] = {0}; \
-  struct tm* t2 = localtime(&t1); \
-  strftime(buf, sizeof(buf), "[%Y-%m-%d %H:%M:%S]", t2); \
-  jsRep.Add("time", buf); \
-  std::string sDetailData; \
-  sDetailData = AddDetailContent(format, ##arg); \
-  jsRep.Add("detail", sDetailData); \
-  SendBusiAlarmReport(jsRep); \
+    loss::CJsonObject jsRep; \
+    jsRep.Add("node_type", GetLabor()->GetNodeType()); \
+    jsRep.Add("ip", GetLabor()->GetHostForServer());  \
+    jsRep.Add("worker_id", GetLabor()->GetWorkerIndex()); \
+    jsRep.Add("call_interface",__FUNCTION__); \
+    jsRep.Add("file_name", __FILE__ ); \
+    jsRep.Add("line", __LINE__); \
+    time_t t1; \
+    time(&t1); \
+    char buf[32] = {0}; \
+    struct tm* t2 = localtime(&t1); \
+    strftime(buf, sizeof(buf), "[%Y-%m-%d %H:%M:%S]", t2); \
+    jsRep.Add("time", buf); \
+    std::string sDetailData; \
+    sDetailData = AddDetailContent(format, ##arg); \
+    jsRep.Add("detail", sDetailData); \
+    SendBusiAlarmToManager(jsRep); \
 } while(0)
 
 ////

@@ -404,7 +404,7 @@ public:
     //   "time":           "2018-1-1 12:00:00,314"
     //   "detail":         "get info fail"
     // }
-    bool SendBusiAlarmReport(loss::CJsonObject& jsReportData);
+    bool SendBusiAlarmToManager(const loss::CJsonObject& jsReportData);
     std::string AddDetailContent(const std::string& sData, ...);
 private:
     /**
