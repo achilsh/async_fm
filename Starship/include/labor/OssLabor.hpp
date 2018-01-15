@@ -565,10 +565,6 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
     virtual bool DeleteCallback(CTimer* pTimer) {
       return false;
     }
-    
-    virtual CTimer* GetTimer(const std::string& sTimerId) {
-      return  NULL;
-    }
 private:
     std::string m_strNodeTypeTmp;
     std::string m_strHostForServerTmp;

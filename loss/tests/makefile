@@ -1,4 +1,5 @@
-CXX = g++
+CCACHE_B=../../l3oss/bin/ccache
+CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
 ROOT=.
 
 SUBDIRS=$(shell find $(ROOT) -name '*_test' -type d)

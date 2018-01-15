@@ -52,6 +52,7 @@ ModuleHttp::~ModuleHttp()
 }
 
 bool ModuleHttp::Init() {
+    /***
   if (pTimer == NULL) {
     time_t tmNow = time(NULL);
     std::stringstream ios;
@@ -60,6 +61,7 @@ bool ModuleHttp::Init() {
     pTimer = new TestTimer(m_sTimerId,0.05, 2);
     pTimer->StartTimer(GetLabor());
   }
+  ***/
   return true;
 }
 

@@ -18,7 +18,6 @@
 #include "OssDefine.hpp"
 #include "labor/OssLabor.hpp"
 #include "step/Step.hpp"
-#include "ctimer/CTimer.hpp"
 
 namespace oss
 {
@@ -169,8 +168,6 @@ protected:
     // }
     bool SendBusiAlarmReport(loss::CJsonObject& jsReportData);
     std::string AddDetailContent(const std::string& sData, ...);
-    //
-    CTimer* GetTimer(const std::string& sTimerId);
 public:
     const std::string& ClassName() const
     {

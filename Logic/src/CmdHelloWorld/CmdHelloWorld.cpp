@@ -63,13 +63,6 @@ bool CmdHelloWorld::AnyMessage(
     if (0 != ThrifSerialize<OneTest>::ToString(retData, sData)) {
       sData = "serialize failed";
     }
-    static int ii = 0;
-    if (ii == 3) {
-      //create core this time. check is alarm for manager process.
-      char *p= NULL;
-      *p = 1000;
-    } 
-    ++ii;
     oOutMsgBody.set_body(sData);
     oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
     GetLabor()->SendTo(stMsgShell, oOutMsgHead, oOutMsgBody);
