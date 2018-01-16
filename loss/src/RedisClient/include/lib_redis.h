@@ -225,7 +225,8 @@ class RedisHash : public ServiceBase
 
   bool hGetAll(const std::string& hash, std::vector<std::string>& item_vec);
 
-  bool hMGet(const std::string& hash, std::vector<std::string>& vec_keys, std::map<std::string, std::string>& map_values);
+  bool hMGet(const std::string& hash, std::vector<std::string>& vec_keys, 
+             std::map<std::string, std::string>& map_values);
 };
 
 class RedisList : public ServiceBase

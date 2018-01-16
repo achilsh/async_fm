@@ -24,7 +24,7 @@
         "log_levels":{"FATAL":50000, "ERROR":40000, "WARN":30000, "INFO":20000, "DEBUG":10000, "TRACE":0},
         "log_level":0,
         "refresh_interval":1,
-        "custom": {"conf_type": ["host_conf", "srv_name"],
+        "custom": {"conf_type": ["host_conf", "srv_name","white_list"],
                    "redis": {"ip":"127.0.0.1", "port": 6379, "pwd": "", "db": 0}
         },
         "module":[

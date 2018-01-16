@@ -52,7 +52,7 @@ srv name test
 {"code":0,"data":{"test_1":[]}}
 //succ return:
 {"code":0,"data":{"test_1":[{"ip":"127.0.0.1","port":60100},{"ip":"127.0.0.1","port":60101},{"ip":"127.0.0.1","port":60102}]}}
-
+//全量更新服务名list
 2. modify
   url: http://192.168.1.100:35000/cnfsrv/modify
   body: 
@@ -67,3 +67,33 @@ srv name test
 //succ: 
 {"code":0,"msg":"succ"}
 
+===================================================================
+white list test
+1. query
+ url: http://192.168.1.100:35000/cnfsrv/query
+ body: 
+{
+  "conf_type":"white_list",
+  "white_list":"test_1"
+}
+
+//empty return:
+{"code":0,"data":{"test_1":[]}}
+//succ return:
+{"code":0,"data":{"test_1":[{"ip":"127.0.0.1","port":60100,"id":["aa", "bb","cc"]},
+    {"ip":"127.0.0.1","port":60101,"id":["ee","ff","gg"]},
+    {"ip":"127.0.0.1","port":60102,"id":[]}]}
+}
+
+2. modify
+  url: http://192.168.1.100:35000/cnfsrv/modify
+  body: 
+{
+  "conf_type":"white_list",
+    "white_list": "test_1",
+    "test_1": [{"ip":"127.0.0.1","port":60100,"id":["aa","bb"]},
+    {"ip":"127.0.0.1","port":60101,"id":[]},
+    {"ip":"127.0.0.1","port":60102,"id":[]}]
+}
+//succ: 
+{"code":0,"msg":"succ"}

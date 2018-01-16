@@ -14,6 +14,7 @@
 //消息发布，订阅频道。
 #define CNF_HOST_CONF   "host_conf"
 #define CNF_SRV_NAME    "srv_name"
+#define CNF_WHITE_LIST  "white_list"
 //.......
 
 #define CNF_HOST_CNF_IP    "ip"
@@ -25,8 +26,12 @@
 #define FieldNameCnfContent    "2"
 
 // 这是存储的redis key 前缀。
+//host cnf 
 #define PREFIXHOSTKEY          "cnf_H1"
-#define PREFIXSVRNMKEY            "cnf_N1"
+//srv name
+#define PREFIXSVRNMKEY          "cnf_N1"
+//white list
+#define PREFIXWLKEY             "cnf_WL"
 
 //这是查询请求的返回结果中json 前缀。
 #define FilePathNameJSIndex      "cnf_path"
@@ -141,6 +146,17 @@ namespace CNF_SRV {
                              loss::CJsonObject& msgQuery);
     virtual bool CnfSrvCreate(const loss::CJsonObject& cnfData);
     virtual bool CnfSrvModify(const loss::CJsonObject& cnfData);
+  };
+  //
+  class CnfWhiteList: public CnfSrvOp {
+    public:
+     CnfWhiteList(const loss::CJsonObject& jsWLCnf);
+     virtual ~CnfWhiteList();
+    protected:
+     virtual bool CnfSrvQuery(const loss::CJsonObject& jsCondition, 
+                              loss::CJsonObject& msgQuery);
+     virtual bool CnfSrvCreate(const loss::CJsonObject& cnfData);
+     virtual bool CnfSrvModify(const loss::CJsonObject& cnfData);
   };
 //////////////
 }

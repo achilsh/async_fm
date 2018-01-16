@@ -10,7 +10,7 @@ std::map<std::string, CnfSrvOp*>&
       static std::map<std::string, CnfSrvOp*> mpCnfSrv;
       std::map<std::string, CnfSrvOp*>::iterator it;
       mpCnfSrv.clear();
-      //foramte: {"conf_type": ["host_conf", "srv_name"] }
+      //foramte: {"conf_type": ["host_conf", "srv_name", "white_list"] }
       //也是信息变更时，消息发布频道，cnf agent 订阅频道。
       bool bRet = jsSrvCnf.Get(CNF_TYPE_INDEX, chListJson);
       if (bRet == false) {
@@ -24,11 +24,18 @@ std::map<std::string, CnfSrvOp*>&
         if (sCnfType == CNF_HOST_CONF) {
           cnfInstance  = new CnfSrvHostCnf(jsSrvCnf);
           LOG4CPLUS_INFO_FMT(logger, "register host cnf op");
+
         } else if (sCnfType  == CNF_SRV_NAME) {
           LOG4CPLUS_INFO_FMT(logger, "register srv name op");
           cnfInstance  = new CnfSrvNameCnf(jsSrvCnf);
-        } else {
 
+        } else if (sCnfType == CNF_WHITE_LIST) {
+            //TODO: define class
+            cnfInstance = new CnfWhiteList(jsSrvCnf);
+            LOG4CPLUS_INFO_FMT(logger, "register white list op");
+
+        } else {
+            // add other cnf op 
         }
 
         if (cnfInstance == NULL) {
@@ -556,5 +563,147 @@ bool CnfSrvNameCnf::CnfSrvCreate(const loss::CJsonObject& jsCondition) {
 bool CnfSrvNameCnf::CnfSrvModify(const loss::CJsonObject& cnfData) {
   return CnfSrvCreate(cnfData);
 }
+
+//---------------------------------------------------//
+CnfWhiteList::CnfWhiteList(const loss::CJsonObject& jsWLCnf)
+    :CnfSrvOp(jsWLCnf) {
+}
+CnfWhiteList::~CnfWhiteList() {
+}
+
+//**********************************//
+//百名单存储格式为： hash
+//key:    前缀+  服务名
+//field:  ip:port
+//val:   {"ip":"","port": ,"id":["",""]}
+//
+//**********************************//
+bool CnfWhiteList::CnfSrvQuery(const loss::CJsonObject& jsCondition, 
+                               loss::CJsonObject& msgQuery) {
+    //input param json: 
+    // {"conf_type":"white_list", "white_list":"test_1"}
+    //output json:
+    // {"test_1":[{"ip":"127.0.0.1","port":60100,"id":["aa", "bb","cc"]}, {}]}
+    
+    msgQuery.Clear();
+    std::string sSrvName; 
+    if (jsCondition.Get(CNF_WHITE_LIST,sSrvName) == false) {
+        LOG4_ERROR("get white list srv fail by key:%s", CNF_WHITE_LIST);
+        return false;
+    }
+    std::string sKey;
+    std::stringstream ios;
+    ios << PREFIXWLKEY << ":" << sSrvName;
+    sKey.append(ios.str());
+    LOG4_TRACE("query white list redis key: %s", sKey.c_str());
+
+    RedisHash rHash(m_syncRedisCli);
+    std::vector<std::string> svQueryRet;
+
+    if (false == rHash.hGetAll(sKey, svQueryRet)) {
+        LOG4_ERROR("gethashall fail for key: %s, err: %s",
+                   sKey.c_str(), rHash.Errmsg().c_str());
+        return false;
+    }
+    int ii = 0;
+    std::string sFieldKey, sFieldVal;
+    std::map<std::string, std::string> mpKV;
+    for (std::vector<std::string>::iterator it = svQueryRet.begin();
+         it != svQueryRet.end(); ++it,++ii) {
+        if (ii%2 == 0) {
+            sFieldKey = *it;
+            mpKV[sFieldKey] = "";
+            sFieldVal.clear();
+        } else {
+            sFieldVal = *it;
+            mpKV[sFieldKey]  = sFieldVal;
+            sFieldKey.clear();
+        }
+    }
+    
+    msgQuery.AddEmptySubArray(sSrvName);
+    for (std::map<std::string, std::string>::iterator it = mpKV.begin();
+         it != mpKV.end(); ++it) {
+        loss::CJsonObject jsOne; 
+        if (false == jsOne.Parse(it->second)) {
+            LOG4_ERROR("parse ip port id js fail,val: %s",it->second.c_str());
+            continue;
+        }
+        msgQuery[sSrvName].Add(jsOne);
+    }
+
+    return true;
+}
+
+//*************************************************/
+// input json:
+// {"conf_type":"white_list","white_list": "test_1",
+// "test_1":[
+//  {"ip":"","port": 0, "id":["","",""]},
+//  {} ]
+//  }
+// 
+//
+//**************************************************/
+bool CnfWhiteList::CnfSrvCreate(const loss::CJsonObject& jsCondition) {
+    std::string sSrvName;
+    if (false == jsCondition.Get(CNF_WHITE_LIST,sSrvName)) {
+        return false;
+    }
+
+    loss::CJsonObject cJWhiteList;
+    if (false == jsCondition.Get(sSrvName, cJWhiteList)) {
+        LOG4_ERROR("parse white list from json string fail");
+        return false;
+    }
+    if (cJWhiteList.IsArray() == false) {
+        LOG4_ERROR("not json array, val: %s",cJWhiteList.ToString().c_str());
+        return false;
+    }
+
+    std::string sKey;
+    std::stringstream ios;
+    ios << PREFIXWLKEY << ":" << sSrvName;
+    sKey.append(ios.str());
+
+    RedisHash rHash(m_syncRedisCli);
+    for (int ii = 0; ii < cJWhiteList.GetArraySize();++ii) {
+        loss::CJsonObject jsOne = cJWhiteList[ii];
+        std::string sIp; 
+        unsigned int uiPort;
+        if (jsOne.Get("ip", sIp) == false) {
+            LOG4_ERROR("parse ip fail, val: %s", cJWhiteList(ii).c_str());
+            continue;
+        }
+        if (jsOne.Get("port", uiPort) == false) {
+            LOG4_ERROR("parse port fail, val: %s", cJWhiteList(ii).c_str());
+            continue;
+        }
+
+        ios.str("");
+        ios << sIp << ":" << uiPort;
+        std::string sFieldKey = ios.str();
+        std::string sFieldVal = jsOne.ToString();
+        LOG4_TRACE("white list id json val: %s", jsOne.ToString().c_str());
+
+        if (false == rHash.hSet(sKey, sFieldKey, sFieldVal)) {
+            LOG4_ERROR("hset fail,key: %s, field: %s", sKey.c_str(), sFieldKey.c_str());
+        }
+    }
+
+    m_PushData.clear();
+    loss::CJsonObject jsPushData;
+    jsPushData.Add(sSrvName, cJWhiteList);   //
+    m_PushData.append(jsPushData.ToString());
+    //format: {"test_1":[{"ip":"","port":0,"id":["",""]},{}] }
+    LOG4_TRACE("white list push data: %s", m_PushData.c_str());
+    return true;
+}
+
+bool CnfWhiteList::CnfSrvModify(const loss::CJsonObject& cnfData) {
+    return CnfSrvCreate(cnfData);
+}
+
+
 /////
 }

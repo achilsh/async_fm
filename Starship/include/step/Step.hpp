@@ -278,7 +278,7 @@ protected:
      * @param oMsgBody 数据包体
      * @return 是否发送成功
      */
-    bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody, Step* pStep);
+    bool SendToNext(const std::string& strNodeType, MsgHead& oMsgHead, MsgBody& oMsgBody, Step* pStep);
 
     /**
      * @brief 以取模方式选择发送到同一类型节点
@@ -397,15 +397,18 @@ public:
     //   "node_type":      "logic",
     //   "ip":             "192.168.1.1"
     //   "worker_id":      1
-    //   "note":"上面几项不需要业务填充，接口自行获取填充"
     //   "call_interface": "GetInfo()",
     //   "file_name":      "test.cpp",
     //   "line":           123,
     //   "time":           "2018-1-1 12:00:00,314"
+    //   "note":"上面几项不需要业务填充，接口自行获取填充"
     //   "detail":         "get info fail"
     // }
     bool SendBusiAlarmToManager(const loss::CJsonObject& jsReportData);
     std::string AddDetailContent(const std::string& sData, ...);
+
+    //------ 对外提供一个接口用于将全局session id(唯一) 存入本次step上下文中 ----//
+    void SetId(const std::string& sId);
 private:
     /**
      * @brief 设置框架层操作者
@@ -448,7 +451,6 @@ protected:  // 请求端的上下文信息，通过Step构造函数初始化，�
     tagMsgShell m_stReqMsgShell;
     MsgHead m_oReqMsgHead;
     MsgBody m_oReqMsgBody;
-
 private:
     bool m_bRegistered;
     uint32 m_ulSequence;
@@ -461,6 +463,7 @@ private:
     std::string m_strClassName;
     Step* m_pNextStep;
 
+    std::string m_oSessionId; //全网唯一的ID，用户跟踪 消息轨迹;其值来源于: 外部接口set, 从m_oReqMsgBody解析出来，默认值
     friend class OssWorker;
 };
 

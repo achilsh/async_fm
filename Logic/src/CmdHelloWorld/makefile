@@ -1,5 +1,6 @@
-CC = gcc
-CXX = g++
+CCACHE_B=./../../l3oss/bin/ccache
+CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
+CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
 CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -std=c++11
 
 ARCH:=$(shell uname -m)

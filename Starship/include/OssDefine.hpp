@@ -150,6 +150,10 @@ struct tagSequence
     SendBusiAlarmToManager(jsRep); \
 } while(0)
 
+//------------------//
+//定一个全局id 默认值
+#define SESSION_ID_DEF  "sess_def_id_im"
+
 ////
 }
 

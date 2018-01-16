@@ -56,6 +56,10 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
     return oss::STATUS_CMD_FAULT;
   }
 
+  //test session id;
+  std::string sId("2018-1-16");
+  SetId(sId);
+
   if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody, this)) {
     LOG4_ERROR("send data to TestLogic failed");
     LOG4_ALARM_REPORT("send to next fail");
