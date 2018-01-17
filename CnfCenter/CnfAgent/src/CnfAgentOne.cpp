@@ -23,28 +23,40 @@ CnfAgentOne::~CnfAgentOne () {
 //==========================
 
 bool CnfAgentOne::AddSubProcMethod() { //call by base init...
+
   SubRetProcBase* retProc = new HostCnfRetProc(HOST_CNF_CHANNEL, this);
   retProc->SetLog(GetTLog());
   if (false == RegisteSubRetProc(HOST_CNF_CHANNEL,retProc )) {
     TLOG4_ERROR("register hsot_conf  sub ret proc failed");
     return false;
   }
-  if (false == RegisteFullSyncFuc(HOST_CNF_CHANNEL,
-                                  std::bind(
-                                  &CnfAgentOne::SyncHostCnfDetailInfo, this))) {
+  if (false == RegisteFullSyncFuc(HOST_CNF_CHANNEL,std::bind(
+              &CnfAgentOne::SyncHostCnfDetailInfo, this))) {
     TLOG4_ERROR("register host_cnf sync handler failed");                                       
     return false;  
   }
-
+  //
+  retProc = new WhiteListRetProc(WHIT_LIST_CHANNEL ,this);
+  retProc->SetLog(GetTLog());
+  if (false == RegisteSubRetProc(WHIT_LIST_CHANNEL,retProc)) {
+    TLOG4_ERROR("register white_list  sub ret proc failed");
+    return false;
+  }
+  if (false == RegisteFullSyncFuc(WHIT_LIST_CHANNEL,std::bind(
+              &CnfAgentOne::SyncAllWhiteListCnf,this))) {
+      TLOG4_ERROR("register white_list sync handle failed");
+      return false;
+  }
+  
+  //////////////////
   retProc = new SrvNameRetProc(SRV_NAME_CHANNEL, this);
   retProc->SetLog(GetTLog());
   if (false == RegisteSubRetProc(SRV_NAME_CHANNEL,retProc)) {
     TLOG4_ERROR("register srv_name sub ret proc failed");
     return false;
   }
-  if (false == RegisteFullSyncFuc(SRV_NAME_CHANNEL,
-                                  std::bind(
-                                  &CnfAgentOne::SyncAllCnfSerNameList,this))) {
+  if (false == RegisteFullSyncFuc(SRV_NAME_CHANNEL,std::bind(
+              &CnfAgentOne::SyncAllCnfSerNameList,this))) {
     TLOG4_ERROR("register srv_name sync handle failed");
     return false;
   }
@@ -193,15 +205,9 @@ bool CnfAgentOne::WriteNodeTypeCmdToFile(const std::string& strjsCnf) {
 bool CnfAgentOne::SyncAllCnfSerNameList() {
   std::string sKey;
   sKey.append(PREFIXSVRNMKEY);
-  sKey.append(":*");
-  TLOG4_TRACE("get srv name key:  %s", sKey.c_str());
-
-  RedisKey rKOp(m_syncRedisCli);
   std::vector<std::string> vKeyRet;
-  if (false == rKOp.Keys(sKey, vKeyRet)) {
-    TLOG4_ERROR("cmd: KEYS %s  failed", sKey.c_str());
-    return false;
-  }
+  GetRedisKeys(sKey, vKeyRet);
+
   if (vKeyRet.empty()) {
     TLOG4_TRACE("srv name cnf key: %s  is empty", sKey.c_str());
     ResetSrvNameFileContent(m_srvNameStoreFileName);
@@ -209,6 +215,7 @@ bool CnfAgentOne::SyncAllCnfSerNameList() {
     return true;
   }
 
+  RedisKey rKOp(m_syncRedisCli);
   std::map<std::string, std::string> mSrvNameListInfo;
   for (std::vector<std::string>::iterator it = vKeyRet.begin();
        it != vKeyRet.end(); ++it) {
@@ -407,11 +414,126 @@ bool CnfAgentOne::SyncNodeTyeCmd() {
   return true;
 }
 
+bool CnfAgentOne::GetWhiteListFromFile(std::string& sWhitListCnf) {
+    return GetCnfData(m_whiteListStoreFileName, sWhitListCnf);
+}
+
+bool CnfAgentOne::WriteWhiteListToFile(const std::string& sWhiteListCnf) {
+    return WriteCnfFile(m_whiteListStoreFileName, sWhiteListCnf);
+}
+
+void CnfAgentOne::GetNewWhiteListVer() {
+  std::string  sKey = WHITE_LIST_VER_KEY;
+  GetShmVersion(sKey);
+}
+
+bool CnfAgentOne::GetRedisKeys(const std::string& sKeyPre,
+                            std::vector<std::string>& vKeyRet) {
+    if (sKeyPre.empty()) {
+        return false;
+    }
+
+    std::string sKeyPrefix = sKeyPre;
+    sKeyPrefix.append(":*");
+    RedisKey rKOp(m_syncRedisCli);
+    if (false == rKOp.Keys(sKeyPrefix, vKeyRet)) {
+        TLOG4_ERROR("cmd: KEYS %s  failed", sKeyPrefix.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool CnfAgentOne::SyncAllWhiteListCnf () {
+    std::vector<std::string> vKeyRet;
+    std::string sKeyPre = PREFIXWLKEY;
+
+    if (false == GetRedisKeys(sKeyPre, vKeyRet)) {
+        return false;
+    }
+
+    if (vKeyRet.empty()) {
+        ResetSrvNameFileContent(m_whiteListStoreFileName);
+        return true;
+    }
+
+    //get white list from redis, key is srvname, val is <field, field_val>
+    std::map<std::string, std::vector<std::string> >mpWhiteList;
+    RedisHash rHash(m_syncRedisCli);
+    
+    std::vector<std::string>::iterator it;
+    for (it = vKeyRet.begin();it != vKeyRet.end(); ++it) {
+        std::string& sKey = *it; //pre + srvname
+
+        std::size_t sIndex = it->find_last_of(":");
+        std::string sSrvName = it->substr(sIndex + 1);
+        
+        if (rHash.hGetAll(sKey, mpWhiteList[sSrvName]) == false) {
+            TLOG4_ERROR("hgetall faild, key: %s",sKey.c_str());
+            mpWhiteList.erase(sSrvName); //del empty of vector
+            continue;
+        }
+    }
+
+    //每次全量去拉取 覆盖文件写
+    if (false == WriteWhiteListInLocal(mpWhiteList, m_whiteListStoreFileName)) {
+        TLOG4_ERROR("write white list to local fail");
+        return false;
+    }
+
+    this->GetNewWhiteListVer();
+    this->SendUSR2SignelToLocalHostSrv();
+    //send version update and signal
+    return true;
+}
+
+bool CnfAgentOne::WriteWhiteListInLocal(const std::map<std::string, 
+                                        std::vector<std::string> >&mpWList, 
+                                        const std::string& sFileName) {
+    if (sFileName.empty()) {
+        TLOG4_INFO("store white list cnf file name is empty string");
+        return true;
+    }
+    if (mpWList.empty()) {
+        WriteCnfFile(sFileName, "");
+        return true ;
+    }
+
+    std::string sWhiteList;
+    loss::CJsonObject jsWhiteList;
+    std::vector<std::string>::const_iterator itVct;
+    std::map<std::string, std::vector<std::string> >::const_iterator it;
+    
+    for (it = mpWList.begin(); it !=  mpWList.end(); ++it) {
+        std::string sSrvName  = it->first;
+        jsWhiteList.AddEmptySubArray(sSrvName);
+        int ii = 0;
+        for (itVct = it->second.begin(); itVct != it->second.end(); ++itVct, ++ii) {
+            //each itVct is field, val;
+            if (ii%2 == 0) {
+                //is ip:port; field
+            } else {
+                //is {"ip": "","port":0,"id":["","",""]}
+                loss::CJsonObject jsFieldVal;
+                if (jsFieldVal.Parse(*itVct) == false) {
+                    TLOG4_ERROR("parse field val fail from js, val: %s", 
+                                itVct->c_str());
+                    continue;
+                }
+                jsWhiteList[sSrvName].Add(jsFieldVal); //add in {"srv_name": [{}, {}, {}]}
+            }
+        }
+    }
+
+    sWhiteList = jsWhiteList.ToString();
+    if (false == WriteWhiteListToFile(sWhiteList)) {
+        TLOG4_ERROR("write data: %s to file fail", sWhiteList.c_str());
+        return false;
+    }
+    return true;
+}
 
 
 //-------------------------------------//
-
-
 HostCnfRetProc::HostCnfRetProc(const std::string& sC,
                                SubCnfTask::CnfAgentOne *pAgent)
   :SubRetProcBase(sC), m_pCnfAgent(pAgent) {
@@ -851,6 +973,162 @@ bool SrvNameRetProc::WriteSrvNameCnfToEmptyFile(std::string& srvNameContent,
   return true;
 }
 
+//-----------------------------------//
+WhiteListRetProc::WhiteListRetProc(const std::string& sCh,
+                                   SubCnfTask::CnfAgentOne *pAgent) 
+    :SubRetProcBase (sCh), m_pCnfAgent(pAgent) {
+    //
+}
+WhiteListRetProc::~WhiteListRetProc() {
+    //
+}
+//
+//recv push data like this:
+//
+// {"test":[{"ip":"192.168.1.106","port":25000,"id":["111","222"]}]}
+//
+bool WhiteListRetProc::operator()(const std::string& sCh, 
+                                  const std::string& sSubRet) {
+    TLOG4_INFO("recv ch: %s, sub info: %s", sCh.c_str(), sSubRet.c_str());
+    loss::CJsonObject  jsWhiteList, jsWhiteListCnf;
+    std::string sWhiteListCnf;
+    if (false == m_pCnfAgent->GetWhiteListFromFile(sWhiteListCnf)) {
+        TLOG4_ERROR("get white list from file fail");
+        return false;
+    }
+    bool bRet = MergeSubRetAndLocalFile(sWhiteListCnf,sSubRet);
+    if (bRet == false) {
+        TLOG4_ERROR("merge sub ret to local file fail");
+        return false;
+    }
+    if (false == m_pCnfAgent->WriteWhiteListToFile(sWhiteListCnf)) {
+        TLOG4_ERROR("write newest white list to file fail");
+        return false;
+    }
 
+    m_pCnfAgent->GetNewWhiteListVer();
+    m_pCnfAgent->SendUSR2SignelToLocalHostSrv();
+
+    return true;
+}
+
+//sWLSubRet format: 
+// {"test":[{"ip":"192.168.1.106","port":25000,"id":["111",
+//      "222"]}]}
+//
+//  sWLCnf format:
+//  {"test":[{"":"", "": , "id":["","",""]}, {}], "bb":[], "cc":[] }
+bool WhiteListRetProc::MergeSubRetAndLocalFile(std::string& sWLCnf,
+                                               const std::string& sWLSubRet) {
+    if (sWLSubRet.empty()) {
+        return false;
+    }
+    Json::Value pubJsRoot;
+    Json::Reader reader;
+    if (false == reader.parse(sWLSubRet,pubJsRoot)) {
+        TLOG4_ERROR("parse pub white list string from json fail, %s",
+                   sWLSubRet.c_str());
+        return false;
+    }
+    Json::Value::Members vKeyList = pubJsRoot.getMemberNames();
+    if (vKeyList.empty()) {
+        TLOG4_ERROR("pub white list has not any index name");
+        return true;
+    }
+
+    std::string sWLSrvName = vKeyList[0];
+    if (sWLSrvName.empty()) {
+        TLOG4_ERROR("srv name is empty");
+        return false;
+    }
+    //parse pub ret;
+    Json::Value jsPubIpPortList = pubJsRoot[sWLSrvName];
+    if (jsPubIpPortList.isArray() == false) {
+        TLOG4_ERROR("%s value not list", sWLSrvName.c_str());
+        return false;
+    }
+    if (sWLCnf.empty()) {
+        sWLCnf.assign(sWLSubRet);
+        return true;
+    }
+
+    loss::CJsonObject jsWLCnf, jsWLRet;
+    loss::CJsonObject retArrWL;
+    
+    if (false == jsWLCnf.Parse(sWLCnf) || jsWLRet.Parse(sWLSubRet) == false) {
+        TLOG4_ERROR("parse white list conf js fail,dat: %s",
+                    sWLCnf.c_str());
+        return false;
+    }
+
+    if (false == jsWLRet.Get(sWLSrvName, retArrWL) ||
+        retArrWL.IsArray() == false) {
+        TLOG4_ERROR("parse pub ret fail");
+        return false;
+    }
+
+    //parse cnf
+    loss::CJsonObject cnfArrWL = jsWLCnf[sWLSrvName];
+    if (cnfArrWL.IsArray() == false) {
+        jsWLCnf.Delete(sWLSrvName);
+        jsWLCnf.Add(sWLSrvName, retArrWL);
+
+        sWLCnf.assign(jsWLCnf.ToString());
+        TLOG4_TRACE("new white list cnf: %s", sWLCnf.c_str());
+        return true;
+    }
+    TLOG4_TRACE("from cnf get white list, srv: %s, array: %s",
+               sWLSrvName.c_str(),cnfArrWL.ToString().c_str());
+
+    std::map<std::string, loss::CJsonObject*> mpPubRet;
+    std::map<std::string, loss::CJsonObject*>::iterator iterPubRet;
+    //check pub ret each item, and add it into cnf
+    for (int ii = 0; ii < retArrWL.GetArraySize(); ++ii) {
+        std::string sIpPort;
+        std::string sIp; unsigned int uiPort;
+        if (false == retArrWL[ii].Get("ip", sIp)) {
+            continue;
+        }
+        if (false == retArrWL[ii].Get("port", uiPort)) {
+            continue;
+        }
+        std::stringstream ios;
+        ios << sIp << ":" << uiPort;
+        sIpPort = ios.str();
+        mpPubRet[sIpPort] = &retArrWL[ii];
+    }
+    
+    for (int ii = 0; ii < cnfArrWL.GetArraySize(); ++ii) {
+        std::string sIp; unsigned int uiPort;
+        if (cnfArrWL[ii].Get("ip",sIp) == false) {
+            continue;
+        }
+        if (cnfArrWL[ii].Get("port",uiPort) == false) {
+            continue;
+        }
+        std::stringstream ios;
+        ios << sIp << ":" << uiPort;
+        std::string sIpPort = ios.str();
+
+        if (mpPubRet.find(sIpPort) == mpPubRet.end()) {
+            continue;
+        }
+        //over write data
+        cnfArrWL.Replace(ii,(*mpPubRet[sIpPort]));
+        mpPubRet.erase(sIpPort);
+    }
+    
+    //add suplus.
+    for (iterPubRet = mpPubRet.begin(); iterPubRet != mpPubRet.end(); ++ iterPubRet)  {
+        cnfArrWL.Add(*(iterPubRet->second));
+    }
+    
+    jsWLCnf.Delete(sWLSrvName);
+    jsWLCnf.Add(sWLSrvName,cnfArrWL);
+    sWLCnf.assign(jsWLCnf.ToString());
+   
+    TLOG4_TRACE("new white list cnf: %s", sWLCnf.c_str());
+    return true;
+}
 //////////////////
 }

@@ -53,6 +53,9 @@ namespace SubCnfTask {
     if (bRet == false || m_srvNameStoreFileName.empty()) {
       m_srvNameStoreFileName.append(CNFSRVNAMESTORGEFILE);
     }
+
+    m_whiteListStoreFileName = CNFWHITELISTFILE;
+
     std::string sRedisHost = "";
     int32_t iRedisPort = 6379;
     std::string sRedisPWD = "";
@@ -446,7 +449,11 @@ namespace SubCnfTask {
       ::close(iFd);
       return false;
     }
-    sData.assign(buf, iRRet);
+
+    sData.clear();
+    if (iRRet > 0) {
+        sData.assign(buf, iRRet);
+    }
     ::close(iFd);
 
     TLOG4_TRACE("read srv cnf content: %s",sData.c_str());

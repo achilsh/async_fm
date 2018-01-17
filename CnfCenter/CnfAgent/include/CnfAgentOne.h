@@ -7,6 +7,7 @@
 
 #define HOST_CNF_CHANNEL   "host_conf"
 #define SRV_NAME_CHANNEL   "srv_name"
+#define WHIT_LIST_CHANNEL  "white_list"
 
 #define SRVNAME_CNFFILE_KEY  "down_stream"
 #define SRVNAME_NODETYPE     "node_type"
@@ -74,6 +75,21 @@ class SrvNameRetProc : public SubRetProcBase {
  private:
   SubCnfTask::CnfAgentOne *m_pCnfAgent;
 };
+//define sub ret proc for white list sub
+class WhiteListRetProc: public SubRetProcBase {
+    public:
+     WhiteListRetProc(const std::string& sCh,   
+                      SubCnfTask::CnfAgentOne *pAgent);
+     virtual ~WhiteListRetProc();
+     bool operator()(const std::string& sCh, 
+                     const std::string& sSubRet);
+
+     bool MergeSubRetAndLocalFile(std::string& sWLCnf,
+                                  const std::string& sWLSubRet);
+     // 
+    private:
+     SubCnfTask::CnfAgentOne *m_pCnfAgent;
+};
 
 
 //define cnf center agent instance.
@@ -100,12 +116,20 @@ class CnfAgentOne :public SubCnfAgent {
 
   void GetNewNodeTypeCmdVer();
   void SendUSR2ToLocalUpdateNodeTypeCmd();
-  //
+  //comm interface
   bool WriteCnfFile(const std::string& fName, const std::string& jsConttent);
   bool GetShmVersion(const std::string& sKey);
+  //
+  bool GetWhiteListFromFile(std::string& sWhitListCnf);
+  bool WriteWhiteListToFile(const std::string& sWhiteListCnf);
+  void GetNewWhiteListVer();
+  bool SyncAllWhiteListCnf();
+  bool WriteWhiteListInLocal(const std::map<std::string, std::vector<std::string> >&mpWList, 
+                             const std::string& sFileName);
  protected:
   void DoWorkAfterSync();
  private: 
+  bool GetRedisKeys(const std::string& sKeyPrefix, std::vector<std::string>& vKeyRet);
   //
   LIB_SHM::LibShm m_srvNameVerShm;
   bool m_srvNameShmInit; 
@@ -116,3 +140,4 @@ class CnfAgentOne :public SubCnfAgent {
 
 
 #endif
+

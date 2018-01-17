@@ -25,9 +25,10 @@
 #define PROC_NUM_WORKER_DEF   (2)
 
 #define  SRV_NAME_VER_SHM_KEY  (0X20171216)
-#define  SRV_NAME_VER_SHM_SZ   (10*256)
+#define  SRV_NAME_VER_SHM_SZ   (100*256)
 #define  SRV_NAME_VER_KEY      "cnf_agent:srv_name_ver"
 #define  NODETYPE_CMD_VER_KEY  "cnf_agent:nodetype_cmd_ver"
+#define  WHITE_LIST_VER_KEY    "cnf_agent:white_list_ver"
 
 namespace oss
 {

@@ -11,10 +11,12 @@
 #define CNFSRVNAMESTORGEFILE   "/etc/srv_name/srvname.json"
 #define PREFIXSVRNMKEY         "cnf_N1"
 #define PREFIXHOSTKEY          "cnf_H1"
+#define PREFIXWLKEY            "cnf_WL"
 #define FieldNameFilePath      "1"
 #define FieldNameCnfContent    "2"
 
 #define NODETYPECMDSTOREFILE  "/etc/srv_name/nodetype_cmd.json"
+#define CNFWHITELISTFILE      "/etc/srv_name/white_list.json"
 
 using namespace LIB_REDIS;
 using namespace BASE_TASK;
@@ -65,6 +67,7 @@ namespace SubCnfTask {
       struct timeval    m_TimerTm;
       uint32_t          m_uiWorkerId;
       std::string       m_srvNameStoreFileName;
+      std::string       m_whiteListStoreFileName;
   };
 }
 
