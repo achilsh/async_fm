@@ -8,4 +8,4 @@
 #      增加告警邮件推送模块 
 # 分支:monitor_report_childproc ===> 增加独立子进程（非业务子进程）监控业务子进程状态（coredump report, status report and so.)
 #     :暴露框架的定时器功能给业务so 使用,增加框架编译加速工具，优化定时器时间设置; 增加manager检测worker,并在其dis-active 下告警
-#     :增加底层框架路由时白名单过滤，方便后续线上发布体验（white list配置远程服务已开发,agaent已实现)
+#     :增加底层框架路由时白名单过滤，方便后续线上发布体验（white list配置远程服务已开发,agent已实现)
