@@ -25,6 +25,7 @@
 #include "util/json/CJsonObject.hpp"
 #include "unix_util/process_helper.h"
 #include "unix_util/proctitle_helper.h"
+#include "unix_util/Processor_single.hpp"
 
 using namespace loss;
 
@@ -83,6 +84,8 @@ class BaseTask {
     std::map<pid_t, uint32_t> m_mpWorkPid;
     struct ev_loop* m_loop;
     std::string m_strConfFile;
+    //
+    loss::RunningProcess m_SingleprocessCheck;
 };
 //
 }

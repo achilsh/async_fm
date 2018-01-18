@@ -52,7 +52,13 @@ namespace  BASE_TASK {
     //
     ngx_setproctitle(m_oCurrentConf("server_name").c_str());
     daemonize(m_oCurrentConf("server_name").c_str());
-
+    //
+    char sBuf[256] = {0};
+    snprintf(sBuf,sizeof(sBuf),"/tmp/%s.lock", getproctitle());
+    if (false == m_SingleprocessCheck.IsRun(sBuf)) {
+        std::cerr << "start task fail, " << m_SingleprocessCheck.GetErrMsg() << std::endl;
+        return -2;
+    }
 
     char szLogName[256] = {0};
     snprintf(szLogName, sizeof(szLogName), "%s/log/%s.log", m_strWorkPath.c_str(), getproctitle());
