@@ -68,6 +68,8 @@ enum E_CMD
     CMD_RSP_ALARM_SEND_MON              = 42,   ///< 告警信息发送Monitor 子进程响应
     CMD_REQ_ALARM_TOMANAGER             = 43,   ///< 告警信息发送manager 进程命令 
     CMD_RSP_ALARM_TOMANAGER             = 44,   ///< 告警信息发送manager 子进程响应
+    CMD_REQ_RELOAD_WHITELIST            = 45,   ///< manager 通告worker 加载whitelist 配置请求
+    CMD_RSP_RELOAD_WHITELIST            = 46,   ///< manager 通告worker 加载whitelist 配置回应
 
     // 接入层转发命令字，如客户端数据转发给Logic，Logic数据转发给客户端等
     CMD_REQ_FROM_CLIENT                 = 501,     ///< 客户端发送过来需由接入层转发的数据，传输的MsgHead里的Cmd不会被改变（无业务逻辑直接转发的场景，如登录等接入层有业务逻辑的场景不适用）

@@ -691,6 +691,11 @@ bool CnfWhiteList::CnfSrvCreate(const loss::CJsonObject& jsCondition) {
         }
     }
 
+    if (cJWhiteList.GetArraySize() == 0) {
+        RedisKey keyRedis(m_syncRedisCli);
+        keyRedis.Del(sKey);
+    }
+
     m_PushData.clear();
     loss::CJsonObject jsPushData;
     jsPushData.Add(sSrvName, cJWhiteList);   //

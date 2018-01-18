@@ -49,11 +49,14 @@ namespace SubCnfTask {
     }
 
     m_srvNameStoreFileName.clear();
+    /***
     bRet = oJsonConf.Get("srvname_filename", m_srvNameStoreFileName);
     if (bRet == false || m_srvNameStoreFileName.empty()) {
       m_srvNameStoreFileName.append(CNFSRVNAMESTORGEFILE);
     }
+    ***/
 
+    m_srvNameStoreFileName = (CNFSRVNAMESTORGEFILE);
     m_whiteListStoreFileName = CNFWHITELISTFILE;
 
     std::string sRedisHost = "";

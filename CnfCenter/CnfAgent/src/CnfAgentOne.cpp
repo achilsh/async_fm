@@ -1030,13 +1030,13 @@ bool WhiteListRetProc::MergeSubRetAndLocalFile(std::string& sWLCnf,
                    sWLSubRet.c_str());
         return false;
     }
-    Json::Value::Members vKeyList = pubJsRoot.getMemberNames();
-    if (vKeyList.empty()) {
+    Json::Value::Members vNodeTypeKey = pubJsRoot.getMemberNames();
+    if (vNodeTypeKey.empty()) {
         TLOG4_ERROR("pub white list has not any index name");
         return true;
     }
 
-    std::string sWLSrvName = vKeyList[0];
+    std::string sWLSrvName = vNodeTypeKey[0];
     if (sWLSrvName.empty()) {
         TLOG4_ERROR("srv name is empty");
         return false;
@@ -1096,6 +1096,18 @@ bool WhiteListRetProc::MergeSubRetAndLocalFile(std::string& sWLCnf,
         ios << sIp << ":" << uiPort;
         sIpPort = ios.str();
         mpPubRet[sIpPort] = &retArrWL[ii];
+    }
+    bool bReset = false;
+    //reset cnf list to empty
+    if (retArrWL.GetArraySize() == 0) {
+        TLOG4_TRACE("clear array of white list in cnf");
+        bReset = true;
+    }
+    if ( bReset == true ) {
+        int ii = 0;
+        while (ii < cnfArrWL.GetArraySize()) {
+            cnfArrWL.Delete(ii);
+        }
     }
     
     for (int ii = 0; ii < cnfArrWL.GetArraySize(); ++ii) {

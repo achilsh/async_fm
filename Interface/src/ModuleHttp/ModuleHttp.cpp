@@ -108,6 +108,7 @@ bool ModuleHttp::AnyMessage(
       LOG4_ALARM_REPORT("recv body has not Name item");
       return false;
     }
+
     //
     pStepTQry =  new StepTestQuery(m_tagMsgShell, oInHttpMsg, sTestVal);
     if (false == RegisterCallback(pStepTQry)) {

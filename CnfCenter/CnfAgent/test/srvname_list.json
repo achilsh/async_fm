@@ -4,6 +4,26 @@
          "ip" : "192.168.1.106",
          "node_type" : "HttpInterface",
          "port" : 25000
+      },
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "AlarmAgent",
+         "port" : 46000
+      },
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "AccessServer",
+         "port" : 15001
+      },
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "TestLogic",
+         "port" : 36000
+      },
+      {
+         "ip" : "192.168.1.106",
+         "node_type" : "TestLogic",
+         "port" : 36001
       }
    ]
 }
