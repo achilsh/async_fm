@@ -10,6 +10,7 @@
 #include "ModuleHttp.h"
 #include "StepTestQuery.h"
 #include "OssDefine.hpp"
+#include "TestSingleton.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,13 +24,17 @@ oss::Cmd* create()
 }
 #endif
 
+
+//test global static var
+
 namespace im
 {
   
 TestTimer::TestTimer(const std::string& sTimerId, ev_tstamp tm,int x)
     : oss::CTimer(sTimerId,tm), m_X(x) {
-  //
+        //
 }
+
 TestTimer::~TestTimer() {
 }
 
@@ -90,6 +95,25 @@ bool ModuleHttp::AnyMessage(
       LOG4_ALARM_REPORT("recv http type not: %u, check it", HTTP_REQUEST);
       return false;
     }
+    /***
+    //test local static var
+    static int static_test = 12;
+    
+    static_test = 100;
+    gloabl_static_test = 100;
+    TestGlobalStatic = 100;
+   
+    LOG4_INFO("local static test: %u, global static test: %u, test global static: %u",
+              static_test, gloabl_static_test, TestGlobalStatic);
+    ***/ 
+    std::string sSingletonVal = "this is singleton test >> 113";
+    SINGLETEST->SetVal(sSingletonVal);
+    LOG4_INFO("singleton test: %s", SINGLETEST->GetVal().c_str());
+    
+    TestGG gg;
+    gg.SetX(200);
+    LOG4_INFO("singleton test: %d", gg.GetX());
+
 
     loss::CJsonObject JsonParam;
     if (false == JsonParam.Parse(oInHttpMsg.body())) {

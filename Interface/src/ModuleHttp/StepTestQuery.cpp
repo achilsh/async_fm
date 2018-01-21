@@ -40,9 +40,9 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   t.__set_fOne(m_sKey); 
   std::string sData;
   ThrifSerialize<OneTest>::ToString(t,sData);
- 
   
   oOutMsgBody.set_body(sData);
+
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
   oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
@@ -57,7 +57,6 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   }
 
   //test session id;
-  //std::string sId("2018-1-16");
   SetId(m_sKey);
 
   if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody, this)) {
