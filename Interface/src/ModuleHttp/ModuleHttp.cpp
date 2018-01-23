@@ -12,19 +12,6 @@
 #include "OssDefine.hpp"
 #include "TestSingleton.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-oss::Cmd* create()
-{
-    oss::Cmd* pCmd = new im::ModuleHttp();
-    return(pCmd);
-}
-#ifdef __cplusplus
-}
-#endif
-
-
 //test global static var
 
 namespace im

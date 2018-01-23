@@ -12,6 +12,9 @@ SYSTEM_LIB_PATH:=/usr/lib64
 else
 SYSTEM_LIB_PATH:=/usr/lib
 endif
+
+CREAT_THRIFT_BIN=../l3oss/bin/thrift
+
 LIB3RD_PATH = ../l3oss
 STARSHIP_PATH = ../Starship
 PROTO_PATH = ./gen-cpp
@@ -42,27 +45,15 @@ OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubs
 SO_PATH = . 
 PB_OBJS = $(patsubst %.pb.cc,%.pb.o,$(CC_SRCS))
 
-TARGET = libim_proto.so
-
 all: $(TARGET)
 
+TARGET = cpp
 
-$(TARGET): $(OBJS) 
-	$(CXX) -fPIE -rdynamic -shared -g -o $@ $^ $(LDFLAGS)
-	cp $(TARGET) ../loss/lib
-	#ar -crv libim_proto.a $(OBJS)
-	#ranlib libim_proto.a
+cpp: src/*.thrift
+	for i in $^; do $(CREAT_THRIFT_BIN) -nowarn -o ./ -gen cpp $$i;  done 
+	find gen-cpp -name '*.skeleton.cpp' -exec rm {} \;
+	find gen-cpp -name '*_constants*' -exec rm {} \;  
+	sed -i 's/int32_t cseqid = 0;/int32_t cseqid = rand();/g' `grep 'int32_t cseqid = 0;' -rl ./gen-cpp`  
 
-%.o:%.cpp
-	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
-%.o:%.cc
-	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
-%.o:%.c
-	$(CC) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
-clean:
-	rm -f $(OBJS) 
-	rm -f $(TARGET)
-	rm -f ../loss/lib/$(TARGET)
-	#rm -f libim_proto.a
-        
-        
+clean: 
+	rm -rf gen-cpp

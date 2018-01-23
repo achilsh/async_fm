@@ -10,6 +10,8 @@
 
 #include "cmd/Cmd.hpp"
 
+#if 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +23,8 @@ extern "C" {
   oss::Cmd* create();
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 class MStatic {
@@ -43,5 +47,8 @@ class CmdHelloWorld: public oss::Cmd {
    MsgBody m_oMsgBody;
 
 };
+
+//
+OSS_EXPORT(CmdHelloWorld);
 
 #endif 

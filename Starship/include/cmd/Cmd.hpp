@@ -19,6 +19,14 @@
 #include "labor/OssLabor.hpp"
 #include "step/Step.hpp"
 
+#define OSS_EXPORT(_CLASS) \
+    extern "C" { \
+        oss::Cmd* create() {\
+            oss::Cmd* pCmd = new _CLASS();\
+            return pCmd;\
+        } \
+    }
+
 namespace oss
 {
 

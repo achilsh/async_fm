@@ -13,50 +13,43 @@
 #include "cmd/Module.hpp"
 #include "ctimer/CTimer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-oss::Cmd* create();
-#ifdef __cplusplus
-}
-#endif
-
 using namespace oss;
 
 namespace im
 {
-  class TestTimer: public oss::CTimer {
-    public:
-     TestTimer(const std::string& sTimerId, 
-               ev_tstamp dTimerTimeout,int x);
-     virtual ~TestTimer();
-     virtual oss::E_CMD_STATUS TimerDoWork(); 
-    private:
+    class TestTimer: public oss::CTimer {
+     public:
+      TestTimer(const std::string& sTimerId, 
+                ev_tstamp dTimerTimeout,int x);
+      virtual ~TestTimer();
+      virtual oss::E_CMD_STATUS TimerDoWork(); 
+     private:
       int m_X;
-  };
+    };
 
 
-  class StepTestQuery; 
-	class ModuleHttp: public oss::Module
-	{
-	public:
-		ModuleHttp();
-		virtual ~ModuleHttp();
+    class StepTestQuery; 
+    class ModuleHttp: public oss::Module
+    {
+     public:
+      ModuleHttp();
+      virtual ~ModuleHttp();
 
-    virtual bool Init();
-		virtual bool AnyMessage(
-			const oss::tagMsgShell& stMsgShell,
-			const HttpMsg& oInHttpMsg);
-    void SendAck(const std::string sErr = "");
-  private:
-    StepTestQuery* pStepTQry;
-    oss::tagMsgShell m_tagMsgShell;
-    HttpMsg m_oInHttpMsg;
-    
-    TestTimer* pTimer;
-    std::string m_sTimerId;
-	};
+      virtual bool Init();
+      virtual bool AnyMessage(
+          const oss::tagMsgShell& stMsgShell,
+          const HttpMsg& oInHttpMsg);
+      void SendAck(const std::string sErr = "");
+     private:
+      StepTestQuery* pStepTQry;
+      oss::tagMsgShell m_tagMsgShell;
+      HttpMsg m_oInHttpMsg;
+
+      TestTimer* pTimer;
+      std::string m_sTimerId;
+    };
 
 } /* namespace im */
 
+OSS_EXPORT(im::ModuleHttp)
 #endif /* SRC_MODULEHELLO_MODULEHELLO_HPP_ */

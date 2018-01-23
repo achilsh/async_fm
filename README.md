@@ -9,3 +9,4 @@
 #     :暴露框架的定时器功能给业务so 使用,增加框架编译加速工具，优化定时器时间设置; 增加manager检测worker,并在其dis-active 下告警
 #     :增加底层框架路由时白名单过滤，方便后续线上发布体验（white list配置远程服务已开发,agent已实现),白名单功能完善
 #分支 :restart_child_process ====> 增加远程重启子进程能力(在手动摘机后优雅重启)
+#分支 :client_thrift_ver  =====> 增加client以thrift接入系统支持

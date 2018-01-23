@@ -10,6 +10,8 @@
 #include "hello_test_types.h"
 
 
+#if 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +22,8 @@ extern "C" {
     }
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 using namespace Test;

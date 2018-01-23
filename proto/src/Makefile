@@ -14,7 +14,7 @@ SYSTEM_LIB_PATH:=/usr/lib
 endif
 LIB3RD_PATH = ../../l3oss
 STARSHIP_PATH = ../../Starship
-PROTO_PATH = .
+PROTO_PATH = ../gen-cpp
 
 
 VPATH = $(PROTO_PATH)
@@ -50,6 +50,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS) 
 	$(CXX) -fPIE -rdynamic -shared -g -o $@ $^ $(LDFLAGS)
 	cp $(TARGET) ../../loss/lib
+	cp $(TARGET) ../../l3oss/lib
 	ar -crv libim_proto.a $(OBJS)
 	ranlib libim_proto.a
 

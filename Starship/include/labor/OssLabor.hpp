@@ -17,6 +17,7 @@
 #include "OssDefine.hpp"
 #include "protocol/msg.pb.h"
 #include "protocol/http.pb.h"
+#include "protocol/thrift2pb.pb.h"
 
 struct redisAsyncContext;
 
@@ -29,6 +30,8 @@ class Step;
 class RedisStep;
 class HttpStep;
 class Session;
+class Method;
+class ThriftStep;
 
 class CTimer;
 /**
@@ -480,6 +483,11 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
     {
         return(false);
     }
+    virtual bool SendTo(const tagMsgShell& stMsgShell, const Thrift2Pb& oThriftMsg, ThriftStep* pThriftStep = NULL)
+    {
+        return(false);
+    }
+
 
     virtual bool AutoConnect(const std::string& strIdentify)
     {
