@@ -25,29 +25,10 @@ class MethodThrift: public oss::Method
      virtual bool AnyMessage(
          const tagMsgShell& stMsgShell,
          const Thrift2Pb& oInThriftMsg);
-
-    private:
-     template<typename T>
-     bool SendAck(const tagMsgShell& stMsgShell, 
-                  Thrift2Pb& oInThriftMsg, const T& tRet);
     private:
      StepTestQuery* pStepTQry;
 };
-
 //
-
-template<typename T>
-bool MethodThrift::SendAck(const tagMsgShell& stMsgShell, 
-                           Thrift2Pb& oInThriftMsg, const T& tRet)
-{
-    if (false == PacketThriftData(oInThriftMsg,tRet))
-    {
-        LOG4_ERROR("packet response faild");
-        return false;
-    }
-    return (GetLabor()->SendTo(stMsgShell, oInThriftMsg));
-}
-
 
 OSS_EXPORT(im::MethodThrift);
 ////

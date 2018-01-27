@@ -50,13 +50,31 @@ class MethodThriftTest
     private:
      std::string m_sIp;
      unsigned int m_uiPort;
+
+#ifdef SHORT_CONNECT
+     //
+#else
+     boost::shared_ptr<Test::demosvrClient> client;
+#endif
+
 };
 
 MethodThriftTest::MethodThriftTest(const std::string& sIp, unsigned int uiPort)
     :m_sIp(sIp), m_uiPort(uiPort)
 {
-
+#ifdef SHORT_CONNECT
+    //
+#else
+    boost::shared_ptr<TSocket> socket(new TSocket(m_sIp.c_str(), m_uiPort));
+    socket->setRecvTimeout(200);
+    socket->setConnTimeout(500);
+    boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
+    boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+    client.reset(new Test::demosvrClient(protocol));
+    transport->open();
+#endif
 }
+
 MethodThriftTest::~MethodThriftTest() 
 {
 
@@ -64,17 +82,23 @@ MethodThriftTest::~MethodThriftTest()
 
 void MethodThriftTest::LoopTest(int iTimes)
 {
+    int tBegin = time(NULL);
     for (int i = 0; i < iTimes; ++i) 
     {
         Run();
         usleep(10000);
     }
+    int tEnd = time(NULL);
+    std::cout << "cost tm: " << tEnd - tBegin 
+        <<", test times: " << iTimes 
+        << ",one test per second: " << (1.0*iTimes) / (1.0*(tEnd - tBegin)) <<  std::endl;
 }
 
 void MethodThriftTest::Run()   
 {
     try 
     {
+#ifdef SHORT_CONNECT
         boost::shared_ptr<TSocket> socket(new TSocket(m_sIp.c_str(), m_uiPort));
         socket->setRecvTimeout(2000);
         socket->setConnTimeout(2000);
@@ -82,7 +106,9 @@ void MethodThriftTest::Run()
         boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
         boost::shared_ptr<Test::demosvrClient> client(new Test::demosvrClient(protocol));
         transport->open();
-
+#else
+        //
+#endif
         static int ii =  1111;
         ping pi;
         pi.a = ii++;
@@ -108,7 +134,7 @@ int main()
 {
     std::string ip = "192.168.1.106";
     unsigned int port = 24000;
-    int inums = 1;
+    int inums = 10000;
 
     MethodThriftTest test(ip, port);
     test.LoopTest(inums);

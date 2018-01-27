@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAG = -Wall -Wno-format -g -O2 -fPIC
-CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -DREDIS_DEBUG
+CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -DREDIS_DEBUG  -DSHORT_CONNECT
 
 ARCH:=$(shell uname -m)
 
@@ -73,4 +73,4 @@ MethodThriftTest: $(OBJS)
 	$(CC) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
 clean:
 	rm -f $(OBJS)
-	rm -f $(TARGET)
+	rm -f MethodThriftTest

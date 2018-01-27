@@ -1,10 +1,10 @@
 {
         "node_type":"CnfSrv",
         "access_host":"192.168.1.106",
-        "access_port":35000,
+        "access_port":65000,
         "access_codec":3,
         "inner_host":"192.168.1.106",
-        "inner_port":35001,
+        "inner_port":65001,
         "center":[
         {"host":"192.168.18.80","port":"15000"}],
         "server_name":"CnfSrv_huws",

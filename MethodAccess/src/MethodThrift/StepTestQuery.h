@@ -20,11 +20,15 @@ public:
   StepTestQuery(const oss::tagMsgShell& stMsgShell,
                 const Test::demosvr_pingping_args& pingping_args,
                 unsigned int iSeq, const std::string& sName);
+
   virtual ~StepTestQuery();
+
   virtual oss::E_CMD_STATUS Timeout();
+
   virtual  oss::E_CMD_STATUS Emit(int err,
                                   const std::string& strErrMsg = "",
                                   const std::string& strErrShow = "");
+
   virtual oss::E_CMD_STATUS Callback(
       const oss::tagMsgShell& stMsgShell,
       const MsgHead& oInMsgHead,
@@ -38,12 +42,11 @@ public:
   {
       return oss::STATUS_CMD_COMPLETED;
   }
+
   void SendAck(const std::string& sErr, const std::string &sData = "");
+
 private:
-    oss::tagMsgShell m_stMsgShell;
     Test::demosvr_pingping_args m_Params;
-    unsigned int m_iSeq;
-    std::string m_sName;
 };
 ///////
 }

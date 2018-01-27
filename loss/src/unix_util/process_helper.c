@@ -357,7 +357,6 @@ int send_fd_with_attr(int sock_fd, int send_fd, void* addr, int addr_len, int se
     struct iovec vec[2];
     char cmsgbuf[CMSG_SPACE(sizeof(send_fd))];
     int *p_fds;
-//    char sendchar = 0;
     msg.msg_control = cmsgbuf;
     msg.msg_controllen = sizeof(cmsgbuf);
     p_cmsg = CMSG_FIRSTHDR(&msg);
@@ -378,8 +377,6 @@ int send_fd_with_attr(int sock_fd, int send_fd, void* addr, int addr_len, int se
     ret = sendmsg(sock_fd, &msg, 0);
     int iErrno = errno;
     return(iErrno);
-//  if (ret != 1)
-//      ;//ERR_EXIT("sendmsg");
 }
 
 int recv_fd_with_attr(const int sock_fd, void* addr, int addr_len, int* send_fd_attr)

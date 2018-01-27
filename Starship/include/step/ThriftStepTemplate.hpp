@@ -59,7 +59,27 @@ bool ThriftStep::PacketThriftData(Thrift2Pb& oInThriftMsg, const T& tData)
     return bRet;
 }
 
+template<typename T> bool ThriftStep::SendAck(const T& tData) 
+{
+    Thrift2Pb outThriftMsg;
+    outThriftMsg.Clear();
 
+    SetThriftSeq(m_iSeq, outThriftMsg);
+    SetThriftInterfaceName(m_sName, outThriftMsg);
+
+    SetThriftSeq(m_iSeq, outThriftMsg);
+    SetThriftInterfaceName(m_sName, outThriftMsg);
+
+    if (false == PacketThriftData(outThriftMsg, tData))
+    {
+        LOG4_ERROR("packet response faild");
+        return false;
+    }
+
+    return this->SendTo(outThriftMsg);
+}
+
+/////
 }
 
 

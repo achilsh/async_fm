@@ -46,7 +46,7 @@ bool Method::PacketThriftData(Thrift2Pb& oInThriftMsg, const T& tData)
     int32_t packlen = data.packet((uint8_t *)buffer,max_sendlen, tData);
     if(  packlen >  0)
     {
-         oInThriftMsg.set_thrift_rsp_params(buffer, packlen);
+        oInThriftMsg.set_thrift_rsp_params(buffer, packlen);
     }
     else 
     {
@@ -96,6 +96,17 @@ bool Method::GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg)
         return false;
     }
     return true;
+}
+
+template<typename T> bool Method::SendAck(const tagMsgShell& stMsgShell,
+                                    Thrift2Pb& oInThriftMsg, const T& tRet) 
+{
+    if (false == PacketThriftData(oInThriftMsg,tRet))
+    {
+        LOG4_ERROR("packet response faild");
+        return false;
+    }
+    return (GetLabor()->SendTo(stMsgShell, oInThriftMsg));
 }
 
 

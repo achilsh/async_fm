@@ -11,7 +11,7 @@ namespace im
 StepTestQuery::StepTestQuery(const oss::tagMsgShell& stMsgShell,
                              const demosvr_pingping_args& pingping_args,
                              unsigned int iSeq, const std::string& sName)
-    :m_stMsgShell(stMsgShell),m_Params(pingping_args), m_iSeq(iSeq), m_sName(sName)
+    :ThriftStep(stMsgShell, iSeq, sName),m_Params(pingping_args)
 {
 }
 
@@ -39,6 +39,7 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
     std::string sData;
     ThrifSerialize<OneTest>::ToString(t,sData);
     oOutMsgBody.set_body(sData);
+    oOutMsgBody.set_session(m_Params.pi.b);
 
     oOutMsgHead.set_cmd(101); //this is command no.
     oOutMsgHead.set_seq(GetSequence());
@@ -51,10 +52,11 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
         return oss::STATUS_CMD_FAULT;
     }
 
-    SetId(m_Params.pi.b);
+    //SetId(m_Params.pi.b);
     if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody, this)) {
         LOG4_ERROR("send data to TestLogic failed");
         LOG4_ALARM_REPORT("send to next fail");
+        SendAck("SendToNext fail");
         return oss::STATUS_CMD_FAULT;
     }
 
@@ -71,41 +73,33 @@ oss::E_CMD_STATUS StepTestQuery::Callback(const oss::tagMsgShell& stMsgShell,
         sData = "http parse ret body fail";
         LOG4_ALARM_REPORT("serialize fail");
         SendAck(sData);
-    } else  {
+    } else 
+    {
         sData = t.fOne;
-        SendAck("", sData);
+        SendAck("", t.fOne);
     }
     return oss::STATUS_CMD_COMPLETED;
 }
 
 void StepTestQuery::SendAck(const std::string& sErr, const std::string &sData)
 {
-    Thrift2Pb outThriftMsg;
-    outThriftMsg.Clear();
-    
     demosvr_pingping_result  pingping_result;
     pingping_result.__isset.success = true;
     
     if (sErr.empty()) 
     {
-        pingping_result.success.retcode = -1;
+        pingping_result.success.retcode = 0;
+        pingping_result.success.a = 2222;
+        pingping_result.success.b = sData;
     } 
     else
     {
         pingping_result.success.a = 122222 ;
-        pingping_result.success.b = "is ok";
-        pingping_result.success.retcode  = 0;
+        pingping_result.success.b = sErr;
+        pingping_result.success.retcode  = -1;
     }
 
-    SetThriftSeq(m_iSeq, outThriftMsg);
-    SetThriftInterfaceName(m_sName, outThriftMsg);
-
-    if (false == PacketThriftData(outThriftMsg, pingping_result))
-    {
-        LOG4_ERROR("packet response faild");
-        return ;
-    }
-    (GetLabor()->SendTo(m_stMsgShell, outThriftMsg));
+    ThriftStep::SendAck(pingping_result);
 }
 
 //////

@@ -42,6 +42,7 @@ oss::E_CMD_STATUS StepTestQuery::Emit(int err,
   ThrifSerialize<OneTest>::ToString(t,sData);
   
   oOutMsgBody.set_body(sData);
+  oOutMsgBody.set_session(m_sKey);
 
   oOutMsgHead.set_cmd(101); //this is command no.
   oOutMsgHead.set_seq(GetSequence());
