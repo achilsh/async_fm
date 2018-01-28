@@ -24,7 +24,8 @@ class MethodThrift: public oss::Method
      
      virtual bool AnyMessage(
          const tagMsgShell& stMsgShell,
-         const Thrift2Pb& oInThriftMsg);
+         const Thrift2Pb& oInThriftMsg,
+         uint32_t uiPacketLen, const uint8_t *pPacketBuf);
     private:
      StepTestQuery* pStepTQry;
 };

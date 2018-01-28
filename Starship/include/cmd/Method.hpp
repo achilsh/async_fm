@@ -46,7 +46,8 @@ class Method: public Cmd
        */
       virtual bool AnyMessage(
           const tagMsgShell& stMsgShell,
-          const Thrift2Pb& oInThriftMsg) = 0;
+          const Thrift2Pb& oInThriftMsg, 
+          uint32_t uiPacketLen, const uint8_t *pPacketBuf ) = 0;
     
       /**< 打包thrift协议的数据, 结果填充pb 回应报文 */
       template<typename T>
@@ -54,7 +55,8 @@ class Method: public Cmd
 
       /**< 解析pb 中请求的报文数据, 获取请求参数 */
       template<typename T>
-      bool GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg); 
+      bool GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg, 
+                           uint32_t uiPacketLen, const uint8_t *pPacketBuf ); 
 
       /**< 向pb数据写入thrift的接口名 */
       void SetThriftInterfaceName(const std::string& sName, Thrift2Pb& oInThriftMsg)

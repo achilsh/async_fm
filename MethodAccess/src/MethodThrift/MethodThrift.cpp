@@ -18,7 +18,8 @@ MethodThrift::~MethodThrift()
 
 bool MethodThrift::AnyMessage(
     const tagMsgShell& stMsgShell,
-    const Thrift2Pb& oInThriftMsg)
+    const Thrift2Pb& oInThriftMsg,
+    uint32_t uiPacketLen, const uint8_t *pPacketBuf)
 {
     std::string sMethodName = oInThriftMsg.thrift_interface_name();
     int iSeq = oInThriftMsg.thrift_seq();
@@ -42,7 +43,7 @@ bool MethodThrift::AnyMessage(
 
     demosvr_pingping_args pingping_args;
     
-    if (false == GetThriftParams(pingping_args, oInThriftMsg))
+    if (false == GetThriftParams(pingping_args, oInThriftMsg, uiPacketLen, pPacketBuf))
     {
         LOG4_ERROR("get params fail, method: %s", sMethodName.c_str());
         pingping_result.success.retcode = -2;

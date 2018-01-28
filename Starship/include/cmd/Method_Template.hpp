@@ -31,13 +31,13 @@ bool Method::PacketThriftData(Thrift2Pb& oInThriftMsg, const T& tData)
     }
 
     const uint32_t max_sendlen = 1024*1024*2; 
-    uint8_t *buffer = new uint8_t[max_sendlen];
+    static uint8_t *buffer = new uint8_t[max_sendlen];
     if( buffer == NULL )
     {
         return false;
     }
 
-    ::memset( buffer, 0, max_sendlen ); 
+    //::memset( buffer, 0, max_sendlen ); 
     rpcpacket data;
    
     data.m_strFunc = oInThriftMsg.thrift_interface_name();
@@ -55,12 +55,12 @@ bool Method::PacketThriftData(Thrift2Pb& oInThriftMsg, const T& tData)
         bRet = false;
     }
 
-    delete [] buffer; 
     return bRet;
 }
 
 template<typename T>
-bool Method::GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg)
+bool Method::GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg,
+                             uint32_t uiPacketLen, const uint8_t *pPacketBuf)
 {
     if (oInThriftMsg.has_thrift_interface_name() == false)
     {
@@ -73,28 +73,29 @@ bool Method::GetThriftParams(T& tParam, const Thrift2Pb& oInThriftMsg)
         return false;
     }
     
-    if (oInThriftMsg.has_thrift_req_params() == false)
-    {
-        LOG4_ERROR("pb not has param");
-        return false;
-    }
+    TMessageType messageType;
+    int32_t      seqid;
+    string       strFunc;
 
-    std::string sparam = oInThriftMsg.thrift_req_params();
-    rpcpacket data;
-    std::string sMethod;
+    boost::shared_ptr<TMemoryBuffer>    transport = boost::shared_ptr<TMemoryBuffer>(new TMemoryBuffer());;
+    boost::shared_ptr<TBinaryProtocol>  protocol  = boost::shared_ptr<TBinaryProtocol>(new TBinaryProtocol(transport));
 
-    int iRet = data.GetFunc(const_cast<char*>(sparam.c_str()), sparam.size(), sMethod);
-    if (iRet != 0) 
+    try
     {
-        return false;
+        //去掉头四个字节
+        transport.get()->resetBuffer((uint8_t*)(pPacketBuf + THRIFT_TFRAME_HEAD_LEN), uiPacketLen - THRIFT_TFRAME_HEAD_LEN);
+        protocol.get()->readMessageBegin(strFunc, messageType, seqid);
+
+        tParam.read(protocol.get());
+        protocol.get()->readMessageEnd();
+        protocol.get()->getTransport()->readEnd();
     }
-    
-    iRet = data.GetParam(tParam);
-    if (iRet != 0) 
+    catch(exception &e)
     {
-        LOG4_ERROR("get param fail for method: %s", sMethod.c_str());
+        LOG4_ERROR("upackt len(%d) catch exception", uiPacketLen);
         return false;
-    }
+    } 
+
     return true;
 }
 

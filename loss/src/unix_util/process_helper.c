@@ -383,7 +383,6 @@ int recv_fd_with_attr(const int sock_fd, void* addr, int addr_len, int* send_fd_
 {
     int ret;
     struct msghdr msg;
-//    char recvchar;
     struct iovec vec[2];
     int recv_fd;
     char cmsgbuf[CMSG_SPACE(sizeof(recv_fd))];

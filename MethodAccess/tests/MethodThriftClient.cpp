@@ -67,7 +67,7 @@ MethodThriftTest::MethodThriftTest(const std::string& sIp, unsigned int uiPort)
 #else
     boost::shared_ptr<TSocket> socket(new TSocket(m_sIp.c_str(), m_uiPort));
     socket->setRecvTimeout(200);
-    socket->setConnTimeout(500);
+    socket->setConnTimeout(200);
     boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
     boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
     client.reset(new Test::demosvrClient(protocol));
@@ -86,7 +86,7 @@ void MethodThriftTest::LoopTest(int iTimes)
     for (int i = 0; i < iTimes; ++i) 
     {
         Run();
-        usleep(10000);
+        //usleep(10000);
     }
     int tEnd = time(NULL);
     std::cout << "cost tm: " << tEnd - tBegin 
@@ -134,7 +134,7 @@ int main()
 {
     std::string ip = "192.168.1.106";
     unsigned int port = 24000;
-    int inums = 10000;
+    int inums = 30000;
 
     MethodThriftTest test(ip, port);
     test.LoopTest(inums);
