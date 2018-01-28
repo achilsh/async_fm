@@ -65,7 +65,7 @@ bool ModuleHttp::AnyMessage(
     m_tagMsgShell = stMsgShell;
     m_oInHttpMsg = oInHttpMsg; 
     LOG4_INFO("method: %d,======> ", oInHttpMsg.method());
-    LOG4_ALARM_REPORT("add alarm test: %u", 1000);
+    //LOG4_ALARM_REPORT("add alarm test: %u", 1000);
 
     if (HTTP_POST != oInHttpMsg.method()) {
       LOG4_INFO("req not post method");
