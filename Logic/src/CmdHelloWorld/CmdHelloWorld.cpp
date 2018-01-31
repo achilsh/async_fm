@@ -10,22 +10,6 @@
 #include "hello_test_types.h"
 
 
-#if 0
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-    oss::Cmd* create()
-    {
-        oss::Cmd* pCmd = new CmdHelloWorld();
-        return(pCmd);
-    }
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
 using namespace Test;
 
 int MStatic::m_MTest = 100;

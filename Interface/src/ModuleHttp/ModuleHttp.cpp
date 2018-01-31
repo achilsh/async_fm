@@ -62,8 +62,6 @@ bool ModuleHttp::AnyMessage(
                 const HttpMsg& oInHttpMsg)
 {
     std::string sErr;
-    m_tagMsgShell = stMsgShell;
-    m_oInHttpMsg = oInHttpMsg; 
     LOG4_INFO("method: %d,======> ", oInHttpMsg.method());
     //LOG4_ALARM_REPORT("add alarm test: %u", 1000);
 
@@ -121,7 +119,7 @@ bool ModuleHttp::AnyMessage(
     }
 
     //
-    pStepTQry =  new StepTestQuery(m_tagMsgShell, oInHttpMsg, sTestVal);
+    pStepTQry =  new StepTestQuery(stMsgShell, oInHttpMsg, sTestVal);
     if (false == RegisterCallback(pStepTQry)) {
       delete pStepTQry;
       pStepTQry = NULL;
@@ -143,17 +141,7 @@ void ModuleHttp::SendAck(const std::string sErr) {
     return ;
   }
 
-  HttpMsg oOutHttpMsg;
-  oOutHttpMsg.set_type(HTTP_RESPONSE);
-  oOutHttpMsg.set_status_code(200);
-  oOutHttpMsg.set_http_major(m_oInHttpMsg.http_major());
-  oOutHttpMsg.set_http_minor(m_oInHttpMsg.http_minor());
-  
-  loss::CJsonObject retJson;
-  retJson.Add("code", sErr);
-  oOutHttpMsg.set_body(retJson.ToString());
-  GetLabor()->SendTo(m_tagMsgShell,oOutHttpMsg);
-  return ;
+  Module::SendAck(sErr);
 }
 
 } /* namespace im */

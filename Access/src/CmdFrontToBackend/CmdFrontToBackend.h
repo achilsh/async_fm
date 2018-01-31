@@ -11,14 +11,6 @@
 
 #include "cmd/Cmd.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  oss::Cmd* create();
-#ifdef __cplusplus
-}
-#endif
-
 namespace im {
   
   class StepFrontToBackend;
@@ -37,5 +29,6 @@ namespace im {
   ///
 }
 
+OSS_EXPORT(im::CmdFrontToBackend);
 #endif
 

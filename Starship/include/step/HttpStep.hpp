@@ -21,8 +21,10 @@ class HttpStep: public Step
 {
 public:
     HttpStep();
+    HttpStep(const oss::tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg);
     virtual ~HttpStep();
-
+    
+    /**< 在内部主动发起http请求时才关注, HttpStep 发送常规tcp req时无需关注 */
     virtual E_CMD_STATUS Callback(
                     const tagMsgShell& stMsgShell,
                     const HttpMsg& oHttpMsg,
@@ -41,9 +43,9 @@ protected:
 
     bool SendTo(const tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg);
 
-public:  // Step基类的方法，HttpStep中无需关注
+public:  
     /**
-     * @note Step基类的方法，HttpStep中无须关注
+     * @note Step基类的方法, HttpStep 发送http req 时无须关注
      */
     virtual E_CMD_STATUS Callback(
                     const tagMsgShell& stMsgShell,
@@ -53,6 +55,21 @@ public:  // Step基类的方法，HttpStep中无需关注
     {
         return(STATUS_CMD_COMPLETED);
     }
+
+
+    /**
+     * @brief: SendAck, 将结果返回给上游请求 
+     *
+     * @tparam T
+     * @param sErr, 如果为空，sData将设置为正确的返回结果
+     * @param sData, 如果为空，sErr设置错误信息
+     */
+    void SendAck(const std::string& sErr, const std::string& sData = "");
+
+protected:
+    oss::tagMsgShell m_stMsgShell;     /**< 接收上游请求时保存的上下文  */
+    uint32_t m_uiMajor; 
+    uint32_t m_uiMinor;
 };
 
 } /* namespace oss */

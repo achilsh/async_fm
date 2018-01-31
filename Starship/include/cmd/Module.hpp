@@ -29,6 +29,11 @@ public:
         return(true);
     }
 
+    bool AnyMessageBase(
+        const tagMsgShell& stMsgShell,
+        const HttpMsg& oInHttpMsg);
+
+
     /**
      * @brief http服务模块处理入口
      * @param stMsgShell 来源消息外壳
@@ -61,10 +66,17 @@ public:
     {
         m_strModulePath = strModulePaht;
     }
+protected:
+    void SendAck(const std::string& sErr, const std::string& sData = "");
 
 private:
     std::string m_strModulePath;
+protected:
+    oss::tagMsgShell m_tagMsgShell;
+    uint32_t m_uiHttpMajor;
+    uint32_t m_uiHttpMinor;
 };
+    
 
 } /* namespace oss */
 

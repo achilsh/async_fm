@@ -42,9 +42,6 @@ namespace im
       void SendAck(const std::string sErr = "");
      private:
       StepTestQuery* pStepTQry;
-      oss::tagMsgShell m_tagMsgShell;
-      HttpMsg m_oInHttpMsg;
-
       TestTimer* pTimer;
       std::string m_sTimerId;
     };

@@ -4,21 +4,26 @@
 #include "hello_test_types.h"
 using namespace Test; 
 
-
-namespace im {
+namespace im 
+{
 
 int StepTestQuery::m_Test = 0;
 
 StepTestQuery::StepTestQuery(const oss::tagMsgShell& stMsgShell,
                             const HttpMsg& oHttpMsg,
-                            const std::string& sVal) {
-  m_stMsgShell = stMsgShell; m_oHttpMsg = oHttpMsg; m_sKey = sVal;
-}
-//
-StepTestQuery::~StepTestQuery() {
+                            const std::string& sVal)
+    :oss::HttpStep(stMsgShell, oHttpMsg), m_sKey(sVal) 
+{
 }
 
-oss::E_CMD_STATUS StepTestQuery::Timeout() {
+//
+StepTestQuery::~StepTestQuery() 
+{
+
+}
+
+oss::E_CMD_STATUS StepTestQuery::Timeout() 
+{
   LOG4_ERROR("StepTestQuery tm out ");
   LOG4_ALARM_REPORT("resp tm out, key: %s", m_sKey.c_str());
   SendAck("step Test query time out");
@@ -27,7 +32,8 @@ oss::E_CMD_STATUS StepTestQuery::Timeout() {
 //
 oss::E_CMD_STATUS StepTestQuery::Emit(int err, 
                        const std::string& strErrMsg ,
-                       const std::string& strErrShow ) {
+                       const std::string& strErrShow ) 
+{
   MsgBody oOutMsgBody;
   MsgHead oOutMsgHead;
   LOG4_TRACE("===== 54 again =====");
@@ -74,7 +80,8 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
          const oss::tagMsgShell& stMsgShell,
          const MsgHead& oInMsgHead,
          const MsgBody& oInMsgBody,
-         void* data) {
+         void* data) 
+{
   /*****
   loss::CJsonObject jsData;
   std::string sData = oInMsgBody.body();
@@ -88,35 +95,23 @@ oss::E_CMD_STATUS StepTestQuery::Callback(
   ****/
   OneTest t;
   std::string sData = oInMsgBody.body();
-  if (0 != ThrifSerialize<OneTest>::FromString(sData,t)) {
+  if (0 != ThrifSerialize<OneTest>::FromString(sData,t)) 
+  {
     sData = "http parse ret body fail";
     LOG4_ALARM_REPORT("serialize fail");
     SendAck(sData);
-  } else  {
+  } 
+  else  
+  {
     sData = t.fOne;
     SendAck("", sData);
   }
   return oss::STATUS_CMD_COMPLETED;
 }
 
-void StepTestQuery::SendAck(const std::string& sErr, const std::string &sEData) {
-  std::string sData;
-  if (sErr.empty() == false) {
-    sData = sErr;
-  } else {
-    sData = sEData;
-  }
-
-  HttpMsg oOutHttpMsg;
-  oOutHttpMsg.set_type(HTTP_RESPONSE);
-  oOutHttpMsg.set_status_code(200);
-  oOutHttpMsg.set_http_major(m_oHttpMsg.http_major());
-  oOutHttpMsg.set_http_minor(m_oHttpMsg.http_minor());
-
-  loss::CJsonObject retJson;
-  retJson.Add("ret", sData);
-  oOutHttpMsg.set_body(retJson.ToString());
-  SendTo(m_stMsgShell,oOutHttpMsg);
+void StepTestQuery::SendAck(const std::string& sErr, const std::string &sEData) 
+{
+    oss::HttpStep::SendAck(sErr, sEData);
 }
 //
 }

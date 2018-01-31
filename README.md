@@ -11,6 +11,6 @@
 #分支 :restart_child_process ====> 增加远程重启子进程能力(在手动摘机后优雅重启)
 #分支 :client_thrift_ver  =====> 增加client以thrift接入系统支持
 #分支 :unordered_map_ver  =====> 用unordered_map 优化系统部分 map
-#分支 :optim_client_thrift_ver =====> 优化thrift协议接入的编解码方式 
+#分支 :optim_client_thrift_ver =====> 优化thrift协议接入的编解码方式,增加perf cpu,生成火焰图工具
 
 

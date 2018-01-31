@@ -39,5 +39,7 @@ namespace im {
   //
 }
 
+OSS_EXPORT(im::CmdBackendToFront);
+
 #endif
 

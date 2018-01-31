@@ -3,18 +3,6 @@
 #include "OssError.hpp"
 #include "OssDefine.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  oss::Cmd* create()
-  {
-    oss::Cmd* pCmd = new im::CmdFrontToBackend();
-    return(pCmd);
-  }
-#ifdef __cplusplus
-}
-#endif
-
 namespace im {
   CmdFrontToBackend::CmdFrontToBackend(): pStepFront2Backend(NULL) {
 
