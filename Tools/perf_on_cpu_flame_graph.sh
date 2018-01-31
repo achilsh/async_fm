@@ -3,7 +3,10 @@ if [ $# -ne 2 ];then
     echo "Usage: $0 seconds pid" 
     exit 1 
 fi 
-
+##
+## url: https://github.com/brendangregg/FlameGraph
+##
+##
 perf record -g -p $2 -o perf.data & 
 
 PID=`ps aux | grep "perf record" | grep -v grep | awk '{print $2}' ` 
