@@ -5,7 +5,7 @@ if [ $# -ne 2 ];then
 fi 
 ##
 ## url: https://github.com/brendangregg/FlameGraph
-##
+## 使用参考：http://www.udpwork.com/item/15962.html
 ##
 perf record -g -p $2 -o perf.data & 
 

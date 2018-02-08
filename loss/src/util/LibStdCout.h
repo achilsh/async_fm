@@ -20,6 +20,7 @@
 
 namespace loss
 {
+#ifdef DEBUG_TEST
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -42,6 +43,8 @@ namespace loss
 // 通用宏处理
 #define DEBUG_LEVEL 1
 
+
+//    
 #define err_quit(format, args...)\
 {\
     printf(format,##args);\
@@ -137,6 +140,15 @@ namespace loss
     fflush(stdout);\
 }
 
+#else
+
+#define err_quit(format, args...) {}
+#define LOG(format, args...) {}
+#define DEBUG_LOG(format, args...) {}
+#define WARN_LOG(format, args...) {}
+#define ERROR_LOG(format, args...) {}
+
+#endif 
 
 }   /**< loss namespace */
 

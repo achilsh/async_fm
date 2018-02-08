@@ -2,7 +2,7 @@ CCACHE_B=../l3oss/bin/ccache
 CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
 CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
 CFLAG = -Wall -Wno-format -g -O2 -fPIC 
-CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -std=c++11 -DREDIS_DEBUG 
+CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -std=c++11 -DREDIS_DEBUG -DDEBUG_TEST
 
 ARCH:=$(shell uname -m)
 
@@ -39,6 +39,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/PushEmail/include \
        -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src/thrift_util \
+       -I $(LOSS_PATH)/src/LibCoroutine/include \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
