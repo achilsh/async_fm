@@ -10,7 +10,10 @@
 #ifndef SRC_OSSLABOR_HPP_
 #define SRC_OSSLABOR_HPP_
 
+#include <map>
 #include <string>
+#include <unordered_map>    //c++: hash map
+
 #include "log4cplus/loggingmacros.h"
 #include "util/json/CJsonObject.hpp"
 #include "util/CBuffer.hpp"
@@ -18,6 +21,10 @@
 #include "protocol/msg.pb.h"
 #include "protocol/http.pb.h"
 #include "protocol/thrift2pb.pb.h"
+#include "LibCoroutine/include/CoroutineOp.hpp"
+
+
+using namespace LibCoroutine;
 
 struct redisAsyncContext;
 
@@ -34,6 +41,35 @@ class Method;
 class ThriftStep;
 
 class CTimer;
+
+class CoroutineLaborMgr
+{
+ public:
+  CoroutineLaborMgr();
+  virtual ~CoroutineLaborMgr();
+
+  bool AddNewCoroutine(const Step* pCo);
+  bool ResumeOneCo(Step* pCo, int32_t iCoId);
+  bool YeildCoRight(Step* pCo, int32_t iCoId);
+  void DeleteCoStep(const Step* pCo);
+
+  void AddCoAndId(Step* pCo, int32_t iCoId);
+
+  std::string& GetErrMsg()
+  {
+      return m_sErrMsg;
+  }
+
+  typedef std::unordered_map<Step*, int32_t> TypeMultiStepID;
+ private:
+  LibCoroutine::CoroutinerMgr* m_pCoMgr;
+  std::unordered_map<Step*, int32_t> m_mpStepCoId; ///< 记录即将运行的，正在运行的，或被挂起的协程
+  std::string m_sErrMsg;
+};
+
+typedef std::unordered_map<std::string, CoroutineLaborMgr*> TypeCoMP;
+
+
 /**
  * @brief 框架层工作者
  * @note 框架层工作者抽象类，框架层工作者包括OssManager和OssWorker
@@ -76,6 +112,20 @@ public:     // Labor相关设置（由Cmd类或Step类调用这些方法完成La
      * @return 是否发送成功
      */
     virtual bool SendTo(const tagMsgShell& stMsgShell, const MsgHead& oMsgHead, const MsgBody& oMsgBody) = 0;
+
+    
+    /**
+     * @brief: SendTo 
+     *
+     *  用于协程模式下发送
+     * @param stMsgShell
+     * @param oMsgHead
+     * @param oMsgBody
+     * @param pStep
+     *
+     * @return 
+     */
+    virtual bool SendTo(const tagMsgShell& stMsgShell, const MsgHead& oMsgHead, const MsgBody& oMsgBody,oss::Step* pStep) = 0;
 
     /**
      * @brief 设置连接的标识符信息
@@ -468,7 +518,9 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
         return(false);
     }
 
-    virtual bool SentTo(const std::string& strHost, int iPort, const std::string& strUrlPath, const HttpMsg& oHttpMsg, HttpStep* pHttpStep = NULL)
+    //http req send. notice is SentTo()  not SendTo()
+    virtual bool SentTo(const std::string& strHost, int iPort, const std::string& strUrlPath, 
+                        const HttpMsg& oHttpMsg, HttpStep* pHttpStep = NULL)
     {
         return(false);
     }
@@ -503,6 +555,7 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
      * @return 是否发送成功
      */
     virtual bool SendToNext(const std::string& strNodeType, const MsgHead& oMsgHead, const MsgBody& oMsgBody, Step* pStep)
+                             //, MsgHead& rspMsgHead, MsgBody& rspMsgBody)
     {
         return(false);
     }
@@ -572,6 +625,16 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
     virtual bool DeleteCallback(CTimer* pTimer) {
       return false;
     }
+
+	/*** 增加对co step  注册， 唤醒， 挂起, 删除 协程实例 操作***/
+	virtual bool RegisterCoroutine(Step* pStep, double dTimeout = 0.0);
+    virtual void DeleteCoroutine(Step* pStep);
+
+    virtual bool ResumeCoroutine(Step* pStep);
+    virtual bool YieldCorountine(Step* pStep);
+protected:
+    TypeCoMP    m_mpCoroutines;  ///< key: coroutine name, value: coroutine mgr;
+
 private:
     std::string m_strNodeTypeTmp;
     std::string m_strHostForServerTmp;

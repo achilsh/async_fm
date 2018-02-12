@@ -44,6 +44,10 @@ namespace im
       StepTestQuery* pStepTQry;
       TestTimer* pTimer;
       std::string m_sTimerId;
+
+      //test http post times;
+      int32_t m_iPostTimes;
+     
     };
 
 } /* namespace im */

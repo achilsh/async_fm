@@ -16,11 +16,20 @@ namespace im {
     LOG4_TRACE("call: %s", __FUNCTION__);
     
     pStepFront2Backend = new StepFrontToBackend(stMsgShell,oInMsgHead,
-                                                oInMsgBody);
+                                                oInMsgBody, "access_co");
     if (pStepFront2Backend == NULL) {
       return false;
     }
     
+    if (RegisterCoroutine(pStepFront2Backend) == false)
+    {
+        DeleteCoroutine(pStepFront2Backend);
+        delete pStepFront2Backend;
+        return false;
+    }
+    return true;
+    
+#if 0
     if (RegisterCallback(pStepFront2Backend) == false) {
       delete pStepFront2Backend; pStepFront2Backend = NULL;
       LOG4_ERROR("register StepFrontToBackend: %p failed", pStepFront2Backend);
@@ -32,6 +41,8 @@ namespace im {
       DeleteCallback(pStepFront2Backend);
       return false;
     }
+#endif
+
     return true;
   }
   //

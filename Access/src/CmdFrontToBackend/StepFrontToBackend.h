@@ -16,9 +16,11 @@ namespace im {
     public:
       StepFrontToBackend(const oss::tagMsgShell& stMsgShell,
                          const MsgHead& oInMsgHead,
-                         const MsgBody& oInMsgBody);
+                         const MsgBody& oInMsgBody,
+                         const std::string& sCoName);
       //
       virtual ~StepFrontToBackend();
+#if 0
       //
       virtual oss::E_CMD_STATUS Emit(int iErrno,
                                      const std::string& strErrMsg = "", 
@@ -30,6 +32,9 @@ namespace im {
           void* data = NULL);
 
       virtual oss::E_CMD_STATUS Timeout();
+#endif 
+
+      virtual void CorFunc();     //协程专用函数数
     private:
       bool QueryNodeTypeByCmd(std::string& sNodeType,const int iCmd);
   };

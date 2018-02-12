@@ -12,11 +12,13 @@ class CoOneParam: public Coroutiner
   
   virtual void CorFunc();
 
+
   void SetOne(const int one)
   {
       m_One = one;
   }
-
+ protected:
+  void AfterFuncWork();
  private:
   int m_One;
 };
@@ -29,6 +31,11 @@ void CoOneParam::CorFunc()
         YieldCurCoInCo();
         DEBUG_LOG("co id: %d, awake again do work", GetId());
     }
+}
+
+void CoOneParam::AfterFuncWork()
+{
+    DEBUG_LOG("fun done, other works, co id: %d", GetId());
 }
 
 //--------------------------------------------
@@ -60,6 +67,8 @@ class CoTwoParam: public Coroutiner
       m_one = x;
       m_two = y;
   }
+ protected:
+    virtual void AfterFuncWork();
  private:
   int m_one;
   int m_two;
@@ -73,6 +82,11 @@ void CoTwoParam::CorFunc()
         YieldCurCoInCo();
         DEBUG_LOG("co id: %d, awake again do work", GetId());
     }
+}
+
+void CoTwoParam::AfterFuncWork()
+{
+    DEBUG_LOG("fun done, other works, co id: %d", GetId());
 }
 
 class CoTwoParamCreate: public  CoCreateFactory

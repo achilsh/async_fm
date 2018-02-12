@@ -20,9 +20,15 @@ class ThriftStep: public Step
 {
  
 public:
-    ThriftStep(const oss::tagMsgShell& stMsgShell, unsigned int iSeq, const std::string& sName);
+    ThriftStep(const std::string& sCoName = "");
+
+    ThriftStep(const oss::tagMsgShell& stMsgShell, 
+               unsigned int iSeq, 
+               const std::string& sName,
+               const std::string& sCoName);
     virtual ~ThriftStep();
-    
+   
+#if 0
     virtual E_CMD_STATUS Callback(
         const tagMsgShell& stMsgShell,
         const Thrift2Pb& oThriftMsg,
@@ -31,7 +37,17 @@ public:
      * @brief 步骤超时回调
      */
     virtual E_CMD_STATUS Timeout() = 0;
-
+#endif
+    
+    // 采用协程模式
+    /**
+     * @brief: CorFunc
+     *  由业务的子类来实现，
+     *  该接口已经被协程调用
+     *
+     *  协程只需在该接口内部写同步逻辑即可
+     */ 
+    virtual void CorFunc() = 0;
 public:
     /**< 向client返回thrift 数据, 子类调用 */
     template<typename T> bool SendAck(const T& tData);
@@ -55,6 +71,8 @@ public:
         oInThriftMsg.set_thrift_seq(iSeq);
     }
 public:  
+
+#if 0
     /**
      * @note Step基类的方法，ThriftStep中无须关注
      */
@@ -66,6 +84,7 @@ public:
     {
         return(STATUS_CMD_COMPLETED);
     }
+#endif
 
 protected:
     oss::tagMsgShell m_stMsgShell;  /**< client 连接句柄信息 */

@@ -23,8 +23,9 @@ namespace oss
 class RedisStep: public Step
 {
 public:
-    RedisStep(Step* pNextStep = NULL);
-    RedisStep(const tagMsgShell& stReqMsgShell, const MsgHead& oReqMsgHead, const MsgBody& oReqMsgBody, Step* pNextStep = NULL);
+    RedisStep(const std::string& sCoName = "", Step* pNextStep = NULL);
+    RedisStep(const tagMsgShell& stReqMsgShell, const MsgHead& oReqMsgHead, const MsgBody& oReqMsgBody, 
+              Step* pNextStep = NULL, const std::string& sCoName ="");
     virtual ~RedisStep();
 
     /**

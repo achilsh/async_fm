@@ -115,6 +115,25 @@ protected:
     void DeleteCallback(Step* pStep);
 
     /**
+     * @brief: RegisterCoroutine 
+     * 注册协程step, 
+     *
+     * @param pStep
+     * @param dTimeout
+     *
+     * @return 是否注册成功
+     */
+    bool RegisterCoroutine(Step* pStep);
+
+    /**
+     * @brief: DeleteCoroutine 
+     *
+     * 删除协程step节点
+     * @param pStep
+     */
+    void DeleteCoroutine(Step* pStep);
+
+    /**
      * @brief 预处理
      * @note 预处理用于将等待预处理对象与框架建立弱联系，使被处理的对象可以获得框架一些工具，如写日志指针
      * @param pStep 等待预处理的Step

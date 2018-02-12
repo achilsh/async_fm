@@ -26,6 +26,7 @@
 #include "protocol/msg.pb.h"
 #include "session/Session.hpp"
 
+#include "CoStep.hpp"
 
 namespace oss
 {
@@ -39,12 +40,23 @@ class RedisStep;
  * @note 全异步Server框架基于状态机设计模式实现，Step类就是框架的状态机基类。Step类还保存了业务层连接标
  * 识到连接层实际连接的对应关系，业务层通过Step类可以很方便地把数据发送到指定连接。
  */
-class Step
+class Step :public CoStep
 {
 public:
-    Step(Step* pNextStep = NULL);
-    Step(const tagMsgShell& stReqMsgShell, const MsgHead& oReqMsgHead, const MsgBody& oReqMsgBody, Step* pNextStep = NULL);
+    Step(const std::string& sCoName = "", Step* pNextStep = NULL);
+    Step(const tagMsgShell& stReqMsgShell, 
+         const MsgHead& oReqMsgHead,  const MsgBody& oReqMsgBody,
+         Step* pNextStep = NULL, const std::string& sCoName = "");
     virtual ~Step();
+
+    /**
+     * @brief: CorFunc
+     *  由业务的子类来实现，
+     *  该接口已经被协程调用
+     *
+     *  协程只需在该接口内部写同步逻辑即可
+     */ 
+    virtual void CorFunc() = 0;
 
     /**
      * @brief 提交，发出
@@ -56,7 +68,7 @@ public:
      * @param strErrShow 展示给用户的错误描述
      * @return 执行状态
      */
-    virtual E_CMD_STATUS Emit(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrShow = "") = 0;
+    virtual E_CMD_STATUS Emit(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrShow = "");
 
     /**
      * @brief 步骤回调函数
@@ -73,12 +85,12 @@ public:
                     const tagMsgShell& stMsgShell,
                     const MsgHead& oInMsgHead,
                     const MsgBody& oInMsgBody,
-                    void* data = NULL) = 0;
+                    void* data = NULL);
 
     /**
      * @brief 步骤超时回调
      */
-    virtual E_CMD_STATUS Timeout() = 0;
+    virtual E_CMD_STATUS Timeout();
 
 public:
     /**
@@ -257,6 +269,20 @@ protected:
      */
     bool SendTo(const tagMsgShell& stMsgShell, const MsgHead& oMsgHead, const MsgBody& oMsgBody);
 
+
+    /**
+     * @brief: SendTo 
+     *
+     * 用于在s-s 间连接建立中数据发送
+     * @param stMsgShell
+     * @param oMsgHead
+     * @param oMsgBody
+     * @param pStep
+     *
+     * @return 
+     */
+    bool SendTo(const tagMsgShell& stMsgShell, const MsgHead& oMsgHead, const MsgBody& oMsgBody,
+                oss::Step* pStep); //, MsgHead& rspMsgHead, MsgBody& rspMsgBody);
     /**
      * @brief 发送数据
      * @note 指定连接标识符将数据发送。此函数先查找与strIdentify匹配的stMsgShell，如果找到就调用
@@ -278,7 +304,7 @@ protected:
      * @param oMsgBody 数据包体
      * @return 是否发送成功
      */
-    bool SendToNext(const std::string& strNodeType, MsgHead& oMsgHead, MsgBody& oMsgBody, Step* pStep);
+    bool SendToNext(const std::string& strNodeType, MsgHead& oMsgHead, MsgBody& oMsgBody);
 
     /**
      * @brief 以取模方式选择发送到同一类型节点
@@ -409,6 +435,20 @@ public:
 
     //------ 对外提供一个接口用于将全局session id(唯一) 存入本次step上下文中 ----//
     void SetId(const std::string& sId);
+    
+    //获取异步回调的状态，false: 发生错误，比如超时; true:  有结果返回 
+    bool GetRespStatus();
+    //当异步返回，设置返回的状态;
+    bool SetRespStatus(bool bStatus);
+
+    //获取异步回调的返回结果:消息头部和消息体
+    MsgHead& GetRespHead();
+    MsgBody& GetRespBody();
+    
+    //当异步返回时，设置返回结果的头部信息和body信息
+    void SetRespHead(MsgHead* rspMsgHead);
+    void SetRespBody(MsgBody* rspMsgBody);
+
 private:
     /**
      * @brief 设置框架层操作者
@@ -446,8 +486,12 @@ private:
     {
         m_bRegistered = false;
     }
+protected:
+    /**< 用于业务执行后，回收相关资源 */
+    virtual void AfterFuncWork();
 
-protected:  // 请求端的上下文信息，通过Step构造函数初始化，若调用的是不带参数的构造函数Step()，则这几个成员不会被初始化
+protected:  
+    // 请求端的上下文信息，通过Step构造函数初始化，若调用的是不带参数的构造函数Step()，则这几个成员不会被初始化
     tagMsgShell m_stReqMsgShell;
     MsgHead m_oReqMsgHead;
     MsgBody m_oReqMsgBody;
@@ -464,6 +508,12 @@ private:
     Step* m_pNextStep;
 
     std::string m_oSessionId; //全网唯一的ID，用户跟踪 消息轨迹;其值来源于: 外部接口set, 从m_oReqMsgBody解析出来，默认值
+
+protected:
+    MsgHead m_rspMsgHead;     //用于存放异步回调后返回值，消息头部. 在协程模式下新增
+    MsgBody m_rspMsgBody;     //用于存放异步回调后返回值, 消息体. 在协程模式下新增
+    bool m_bCoRespStatus;     //used to store coroutine's response status; default: true, if false, asyn result timeout.
+                              //TODO:  考虑是否返回状态的枚举值
     friend class OssWorker;
 };
 

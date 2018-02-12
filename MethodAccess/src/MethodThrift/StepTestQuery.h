@@ -19,10 +19,12 @@ class StepTestQuery: public oss::ThriftStep
 public:
   StepTestQuery(const oss::tagMsgShell& stMsgShell,
                 const Test::demosvr_pingping_args& pingping_args,
-                unsigned int iSeq, const std::string& sName);
+                unsigned int iSeq, const std::string& sName,
+                const std::string& sCoName);
 
   virtual ~StepTestQuery();
 
+#if 0
   virtual oss::E_CMD_STATUS Timeout();
 
   virtual  oss::E_CMD_STATUS Emit(int err,
@@ -42,7 +44,10 @@ public:
   {
       return oss::STATUS_CMD_COMPLETED;
   }
+#endif
 
+  //采用协程模式
+  void CorFunc();
   void SendAck(const std::string& sErr, const std::string &sData = "");
 
 private:

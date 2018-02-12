@@ -40,7 +40,7 @@ bool CoroutinerMgr::DestroyCoMgr()
     int32_t  iIndexCo;
     for (iIndexCo = 0; iIndexCo < this->m_Cap; iIndexCo++)
     {
-        Coroutiner* co = this->m_vCo[iIndexCo];
+        Coroutiner* co = this->m_vCo.at(iIndexCo);
         if (co)
         {
             delete co;
@@ -72,29 +72,43 @@ bool  CoroutinerMgr::AddNewCoroutine(Coroutiner *pCo)
     pCo->SetMgr(this);
     if (this->m_Nco >= this->m_Cap)
     {
-        int32_t id = this->m_Cap;
-        pCo->SetId(id);
+        try {
+            int32_t id = this->m_Cap;
+            pCo->SetId(id);
 
-        this->m_vCo.resize(this->m_Cap*2, NULL); 
-        this->m_vCo[this->m_Cap] = pCo;
-        this->m_Cap *= 2;
-        ++m_Nco;
+            this->m_vCo.resize(this->m_Cap*2, NULL); 
+            this->m_vCo.at(this->m_Cap) = pCo;
+            this->m_Cap *= 2;
+            ++m_Nco;
+        }
+        catch(const std::exception &ex)
+        {
+            m_sErr = ex.what();
+            return false;
+        }
 
         return true;
     }
     else 
     {
-        int32_t iIndex = 0;
-        for (; iIndex < m_Cap; ++iIndex)
-        {
-            int32_t iCoId = (iIndex + m_Nco) % m_Cap;
-            if (m_vCo[iCoId] == NULL)
+        try {
+            int32_t iIndex = 0;
+            for (; iIndex < m_Cap; ++iIndex)
             {
-                m_vCo[iCoId] = pCo;
-                ++m_Nco;
-                pCo->SetId(iCoId);
-                return true;
+                int32_t iCoId = (iIndex + m_Nco) % m_Cap;
+                if (m_vCo.at(iCoId) == NULL)
+                {
+                    m_vCo.at(iCoId) = pCo;
+                    ++m_Nco;
+                    pCo->SetId(iCoId);
+                    return true;
+                }
             }
+        }
+        catch (const std::exception &ex)
+        {
+            m_sErr = ex.what();
+            return false;
         }
     }
     return false;
@@ -107,7 +121,7 @@ int32_t  CoroutinerMgr::GetCoStatus(const int32_t iCoId)
         return COROUTINE_DEAD; 
     }
 
-    Coroutiner* pFindCo = m_vCo[iCoId];
+    Coroutiner* pFindCo = m_vCo.at(iCoId);
     if (pFindCo == NULL)
     {
         DEBUG_LOG("co obj null in get status, co id: %d", iCoId);
@@ -124,7 +138,7 @@ bool CoroutinerMgr::YieldCurrentCo()
     {
         return false;
     }
-    Coroutiner* pRunCo = m_vCo[iRunId];
+    Coroutiner* pRunCo = m_vCo.at(iRunId);
     if (pRunCo == NULL) 
     {
         return false;
@@ -150,7 +164,7 @@ bool CoroutinerMgr::ResumeCo(int32_t iCorId)
     {
         return false;
     }
-    Coroutiner* pCoInstance = m_vCo[iCorId];
+    Coroutiner* pCoInstance = m_vCo.at(iCorId);
     if (pCoInstance == NULL)
     {
         return true;
@@ -187,7 +201,7 @@ Coroutiner* CoroutinerMgr::GetCoByCoId(const int32_t iCoId)
         return NULL;
     }
 
-    return m_vCo[iCoId];
+    return m_vCo.at(iCoId);
 }
 
 void CoroutinerMgr::DeleteCo(const int32_t iCoId)
@@ -201,11 +215,27 @@ void CoroutinerMgr::DeleteCo(const int32_t iCoId)
         return ;
     }
     
-    delete m_vCo[iCoId];
-    m_vCo[iCoId] = NULL;
+    delete m_vCo.at(iCoId);
+    m_vCo.at(iCoId) = NULL;
     --m_Nco;
     m_RunningId = -1;
     DEBUG_LOG("del co, id: %d", iCoId);
+}
+
+bool CoroutinerMgr::CoStatusDead(const int32_t iCoId)
+{
+    try {
+        if (GetCoStatus(iCoId) == COROUTINE_DEAD)
+        {
+            return true;
+        }
+    }
+    catch (const std::exception &ex)
+    {
+        m_sErr = ex.what();
+    }
+
+    return false;
 }
 
 /**************************************************
@@ -248,8 +278,11 @@ Coroutiner::~Coroutiner()
 bool  Coroutiner::SaveStack(char *pTop)
 {
     char dummy = 0;
+    ClearErrMsg();
+    
     if ((pTop - &dummy) > CoroutinerMgr::STACK_SIZE)
     {
+        m_sErrMsg = "save stack fail";
         return false;
     }
 
@@ -309,6 +342,7 @@ void Coroutiner::GloblCorFunc(uint32_t low32, uint32_t hi32)
     }
 
     pCo->CorFunc();
+    pCo->AfterFuncWork();
     pMgr->DeleteCo(iCoid);
 }
 
@@ -322,6 +356,8 @@ bool Coroutiner::YieldCurCoInCo()
     int iCoId = m_pCoMgr->GetRunningCoroutineId();
     if (iCoId < 0)
     {
+        ClearErrMsg();
+        m_sErrMsg = "get runing co id fail";
         return false;
     }
     return  m_pCoMgr->YieldCurrentCo();

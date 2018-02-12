@@ -10,8 +10,9 @@ namespace im
 
 StepTestQuery::StepTestQuery(const oss::tagMsgShell& stMsgShell,
                              const demosvr_pingping_args& pingping_args,
-                             unsigned int iSeq, const std::string& sName)
-    :ThriftStep(stMsgShell, iSeq, sName),m_Params(pingping_args)
+                             unsigned int iSeq, const std::string& sName,
+                             const std::string& sCoName)
+    :ThriftStep(stMsgShell, iSeq, sName, sCoName),m_Params(pingping_args)
 {
 }
 
@@ -19,6 +20,57 @@ StepTestQuery::~StepTestQuery()
 {
 }
 
+//采用协程模式
+void StepTestQuery::CorFunc()
+{
+    MsgBody oOutMsgBody;
+    MsgHead oOutMsgHead;
+
+    OneTest t;
+    t.__set_fOne(m_Params.pi.b);
+    
+    std::string sData;
+    ThrifSerialize<OneTest>::ToString(t,sData);
+    oOutMsgBody.set_body(sData);
+    oOutMsgBody.set_session(m_Params.pi.b);
+
+    oOutMsgHead.set_cmd(101); //this is command no.
+    oOutMsgHead.set_seq(GetSequence());
+    oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
+
+    std::string strDstNodeType;
+    if (false == GetLabor()->QueryNodeTypeByCmd(strDstNodeType, 101)) 
+    {
+        LOG4_ERROR("get node type fail by cmd: %u", 101);
+        LOG4_ALARM_REPORT("not get node type for cmd: %u", 101);
+        return ;
+    }
+
+    if (false == SendToNext(strDstNodeType, oOutMsgHead, oOutMsgBody)) 
+    {
+        LOG4_ERROR("send data to TestLogic failed");
+        LOG4_ALARM_REPORT("send to next fail");
+        SendAck("SendToNext fail");
+        return ;
+    }
+
+    OneTest tRetData;
+    std::string sRetData = m_rspMsgBody.body();
+
+    if (0 != ThrifSerialize<OneTest>::FromString(sRetData,tRetData)) 
+    {
+        sData = "thrift parse ret body fail";
+        LOG4_ALARM_REPORT("serialize fail");
+        SendAck(sData);
+    } else 
+    {
+        sData = t.fOne;
+        SendAck("", tRetData.fOne);
+    }
+    return ;
+}
+
+#if 0
 oss::E_CMD_STATUS StepTestQuery::Timeout()
 {
     LOG4_ERROR("StepTestQuery tm out ");
@@ -70,7 +122,7 @@ oss::E_CMD_STATUS StepTestQuery::Callback(const oss::tagMsgShell& stMsgShell,
     std::string sData = oInMsgBody.body();
     if (0 != ThrifSerialize<OneTest>::FromString(sData,t)) 
     {
-        sData = "http parse ret body fail";
+        sData = "thrift parse ret body fail";
         LOG4_ALARM_REPORT("serialize fail");
         SendAck(sData);
     } else 
@@ -80,6 +132,8 @@ oss::E_CMD_STATUS StepTestQuery::Callback(const oss::tagMsgShell& stMsgShell,
     }
     return oss::STATUS_CMD_COMPLETED;
 }
+#endif
+
 
 void StepTestQuery::SendAck(const std::string& sErr, const std::string &sData)
 {

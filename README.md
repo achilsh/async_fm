@@ -12,5 +12,5 @@
 #分支 :client_thrift_ver  =====> 增加client以thrift接入系统支持
 #分支 :unordered_map_ver  =====> 用unordered_map 优化系统部分 map
 #分支 :optim_client_thrift_ver =====> 优化thrift协议接入的编解码方式,增加perf cpu,生成火焰图工具,丰富火焰图获取方式
-#分支 :coroutine_ver  ====> 修改框架，内部服务支持协程模式
+#分支 :coroutine_ver  ====> 修改框架，内部服务支持协程模式：http，thrift, 自定义协议接入流程增加协程处理
 

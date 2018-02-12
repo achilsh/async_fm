@@ -20,20 +20,31 @@ namespace oss
 class HttpStep: public Step
 {
 public:
-    HttpStep();
-    HttpStep(const oss::tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg);
+    HttpStep(const std::string& sCoName = "");
+    HttpStep(const oss::tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg, const std::string& sCoName);
     virtual ~HttpStep();
     
+    /**
+     * @brief: CorFunc
+     *  由业务的子类来实现，
+     *  该接口已经被协程调用
+     *
+     *  协程只需在该接口内部写同步逻辑即可
+     */ 
+    virtual void CorFunc() = 0;
+
+#if 0
     /**< 在内部主动发起http请求时才关注, HttpStep 发送常规tcp req时无需关注 */
     virtual E_CMD_STATUS Callback(
                     const tagMsgShell& stMsgShell,
                     const HttpMsg& oHttpMsg,
                     void* data = NULL) = 0;
+#endif
 
     /**
      * @brief 步骤超时回调
      */
-    virtual E_CMD_STATUS Timeout() = 0;
+    //virtual E_CMD_STATUS Timeout() = 0;
 
     bool HttpPost(const std::string& strUrl, const std::string& strBody, const std::map<std::string, std::string>& mapHeaders);
     bool HttpGet(const std::string& strUrl);
@@ -41,12 +52,26 @@ public:
 protected:
     bool HttpRequest(const HttpMsg& oHttpMsg);
 
+    
+    /**
+     * @brief: SendTo 
+     *  
+     *  是http 上游请求的回包.
+     *
+     * @param stMsgShell
+     * @param oHttpMsg
+     *
+     * @return 
+     */
     bool SendTo(const tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg);
 
 public:  
     /**
      * @note Step基类的方法, HttpStep 发送http req 时无须关注
      */
+
+#if 0
+    //采用协程函数来替换
     virtual E_CMD_STATUS Callback(
                     const tagMsgShell& stMsgShell,
                     const MsgHead& oInMsgHead,
@@ -55,7 +80,7 @@ public:
     {
         return(STATUS_CMD_COMPLETED);
     }
-
+#endif
 
     /**
      * @brief: SendAck, 将结果返回给上游请求 
@@ -66,10 +91,20 @@ public:
      */
     void SendAck(const std::string& sErr, const std::string& sData = "");
 
+    /**
+     * @brief: SetHttpRespBody 
+     * 该函数用于 接收http response 报文
+     *
+     * 接收到的http报文存放数据成员:  m_msgRespHttp
+     *
+     * @param respHttp: 接收到的 http response 
+     */
+    void SetHttpRespBody(HttpMsg* respHttp);
 protected:
     oss::tagMsgShell m_stMsgShell;     /**< 接收上游请求时保存的上下文  */
     uint32_t m_uiMajor; 
     uint32_t m_uiMinor;
+    HttpMsg m_msgRespHttp;
 };
 
 } /* namespace oss */

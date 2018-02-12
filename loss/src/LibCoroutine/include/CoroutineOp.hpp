@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <string>
 #include <vector>
 
 #if __APPLE__ && __MACH__
@@ -65,7 +66,17 @@ namespace LibCoroutine
        *
        * @return 
        */
-      int32_t  GetCoStatus(const int32_t iCoId);
+      int32_t GetCoStatus(const int32_t iCoId);
+
+      /**
+       * @brief: CoStatusDead
+       *  确定某个协程的状态是否dead,协程已经无效
+       * @param iCoId
+       *
+       * @return: true => is dead, false => other workeable status
+       */
+      bool CoStatusDead(const int32_t iCoId);
+
       /**
        * @brief: YieldCurrentCo 
        * 释放当前调度管理器中正在运行的协程实例,
@@ -99,6 +110,10 @@ namespace LibCoroutine
       Coroutiner* GetCoByCoId(const int32_t iCoId);
       void DeleteCo(const int32_t iCoId);
 
+      std::string GetErrMsg()
+      {
+          return m_sErr;
+      }
      public:
       static const int32_t STACK_SIZE = 1024*1024;
       static const int32_t MAX_NUM_CO  = 16;
@@ -118,6 +133,13 @@ namespace LibCoroutine
        */
       bool DestroyCoMgr();
 
+
+      void ClearErr()
+      {
+        std::string sEmpty;
+        m_sErr.swap(sEmpty);
+      }
+
      private:
       char m_Stack[STACK_SIZE];
       ucontext_t m_Main;              // 正在running的协程在执行完后需切换到的上下文，由于是非对称协程，所以该上下文用来接管协程结束后的程序控制权
@@ -126,6 +148,7 @@ namespace LibCoroutine
       int32_t m_RunningId;            // 调度器中正在running的协程id
       std::vector<Coroutiner*> m_vCo; // 连续内存空间，用于存储所有协程任务
       bool m_Init;
+      std::string m_sErr;
     };
 
 
@@ -177,6 +200,11 @@ namespace LibCoroutine
           m_RunId = iId;
       }
 
+      std::string GetErrMsg() 
+      {
+          return m_sErrMsg;
+      }
+
      public:
       void SetMgr(CoroutinerMgr* pMgr)
       {
@@ -204,14 +232,25 @@ namespace LibCoroutine
 
      protected:
       void FreeRes();
+      //用于协程实例在逻辑处理完后的其他额外操作，
+      //满足业务自身需求
+      virtual void AfterFuncWork() = 0;
+
+      //
+      void ClearErrMsg()
+      {
+          std::string sTmp;
+          m_sErrMsg.swap(sTmp);
+      }
 
      protected:
-      ucontext_t m_Ctx; // 协程上下文
-      ptrdiff_t m_Cap;  // 协程栈的最大容量
-      ptrdiff_t m_Size; // 协程栈的当前容量
-      int32_t m_Status; // 协程状态
-      char * m_pStack;  // 协程栈
-      int32_t m_RunId;  //
-      CoroutinerMgr* m_pCoMgr;
+      ucontext_t      m_Ctx; // 协程上下文
+      ptrdiff_t       m_Cap;  // 协程栈的最大容量
+      ptrdiff_t       m_Size; // 协程栈的当前容量
+      int32_t         m_Status; // 协程状态
+      char            *m_pStack;  // 协程栈
+      int32_t         m_RunId;  //
+      std::string     m_sErrMsg;
+      CoroutinerMgr   *m_pCoMgr;
     };
 }

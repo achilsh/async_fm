@@ -54,6 +54,7 @@ bool MethodThrift::AnyMessage(
 
     LOG4_TRACE("each req, seq: %u, method: %s", iSeq, sMethodName.c_str());
 
+#if 0
     pStepTQry = new StepTestQuery(stMsgShell, pingping_args,iSeq, sMethodName);
     if (pStepTQry != NULL)
     {
@@ -79,6 +80,26 @@ bool MethodThrift::AnyMessage(
             this->SendAck(stMsgShell, outThriftMsg, pingping_result);
             return false;
         }
+    }
+#endif
+
+    //采用协程模式
+    pStepTQry = new StepTestQuery(stMsgShell, 
+                                  pingping_args,iSeq, 
+                                  sMethodName, "thrift_step");
+    if (pStepTQry != NULL)
+    {
+        if (RegisterCoroutine(pStepTQry) == false)
+        {
+            LOG4_ERROR("start thrift co fail, thrift step: %p", pStepTQry);
+            DeleteCoroutine(pStepTQry);
+            delete pStepTQry;
+
+            pingping_result.success.retcode = -2;
+            this->SendAck(stMsgShell, outThriftMsg, pingping_result);
+            return false;
+        }
+        return true;
     }
 
     pingping_result.success.retcode = 0;
