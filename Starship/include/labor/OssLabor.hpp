@@ -14,6 +14,8 @@
 #include <string>
 #include <unordered_map>    //c++: hash map
 
+#include "log4cplus/logger.h"
+#include "log4cplus/fileappender.h"
 #include "log4cplus/loggingmacros.h"
 #include "util/json/CJsonObject.hpp"
 #include "util/CBuffer.hpp"
@@ -48,25 +50,71 @@ class CoroutineLaborMgr
   CoroutineLaborMgr();
   virtual ~CoroutineLaborMgr();
 
+  /**
+   * @brief: AddNewCoroutine 
+   *  向协程管理器添加独立的协程实例
+   *
+   * @param pCo: 要添加的协程实例，
+   * 是从堆上分配的资源。
+   * 可以手动new 或者用智能指针
+   *
+   * @return: false 失败, true 成功
+   * 如果失败或者失败， 管理器会
+   * 自动释放，业务不用关注协程自身资源
+   */
   bool AddNewCoroutine(const Step* pCo);
-  bool ResumeOneCo(Step* pCo, int32_t iCoId);
-  bool YeildCoRight(Step* pCo, int32_t iCoId);
+
+  /**
+   * @brief: ResumeOneCo 
+   *
+   * @param pCo
+   * @param iCoId
+   *
+   * @return 
+   */
+  bool ResumeOneCo(Step* pCo, int64_t iCoId);
+
+  /**
+   * @brief: YeildCoRight 
+   *
+   * @param pCo
+   * @param iCoId
+   *
+   * @return 
+   */
+  bool YeildCoRight(Step* pCo, int64_t iCoId);
+
+  /**
+   * @brief: DeleteCoStep 
+   *  仅仅是把stepp 从map移除，step的资源不会释放
+   *
+   * @param pCo
+   */
   void DeleteCoStep(const Step* pCo);
 
-  void AddCoAndId(Step* pCo, int32_t iCoId);
+
+  /**
+   * @brief: AddCoAndId 
+   *
+   * @param pCo
+   * @param iCoId
+   */
+  void AddCoAndId(Step* pCo, int64_t iCoId);
+
+  void SetLoggerToCoLibMgr(log4cplus::Logger* pLogger);
 
   std::string& GetErrMsg()
   {
       return m_sErrMsg;
   }
 
-  typedef std::unordered_map<Step*, int32_t> TypeMultiStepID;
+  typedef std::unordered_map<Step*, int64_t> TypeMultiStepID;
  private:
-  LibCoroutine::CoroutinerMgr* m_pCoMgr;
-  std::unordered_map<Step*, int32_t> m_mpStepCoId; ///< 记录即将运行的，正在运行的，或被挂起的协程
+  LibCoroutine::CoroutinerMgr* m_pCoLibMgr;
+  std::unordered_map<Step*, int64_t> m_mpStepCoId; ///< 记录即将运行的，正在运行的，或被挂起的协程
   std::string m_sErrMsg;
 };
-
+//上面是对协程库接口的一次代理，都是直接调用协程库里面的接口 
 typedef std::unordered_map<std::string, CoroutineLaborMgr*> TypeCoMP;
 
 
@@ -628,6 +676,7 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
 
 	/*** 增加对co step  注册， 唤醒， 挂起, 删除 协程实例 操作***/
 	virtual bool RegisterCoroutine(Step* pStep, double dTimeout = 0.0);
+    //删除协程实例，并回收协程的资源（这种权利由框架来处理）
     virtual void DeleteCoroutine(Step* pStep);
 
     virtual bool ResumeCoroutine(Step* pStep);

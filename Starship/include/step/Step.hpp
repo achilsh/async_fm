@@ -58,6 +58,7 @@ public:
      */ 
     virtual void CorFunc() = 0;
 
+#if 0
     /**
      * @brief 提交，发出
      * @note 注册了一个回调步骤之后执行Emit()就开始等待回调。 Emit()大部分情况下不需要传递参数，
@@ -91,6 +92,8 @@ public:
      * @brief 步骤超时回调
      */
     virtual E_CMD_STATUS Timeout();
+#endif
+
 
 public:
     /**
@@ -322,8 +325,9 @@ protected:
      * @param pNextStep 下一个步骤
      * @return 执行结果
      */
-    bool NextStep(Step* pNextStep, int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
-    bool NextStep(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
+    //采用协程模式，两接口将废弃 
+    //bool NextStep(Step* pNextStep, int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
+    //bool NextStep(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
 
 public:
     /**

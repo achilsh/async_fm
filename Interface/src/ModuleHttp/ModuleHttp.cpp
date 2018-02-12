@@ -126,7 +126,6 @@ bool ModuleHttp::AnyMessage(
     if (RegisterCoroutine(pStepTQry) == false)
     {
         DeleteCoroutine(pStepTQry);
-        delete pStepTQry;
         SendAck("register failed");
         LOG4_ALARM_REPORT("reg new step fail");
 

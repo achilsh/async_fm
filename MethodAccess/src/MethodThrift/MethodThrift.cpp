@@ -93,7 +93,6 @@ bool MethodThrift::AnyMessage(
         {
             LOG4_ERROR("start thrift co fail, thrift step: %p", pStepTQry);
             DeleteCoroutine(pStepTQry);
-            delete pStepTQry;
 
             pingping_result.success.retcode = -2;
             this->SendAck(stMsgShell, outThriftMsg, pingping_result);

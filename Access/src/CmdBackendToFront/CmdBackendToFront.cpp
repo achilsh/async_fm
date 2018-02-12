@@ -19,11 +19,13 @@ namespace im {
     LOG4_TRACE("call: %s", __FUNCTION__);
     pStepB2F = new StepBackendToFront(stMsgShell,
                                       oInMsgHead,
-                                      oInMsgBody); 
+                                      oInMsgBody,
+                                      "back2front_step"); 
     if (pStepB2F == NULL) {
       return false;
     }
 
+#if 0
     if (RegisterCallback(pStepB2F) == false) {
       delete pStepB2F; pStepB2F = NULL;
       LOG4_ERROR("register StepBackendToFront: %p fail", pStepB2F);
@@ -35,6 +37,7 @@ namespace im {
       DeleteCallback(pStepB2F);
       return false;
     }
+#endif
     return true;
   }
 //

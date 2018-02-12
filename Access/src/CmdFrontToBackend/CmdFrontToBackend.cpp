@@ -24,7 +24,6 @@ namespace im {
     if (RegisterCoroutine(pStepFront2Backend) == false)
     {
         DeleteCoroutine(pStepFront2Backend);
-        delete pStepFront2Backend;
         return false;
     }
     return true;

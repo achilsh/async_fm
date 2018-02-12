@@ -4,13 +4,14 @@ namespace im {
 
   StepBackendToFront::StepBackendToFront(const oss::tagMsgShell& stMsgShell,
                                          const MsgHead& oInMsgHead,
-                                         const MsgBody& oInMsgBody) 
-  : oss::Step(stMsgShell, oInMsgHead, oInMsgBody) {
+                                         const MsgBody& oInMsgBody, const std::string& sCoName) 
+  : oss::Step(stMsgShell, oInMsgHead, oInMsgBody, NULL, sCoName) {
 
   }
   StepBackendToFront::~StepBackendToFront() {
   }
 
+#if 0
   oss::E_CMD_STATUS StepBackendToFront::Emit(int iErrno,
                                              const std::string& strErrMsg, 
                                              const std::string& strErrShow ) {
@@ -29,5 +30,10 @@ namespace im {
   oss::E_CMD_STATUS StepBackendToFront::Timeout() {
     return oss::STATUS_CMD_FAULT;
   }
+#endif
   //
+  void StepBackendToFront::CorFunc()
+  {
+
+  }
 }

@@ -27,7 +27,7 @@ namespace im {
                  sendHead.DebugString().c_str(),
                  m_oReqMsgBody.DebugString().c_str());
 
-      if (false == SendToNext(sserType, sendHead, m_oReqMsgBody, this, m_rspMsgHead, m_rspMsgBody))
+      if (false == SendToNext(sserType, sendHead, m_oReqMsgBody))
       {
           LOG4_ERROR("send req service: %s failed", sserType.c_str());
           return ;

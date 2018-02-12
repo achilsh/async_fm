@@ -32,8 +32,8 @@ namespace loss
 class GlobalIDCreator
 {
     public:
-     GlobalIDCreator();
-     virtual ~GlobalIDCreator();
+     GlobalIDCreator() { }
+     virtual ~GlobalIDCreator() {}
      
      void SetMechineId(int32_t iMechineId)
      {
@@ -46,45 +46,37 @@ class GlobalIDCreator
       * 对外提供全局id生成接口
       * @return: 64位的id
       */
-     uint64_t GetGlobalID();
+     inline int64_t GetGlobalID();
     private:
-     uint64_t GetTime();
+     inline int64_t GetTime();
      int32_t m_iMId;          /**< 实例运行环境机器id */
      int32_t m_iSeqPerMS;     /**< 实例运行每毫秒计数 */
 };
 
 /**---------------- 接口实现部分---------------------**/
-GlobalIDCreator::GlobalIDCreator(): m_iMId(0), m_iSeqPerMS(0),
-{
-}
-
-GlobalIDCreator::~GlobalIDCreator()
-{
-}
-
-uint64_t GlobalIDCreator::GetTime()
+int64_t GlobalIDCreator::GetTime()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    uint64_t uiLTime = tv.tv_usec;
+    int64_t uiLTime = tv.tv_usec;
     uiLTime /= 1000;
     uiLTime += (tv.tv_sec * 1000);
     return uiLTime;
 }
 
-uint64_t GlobalIDCreator::GetGlobalID()
+int64_t GlobalIDCreator::GetGlobalID()
 {
-    uint64_t  uiLId = 0;
-    uint64_t  gTime = GetTime();
-    uiLId |= gTime << 22;
-    uiLId |= m_iMId& 0x3ff << 12;
+    int64_t  iLId = 0;
+    int64_t  gTime = GetTime();
+    iLId |= gTime << 22;
+    iLId |= m_iMId& 0x3ff << 12;
 
-    uiLId |= m_iSeqPerMS++ & 0xfff;
+    iLId |= m_iSeqPerMS++ & 0xfff;
     if (m_iSeqPerMS == 0x1000)
     {
         m_iSeqPerMS = 0;
     }
-    return uiLId;
+    return iLId;
 }
 
 //-----------//

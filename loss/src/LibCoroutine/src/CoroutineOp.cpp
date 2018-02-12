@@ -2,14 +2,20 @@
 #include <unistd.h>
 #include "CoroutineOp.hpp"
 
-#ifdef DEBUG_TEST
-    #include "util/LibStdCout.h"
-#endif
+#include "util/LibStdCout.h"
 
 namespace LibCoroutine
 {
 const int32_t CoroutinerMgr::STACK_SIZE;
-const int32_t CoroutinerMgr::MAX_NUM_CO;
+uint32_t CoroutinerMgr::m_stcCoYieldPoint = 100;
+
+//仅仅本文件内部打印用，建议不要扩展到其他目录或者文件上
+#define LOG4_FATAL(args...) LOG4CPLUS_FATAL_FMT(GetLogger(), ##args)
+#define LOG4_ERROR(args...) LOG4CPLUS_ERROR_FMT(GetLogger(), ##args)
+#define LOG4_WARN(args...) LOG4CPLUS_WARN_FMT(GetLogger(), ##args)
+#define LOG4_INFO(args...) LOG4CPLUS_INFO_FMT(GetLogger(), ##args)
+#define LOG4_DEBUG(args...) LOG4CPLUS_DEBUG_FMT(GetLogger(), ##args)
+#define LOG4_TRACE(args...) LOG4CPLUS_TRACE_FMT(GetLogger(), ##args)
 
 bool CoroutinerMgr::CreateCoMgr()
 {
@@ -18,14 +24,12 @@ bool CoroutinerMgr::CreateCoMgr()
         return true;
     }
 
-    this->m_Nco       = 0;                                             // 初始化调度器的当前协程数量
-    this->m_Cap       = MAX_NUM_CO;                                    // 初始化调度器的最大协程数量
+    m_mpCo.clear();
     this->m_RunningId = -1;
-
-    this->m_vCo.reserve(0);
-    this->m_vCo.resize(this->m_Cap, NULL);
-    
     m_Init = true;
+
+    m_pLogger = NULL;  
+    SetGLobalMechineID(::time(NULL));
     return true;
 }
 
@@ -37,18 +41,18 @@ bool CoroutinerMgr::DestroyCoMgr()
     }
     m_Init = false;
 
-    int32_t  iIndexCo;
-    for (iIndexCo = 0; iIndexCo < this->m_Cap; iIndexCo++)
+    IterTypeMAPCo it ;
+    for (it = m_mpCo.begin(); it != m_mpCo.end(); ++it)
     {
-        Coroutiner* co = this->m_vCo.at(iIndexCo);
-        if (co)
+        if (it->second)
         {
-            delete co;
+            delete it->second;
+            it->second = NULL;
         }
     }
-    std::vector<Coroutiner*> emptyVCo;
-    std::swap(this->m_vCo, emptyVCo);
 
+    TypeMAPCo emptyCo;
+    std::swap(emptyCo, m_mpCo);
     return true;
 }
 
@@ -70,61 +74,32 @@ bool  CoroutinerMgr::AddNewCoroutine(Coroutiner *pCo)
     }
 
     pCo->SetMgr(this);
-    if (this->m_Nco >= this->m_Cap)
-    {
-        try {
-            int32_t id = this->m_Cap;
-            pCo->SetId(id);
 
-            this->m_vCo.resize(this->m_Cap*2, NULL); 
-            this->m_vCo.at(this->m_Cap) = pCo;
-            this->m_Cap *= 2;
-            ++m_Nco;
-        }
-        catch(const std::exception &ex)
-        {
-            m_sErr = ex.what();
-            return false;
-        }
+    int64_t iLCoIdNew =  GLOBAL_ID;
+    m_mpCo.insert(std::make_pair(iLCoIdNew, pCo));
 
-        return true;
-    }
-    else 
-    {
-        try {
-            int32_t iIndex = 0;
-            for (; iIndex < m_Cap; ++iIndex)
-            {
-                int32_t iCoId = (iIndex + m_Nco) % m_Cap;
-                if (m_vCo.at(iCoId) == NULL)
-                {
-                    m_vCo.at(iCoId) = pCo;
-                    ++m_Nco;
-                    pCo->SetId(iCoId);
-                    return true;
-                }
-            }
-        }
-        catch (const std::exception &ex)
-        {
-            m_sErr = ex.what();
-            return false;
-        }
-    }
-    return false;
+    pCo->SetId(iLCoIdNew);
+    return true;
 }
 
-int32_t  CoroutinerMgr::GetCoStatus(const int32_t iCoId)
+int32_t  CoroutinerMgr::GetCoStatus(const int64_t iCoId)
 {
-    if (iCoId < 0 || iCoId >= m_Cap)  
+    if (iCoId < 0)
     {
         return COROUTINE_DEAD; 
     }
+    
+    IterTypeMAPCo it =  m_mpCo.find(iCoId);
+    if (it == m_mpCo.end())
+    {
+        DEBUG_LOG("co obj null in get status, co id: %ld", iCoId);
+        return COROUTINE_DEAD;
+    }
 
-    Coroutiner* pFindCo = m_vCo.at(iCoId);
+    Coroutiner* pFindCo = it->second;
     if (pFindCo == NULL)
     {
-        DEBUG_LOG("co obj null in get status, co id: %d", iCoId);
+        DEBUG_LOG("co obj null in get status, co id: %ld", iCoId);
         return COROUTINE_DEAD;
     }
 
@@ -133,54 +108,58 @@ int32_t  CoroutinerMgr::GetCoStatus(const int32_t iCoId)
 
 bool CoroutinerMgr::YieldCurrentCo()
 {
-    int32_t iRunId = m_RunningId;
+    int64_t iRunId = m_RunningId;
     if (iRunId < 0)
     {
         return false;
     }
-    Coroutiner* pRunCo = m_vCo.at(iRunId);
-    if (pRunCo == NULL) 
+   
+    IterTypeMAPCo it = m_mpCo.find(iRunId);
+    if (it == m_mpCo.end() || it->second == NULL)
     {
         return false;
     }
-
-    pRunCo->SaveStack( m_Stack + STACK_SIZE );
-    pRunCo->SetStatus( COROUTINE_SUSPEND );
+    it->second->SetYieldCheckPoint(++m_stcCoYieldPoint);
+    it->second->SaveStack( m_Stack + STACK_SIZE );
+    it->second->SetStatus( COROUTINE_SUSPEND );
     m_RunningId = -1;
     
-    ::swapcontext(pRunCo->GetCoCtx(), &m_Main);
+    LOG4_TRACE("co id: %ld, node: %p, begin yeild point: %u", 
+               iRunId, it->second, m_stcCoYieldPoint);
+    ::swapcontext(it->second->GetCoCtx(), &m_Main);
     return true;
 }
 
-bool CoroutinerMgr::ResumeCo(int32_t iCorId)
+bool CoroutinerMgr::ResumeCo(int64_t iCorId)
 {
-    DEBUG_LOG("%s(coid: %d)", __FUNCTION__, iCorId);
+    DEBUG_LOG("%s(coid: %ld)", __FUNCTION__, iCorId);
     
     if (m_RunningId != -1)
     {
         return false;
     }
-    if (iCorId < 0 || iCorId >= m_Cap)
+    if (iCorId < 0)
     {
         return false;
     }
-    Coroutiner* pCoInstance = m_vCo.at(iCorId);
-    if (pCoInstance == NULL)
+
+    IterTypeMAPCo it = m_mpCo.find(iCorId);
+    if (it == m_mpCo.end() || it->second == NULL)
     {
-        return true;
+        return false;
     }
 
-    int iCoStatus = pCoInstance->GetStatus();
+    int iCoStatus = it->second->GetStatus();
     if (iCoStatus == COROUTINE_READY)
     {
         this->m_RunningId = iCorId;
-        pCoInstance->ResumeCoReadyToRunning(this);
+        it->second->ResumeCoReadyToRunning(this);
         return true;
     } 
     else if (iCoStatus == COROUTINE_SUSPEND)
     {
         m_RunningId = iCorId;
-        pCoInstance->ResumeCoSuspendToRunning(this);
+        it->second->ResumeCoSuspendToRunning(this);
         return true;
     } 
     else 
@@ -190,39 +169,35 @@ bool CoroutinerMgr::ResumeCo(int32_t iCorId)
     return true;
 }
 
-Coroutiner* CoroutinerMgr::GetCoByCoId(const int32_t iCoId)
+Coroutiner* CoroutinerMgr::GetCoByCoId(const int64_t iCoId)
 {
-    if (iCoId >= m_Cap)
+    IterTypeMAPCo it = m_mpCo.find(iCoId);
+    if (it == m_mpCo.end())
     {
         return NULL;
     }
-    if (m_vCo.size() <= iCoId)
-    {
-        return NULL;
-    }
-
-    return m_vCo.at(iCoId);
+    return it->second;
 }
 
-void CoroutinerMgr::DeleteCo(const int32_t iCoId)
+//删除当前协程,设置当前正在运行的协程号为-1
+void CoroutinerMgr::DeleteCo(const int64_t iCoId)
 {
-    if (iCoId >= m_Cap)
+    IterTypeMAPCo it = m_mpCo.find(iCoId);
+    if (it != m_mpCo.end())
     {
-        return ;
+        if (it->second)
+        {
+            //delete it->second; 释放资源由外部接口去完成
+            it->second = NULL;
+        }
+        m_mpCo.erase(it);
+
+        m_RunningId = -1;
+        DEBUG_LOG("del co, co_id: %ld", iCoId);
     }
-    if (m_vCo.size() <= iCoId)
-    {
-        return ;
-    }
-    
-    delete m_vCo.at(iCoId);
-    m_vCo.at(iCoId) = NULL;
-    --m_Nco;
-    m_RunningId = -1;
-    DEBUG_LOG("del co, id: %d", iCoId);
 }
 
-bool CoroutinerMgr::CoStatusDead(const int32_t iCoId)
+bool CoroutinerMgr::CoStatusDead(const int64_t iCoId)
 {
     try {
         if (GetCoStatus(iCoId) == COROUTINE_DEAD)
@@ -250,6 +225,9 @@ bool Coroutiner::CreateCo()
     this->m_Status = COROUTINE_READY;
     this->m_pStack = NULL;
     this->m_pCoMgr = NULL;
+    this->m_uiYieldCheckPoint = 0;
+    this->m_pcoLogger = NULL;
+    
     return true;
 }
 
@@ -307,7 +285,7 @@ bool Coroutiner::ResumeCoReadyToRunning(CoroutinerMgr* pMgr)
 
     uintptr_t ptr          = (uintptr_t)pMgr;
 
-    DEBUG_LOG("status from ready to running, co id: %d", GetId());
+    DEBUG_LOG("status from ready to running, co id: %ld", GetId());
     makecontext( &m_Ctx, 
                 (void (*)(void)) Coroutiner::GloblCorFunc, 2,
                  (uint32_t)ptr, (uint32_t)(ptr>>32)
@@ -332,17 +310,17 @@ void Coroutiner::GloblCorFunc(uint32_t low32, uint32_t hi32)
 {
     uintptr_t ptr       = (uintptr_t)low32 | ((uintptr_t)hi32 << 32);
     CoroutinerMgr *pMgr = (CoroutinerMgr*)ptr;
-    int iCoid           = pMgr->GetRunningCoroutineId();
+    int64_t iCoid           = pMgr->GetRunningCoroutineId();
 
     Coroutiner* pCo     = pMgr->GetCoByCoId(iCoid);
     if (pCo == NULL)
     {
-        DEBUG_LOG("not get any co instance, co id: %d", iCoid);
+        DEBUG_LOG("not get any co instance, co id: %ld", iCoid);
         return ;
     }
 
     pCo->CorFunc();
-    pCo->AfterFuncWork();
+    pCo->AfterFuncWork(); //由此处来释放协程自身的资源
     pMgr->DeleteCo(iCoid);
 }
 
@@ -353,7 +331,7 @@ bool Coroutiner::YieldCurCoInCo()
         return false;
     }
     
-    int iCoId = m_pCoMgr->GetRunningCoroutineId();
+    int64_t iCoId = m_pCoMgr->GetRunningCoroutineId();
     if (iCoId < 0)
     {
         ClearErrMsg();

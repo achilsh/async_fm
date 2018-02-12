@@ -27,15 +27,15 @@ void CoOneParam::CorFunc()
 {
     for (int iCnt = 0; iCnt < 5; ++iCnt)
     {
-        DEBUG_LOG("co id: %d, val: %d, next to yield", GetId(), iCnt + m_One);
+        DEBUG_LOG("co id: %ld, val: %d, next to yield", GetId(), iCnt + m_One);
         YieldCurCoInCo();
-        DEBUG_LOG("co id: %d, awake again do work", GetId());
+        DEBUG_LOG("co id: %ld, awake again do work", GetId());
     }
 }
 
 void CoOneParam::AfterFuncWork()
 {
-    DEBUG_LOG("fun done, other works, co id: %d", GetId());
+    DEBUG_LOG("fun done, other works, co id: %ld", GetId());
 }
 
 //--------------------------------------------
@@ -78,15 +78,15 @@ void CoTwoParam::CorFunc()
 {
     for (int iCnt = 0; iCnt < 5; ++iCnt)
     {
-        DEBUG_LOG("co id: %d, val: %d, next to yield", GetId(), iCnt + m_one + m_two);
+        DEBUG_LOG("co id: %ld, val: %d, next to yield", GetId(), iCnt + m_one + m_two);
         YieldCurCoInCo();
-        DEBUG_LOG("co id: %d, awake again do work", GetId());
+        DEBUG_LOG("co id: %ld, awake again do work", GetId());
     }
 }
 
 void CoTwoParam::AfterFuncWork()
 {
-    DEBUG_LOG("fun done, other works, co id: %d", GetId());
+    DEBUG_LOG("fun done, other works, co id: %ld", GetId());
 }
 
 class CoTwoParamCreate: public  CoCreateFactory
@@ -119,7 +119,7 @@ int main()
         delete pCoCreate1;
         return 0;
     }
-    int iCoIdOne = pCo1->GetId();
+    int64_t iCoIdOne = pCo1->GetId();
 
     CoCreateFactory* pCoCreate2  = new CoTwoParamCreate();
     Coroutiner* pCo2 = pCoCreate2->GetNewCoroutine();
@@ -130,7 +130,7 @@ int main()
         return 0;
     }
 
-    int iCoIdTwo =  pCo2->GetId();
+    int64_t iCoIdTwo =  pCo2->GetId();
 
     
     int iStatus_One = coMgr.GetCoStatus(iCoIdOne);

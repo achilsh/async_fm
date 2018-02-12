@@ -28,6 +28,7 @@ public:
               Step* pNextStep = NULL, const std::string& sCoName ="");
     virtual ~RedisStep();
 
+#if 0
     /**
      * @brief redis步骤回调
      * @param c redis连接上下文
@@ -60,6 +61,7 @@ public:
      * @return 回调状态
      */
     virtual E_CMD_STATUS Timeout(){return(STATUS_CMD_FAULT);}
+#endif
 
 public:
     loss::RedisCmd* RedisCmd()

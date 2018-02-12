@@ -10,11 +10,25 @@
 #include <string>
 #include <vector>
 
+//c+11 hash map  管理协程的信息存储
+#include <unordered_map>
+
 #if __APPLE__ && __MACH__
     #include <sys/ucontext.h>
 #else
     #include <ucontext.h>
 #endif
+
+//采用snowflake算法来分配协程id
+#include "util/Snowflake_Id.h"
+
+//加日志
+#include "log4cplus/logger.h"
+#include "log4cplus/fileappender.h"
+#include "log4cplus/loggingmacros.h"
+
+using namespace loss;
+
 
 namespace LibCoroutine 
 {
@@ -39,9 +53,12 @@ namespace LibCoroutine
        * @brief: AddNewCoroutine 
        *  向协程管理器添加新创建的协程实例
        *  客户端直接调用
-       * @param pCo, 需要添加的
+       * @param pCo, 需要添加的协程实例
        *
        * @return: true 添加成功，false 添加失败
+       * ,有关协程自身的资源释放问题，有外部接口
+       * 统一处理，此处的协程框架不需要关注协程
+       * 资源释放问题
        */
       bool  AddNewCoroutine(Coroutiner *pCo);
 
@@ -53,7 +70,7 @@ namespace LibCoroutine
        * @return: 具体正在运行的协程id
        */
 
-      int32_t GetRunningCoroutineId()
+      int64_t GetRunningCoroutineId()
       {
           return m_RunningId;
       }
@@ -66,7 +83,7 @@ namespace LibCoroutine
        *
        * @return 
        */
-      int32_t GetCoStatus(const int32_t iCoId);
+      int32_t GetCoStatus(const int64_t iCoId);
 
       /**
        * @brief: CoStatusDead
@@ -75,7 +92,7 @@ namespace LibCoroutine
        *
        * @return: true => is dead, false => other workeable status
        */
-      bool CoStatusDead(const int32_t iCoId);
+      bool CoStatusDead(const int64_t iCoId);
 
       /**
        * @brief: YieldCurrentCo 
@@ -95,7 +112,7 @@ namespace LibCoroutine
        *
        * @return 
        */
-      bool ResumeCo(int32_t iCorId);
+      bool ResumeCo(int64_t iCorId);
 
       char *GetStack()
       {
@@ -107,16 +124,28 @@ namespace LibCoroutine
           return &m_Main;
       }
 
-      Coroutiner* GetCoByCoId(const int32_t iCoId);
-      void DeleteCo(const int32_t iCoId);
+      Coroutiner* GetCoByCoId(const int64_t iCoId);
+      void DeleteCo(const int64_t iCoId);
 
       std::string GetErrMsg()
       {
           return m_sErr;
       }
+
+      void SetLogger(log4cplus::Logger* pLogger)
+      {
+          m_pLogger = pLogger;
+      }
+      log4cplus::Logger* GetLoggerPtr()
+      {
+          return m_pLogger;
+      }
+      log4cplus::Logger GetLogger()
+      {
+          return (*m_pLogger);
+      }
      public:
       static const int32_t STACK_SIZE = 1024*1024;
-      static const int32_t MAX_NUM_CO  = 16;
 
      private:
       /**
@@ -143,12 +172,18 @@ namespace LibCoroutine
      private:
       char m_Stack[STACK_SIZE];
       ucontext_t m_Main;              // 正在running的协程在执行完后需切换到的上下文，由于是非对称协程，所以该上下文用来接管协程结束后的程序控制权
-      int32_t m_Nco;                  // 调度器中已保存的协程数量
-      int32_t m_Cap;                  // 调度器中协程的最大容量
-      int32_t m_RunningId;            // 调度器中正在running的协程id
-      std::vector<Coroutiner*> m_vCo; // 连续内存空间，用于存储所有协程任务
+
+      typedef std::unordered_map<int64_t, Coroutiner*> TypeMAPCo;
+      typedef TypeMAPCo::iterator  IterTypeMAPCo;
+
+      TypeMAPCo   m_mpCo;
+      
+      int64_t m_RunningId;            // 调度器中正在running的协程id
       bool m_Init;
       std::string m_sErr;
+      log4cplus::Logger* m_pLogger;
+      
+      static uint32_t m_stcCoYieldPoint;
     };
 
 
@@ -191,11 +226,24 @@ namespace LibCoroutine
       bool SaveStack(char *pTop);
       bool CreateCo();
 
-      int32_t  GetId()
+      void SetLogger(log4cplus::Logger* pLogger)
+      {
+          m_pcoLogger = pLogger;
+      }
+      log4cplus::Logger* GetLoggerPtr()
+      {
+          return m_pcoLogger;
+      }
+      log4cplus::Logger GetLogger()
+      {
+          return (*m_pcoLogger);
+      }
+
+      int64_t  GetId()
       {
           return m_RunId;
       }
-      void SetId(const int32_t iId)
+      void SetId(const int64_t iId)
       {
           m_RunId = iId;
       }
@@ -203,6 +251,15 @@ namespace LibCoroutine
       std::string GetErrMsg() 
       {
           return m_sErrMsg;
+      }
+
+      void SetYieldCheckPoint(uint32_t uiPoint)
+      {
+          m_uiYieldCheckPoint = uiPoint;
+      }
+      uint32_t GetYieldCheckPoint()
+      {
+          return m_uiYieldCheckPoint;
       }
 
      public:
@@ -249,8 +306,10 @@ namespace LibCoroutine
       ptrdiff_t       m_Size; // 协程栈的当前容量
       int32_t         m_Status; // 协程状态
       char            *m_pStack;  // 协程栈
-      int32_t         m_RunId;  //
+      int64_t         m_RunId;  //
       std::string     m_sErrMsg;
+      uint32_t        m_uiYieldCheckPoint;
+      log4cplus::Logger* m_pcoLogger;
       CoroutinerMgr   *m_pCoMgr;
     };
 }
