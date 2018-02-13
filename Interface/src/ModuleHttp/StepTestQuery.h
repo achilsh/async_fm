@@ -1,10 +1,12 @@
 #ifndef STEPTESTQUERY_H 
 #define STEPTESTQUERY_H
 #include "step/HttpStep.hpp"
+#include "step/RedisStep.hpp"
+
 
 namespace im 
 {
-    class StepTestQuery: public oss::HttpStep 
+    class StepTestQuery: public oss::HttpStep, public oss::RedisStep 
     {
      public: 
       StepTestQuery(
@@ -23,25 +25,6 @@ namespace im
 	   */
 	  virtual void CorFunc();
 
-#if 0
-      virtual oss::E_CMD_STATUS Timeout();
-      virtual  oss::E_CMD_STATUS Emit(int err, 
-                                      const std::string& strErrMsg = "",
-                                      const std::string& strErrShow = "");
-      virtual oss::E_CMD_STATUS Callback(
-          const oss::tagMsgShell& stMsgShell,
-          const MsgHead& oInMsgHead,
-          const MsgBody& oInMsgBody,
-          void* data = NULL);
-
-      virtual oss::E_CMD_STATUS Callback(
-          const oss::tagMsgShell& stMsgShell,
-          const HttpMsg& oHttpMsg,
-          void* data = NULL)
-      {
-          return oss::STATUS_CMD_COMPLETED;
-      }
-#endif 
       static int m_Test;
       void SendAck(const std::string& sErr, const std::string &sData = "");
      private:

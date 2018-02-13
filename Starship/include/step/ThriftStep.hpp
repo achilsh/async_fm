@@ -16,11 +16,11 @@
 namespace oss
 {
 
-class ThriftStep: public Step
+class ThriftStep: virtual public  Step
 {
  
 public:
-    ThriftStep(const std::string& sCoName = "");
+    ThriftStep(const std::string& sCoName);
 
     ThriftStep(const oss::tagMsgShell& stMsgShell, 
                unsigned int iSeq, 

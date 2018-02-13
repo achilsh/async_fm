@@ -24,28 +24,6 @@ public:
 
   virtual ~StepTestQuery();
 
-#if 0
-  virtual oss::E_CMD_STATUS Timeout();
-
-  virtual  oss::E_CMD_STATUS Emit(int err,
-                                  const std::string& strErrMsg = "",
-                                  const std::string& strErrShow = "");
-
-  virtual oss::E_CMD_STATUS Callback(
-      const oss::tagMsgShell& stMsgShell,
-      const MsgHead& oInMsgHead,
-      const MsgBody& oInMsgBody,
-      void* data = NULL);
-
-  virtual oss::E_CMD_STATUS Callback(
-      const oss::tagMsgShell& stMsgShell,
-      const Thrift2Pb& oThriftMsg,
-      void* data) 
-  {
-      return oss::STATUS_CMD_COMPLETED;
-  }
-#endif
-
   //采用协程模式
   void CorFunc();
   void SendAck(const std::string& sErr, const std::string &sData = "");

@@ -17,10 +17,10 @@
 namespace oss
 {
 
-class HttpStep: public Step
+class HttpStep: virtual public Step
 {
 public:
-    HttpStep(const std::string& sCoName = "");
+    HttpStep(const std::string& sCoName);
     HttpStep(const oss::tagMsgShell& stMsgShell, const HttpMsg& oHttpMsg, const std::string& sCoName);
     virtual ~HttpStep();
     
@@ -32,19 +32,6 @@ public:
      *  协程只需在该接口内部写同步逻辑即可
      */ 
     virtual void CorFunc() = 0;
-
-#if 0
-    /**< 在内部主动发起http请求时才关注, HttpStep 发送常规tcp req时无需关注 */
-    virtual E_CMD_STATUS Callback(
-                    const tagMsgShell& stMsgShell,
-                    const HttpMsg& oHttpMsg,
-                    void* data = NULL) = 0;
-#endif
-
-    /**
-     * @brief 步骤超时回调
-     */
-    //virtual E_CMD_STATUS Timeout() = 0;
 
     bool HttpPost(const std::string& strUrl, const std::string& strBody, const std::map<std::string, std::string>& mapHeaders);
     bool HttpGet(const std::string& strUrl);

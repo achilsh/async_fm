@@ -45,6 +45,16 @@ public:
 	    return(m_strErr);
 	}
 
+    void SetHost(const std::string& sHost)
+    {
+        m_sHost = sHost;
+    }
+
+    void SetPort(uint32_t uiPort)
+    {
+        m_uiPort = uiPort;
+    }
+
 public:
 	const std::string& GetCmd() const
 	{
@@ -60,12 +70,22 @@ public:
     {
 	    return(m_vecCmdArguments);
     }
-
+    
+    const std::string& GetHost() const 
+    {
+        return m_sHost;
+    }
+    const uint32_t GetPort() const
+    {
+        return m_uiPort;
+    }
 private:
 	std::string m_strErr;
 	std::string m_strHashKey;
 	std::string m_strCmd;
 	std::vector<std::pair<std::string, bool> > m_vecCmdArguments;
+    std::string m_sHost;
+    uint32_t    m_uiPort;
 };
 
 } /* namespace loss */

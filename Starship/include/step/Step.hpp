@@ -43,10 +43,12 @@ class RedisStep;
 class Step :public CoStep
 {
 public:
-    Step(const std::string& sCoName = "", Step* pNextStep = NULL);
+    Step(const std::string& sCoName);
+
     Step(const tagMsgShell& stReqMsgShell, 
-         const MsgHead& oReqMsgHead,  const MsgBody& oReqMsgBody,
-         Step* pNextStep = NULL, const std::string& sCoName = "");
+         const MsgHead& oReqMsgHead,
+         const MsgBody& oReqMsgBody,
+         const std::string& sCoName);
     virtual ~Step();
 
     /**
@@ -509,7 +511,6 @@ private:
     log4cplus::Logger* m_pLogger;
     ev_timer* m_pTimeoutWatcher;
     std::string m_strClassName;
-    Step* m_pNextStep;
 
     std::string m_oSessionId; //全网唯一的ID，用户跟踪 消息轨迹;其值来源于: 外部接口set, 从m_oReqMsgBody解析出来，默认值
 

@@ -41,6 +41,7 @@ class HttpStep;
 class Session;
 class Method;
 class ThriftStep;
+class OssReply;
 
 class CTimer;
 
@@ -663,15 +664,24 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
         return false;
     }
     //
-    virtual bool SendBusiAlarmToManager(const loss::CJsonObject& jsReportData) {
+    virtual bool SendBusiAlarmToManager(const loss::CJsonObject& jsReportData) 
+    {
       return true;
     }
     //
-    virtual bool RegisterCallback(CTimer* pTimer) {
+    virtual bool RegisterCallback(CTimer* pTimer) 
+    {
       return false;
     }
-    virtual bool DeleteCallback(CTimer* pTimer) {
+    virtual bool DeleteCallback(CTimer* pTimer) 
+    {
       return false;
+    }
+
+    //协程模式执行redis命令
+    virtual bool ExecuteRedisCmd(OssReply*& reply, RedisStep* pRedisStep)
+    {
+        return false;
     }
 
 	/*** 增加对co step  注册， 唤醒， 挂起, 删除 协程实例 操作***/
