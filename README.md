@@ -23,4 +23,5 @@ base_frameworks
 #
 分支 :coroutine_ver  ====> 修改框架，内部服务支持协程模式：http，thrift, 自定义协议接入流程增加协程处理
 
-
+[TODO]:
+在春节前新增异步访问redis的协程.....
