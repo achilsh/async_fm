@@ -154,25 +154,6 @@ public:
         return(m_pRedisCmd);
     }
     
-    void SetRedisCmdErrMsg(const std::string& sMsg)
-    {
-       m_sRedisErrMsg  =  sMsg;
-    }
-
-    void SetRedisCmdErrNo(int32_t iENo)
-    {
-        m_iRedisErrNo =  iENo;
-    }
-    //--------------------------------//
-    const std::string& GetRedisCmdErrMsg() const
-    {
-        return  m_sRedisErrMsg;
-    }
-    int32_t GetRedisErrNo() 
-    {
-        return m_iRedisErrNo;
-    }
-
     OssReply& GetRedisCmdResult() 
     {
        return m_redisRetBody;
@@ -184,8 +165,6 @@ public:
     }
 
 protected:
-    int32_t     m_iRedisErrNo;
-    std::string m_sRedisErrMsg;
     OssReply    m_redisRetBody;
 
 private:

@@ -54,22 +54,6 @@ protected:
 
 public:  
     /**
-     * @note Step基类的方法, HttpStep 发送http req 时无须关注
-     */
-
-#if 0
-    //采用协程函数来替换
-    virtual E_CMD_STATUS Callback(
-                    const tagMsgShell& stMsgShell,
-                    const MsgHead& oInMsgHead,
-                    const MsgBody& oInMsgBody,
-                    void* data = NULL)
-    {
-        return(STATUS_CMD_COMPLETED);
-    }
-#endif
-
-    /**
      * @brief: SendAck, 将结果返回给上游请求 
      *
      * @tparam T

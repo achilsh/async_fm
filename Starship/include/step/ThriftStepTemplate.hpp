@@ -82,7 +82,4 @@ template<typename T> bool ThriftStep::SendAck(const T& tData)
 /////
 }
 
-
-
-
 #endif

@@ -28,17 +28,6 @@ public:
                const std::string& sCoName);
     virtual ~ThriftStep();
    
-#if 0
-    virtual E_CMD_STATUS Callback(
-        const tagMsgShell& stMsgShell,
-        const Thrift2Pb& oThriftMsg,
-        void* data = NULL) = 0;
-    /**
-     * @brief 步骤超时回调
-     */
-    virtual E_CMD_STATUS Timeout() = 0;
-#endif
-    
     // 采用协程模式
     /**
      * @brief: CorFunc
@@ -70,22 +59,6 @@ public:
     {
         oInThriftMsg.set_thrift_seq(iSeq);
     }
-public:  
-
-#if 0
-    /**
-     * @note Step基类的方法，ThriftStep中无须关注
-     */
-    virtual E_CMD_STATUS Callback(
-                    const tagMsgShell& stMsgShell,
-                    const MsgHead& oInMsgHead,
-                    const MsgBody& oInMsgBody,
-                    void* data = NULL)
-    {
-        return(STATUS_CMD_COMPLETED);
-    }
-#endif
-
 protected:
     oss::tagMsgShell m_stMsgShell;  /**< client 连接句柄信息 */
     unsigned int m_iSeq;            /**< client thrift seq */

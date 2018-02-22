@@ -32,7 +32,8 @@ class MStatic {
    static int m_MTest;
 };
 
-class CmdHelloWorld: public oss::Cmd {
+class CmdHelloWorld: public oss::Cmd 
+{
   public:
    CmdHelloWorld();
    virtual ~CmdHelloWorld();
@@ -45,7 +46,6 @@ class CmdHelloWorld: public oss::Cmd {
    oss::tagMsgShell m_stMsgShell;
    MsgHead m_oMsgHead;
    MsgBody m_oMsgBody;
-
 };
 
 //

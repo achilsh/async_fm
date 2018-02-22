@@ -12,7 +12,7 @@ StepTestQuery::StepTestQuery(const oss::tagMsgShell& stMsgShell,
                              const demosvr_pingping_args& pingping_args,
                              unsigned int iSeq, const std::string& sName,
                              const std::string& sCoName)
-    :ThriftStep(stMsgShell, iSeq, sName, sCoName),m_Params(pingping_args)
+    :Step(sCoName), ThriftStep(stMsgShell, iSeq, sName, sCoName),m_Params(pingping_args)
 {
 }
 

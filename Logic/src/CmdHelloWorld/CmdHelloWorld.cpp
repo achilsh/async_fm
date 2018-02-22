@@ -51,6 +51,17 @@ bool CmdHelloWorld::AnyMessage(
     if (0 != ThrifSerialize<OneTest>::ToString(retData, sData)) {
       sData = "serialize failed";
     }
+   
+#if 0
+    //add test logic active close connection
+    static int ii = 0;
+    if (ii == 1) 
+    {
+        ::abort(); 
+    }
+    ++ii;
+#endif
+    //
     oOutMsgBody.set_body(sData);
     oOutMsgHead.set_msgbody_len(oOutMsgBody.ByteSize());
     GetLabor()->SendTo(stMsgShell, oOutMsgHead, oOutMsgBody);

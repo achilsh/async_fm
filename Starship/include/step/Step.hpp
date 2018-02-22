@@ -60,43 +60,6 @@ public:
      */ 
     virtual void CorFunc() = 0;
 
-#if 0
-    /**
-     * @brief 提交，发出
-     * @note 注册了一个回调步骤之后执行Emit()就开始等待回调。 Emit()大部分情况下不需要传递参数，
-     * 三个带缺省值的参数是为了让上一个通用Step执行出错时将错误码带入下一步业务逻辑Step，由具体
-     * 业务逻辑处理。
-     * @param iErrno  错误码
-     * @param strErrMsg 错误信息
-     * @param strErrShow 展示给用户的错误描述
-     * @return 执行状态
-     */
-    virtual E_CMD_STATUS Emit(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrShow = "");
-
-    /**
-     * @brief 步骤回调函数
-     * @note 满足某个条件，比如监控某个文件描述符fd的EPOLLIN事件和EPOLLERR事件，当这个fd的
-     * 这两类事件中的任意一类到达时则会调用Callback()。具体使用到哪几个参数与业务逻辑有关，前三个
-     * 参数的使用概率高。
-     * @param stMsgShell 消息外壳，回调可通过消息外壳原路回复消息，若消息不是来源于网络IO，则
-     * 消息外壳为空
-     * @param oInMsgHead 消息头。
-     * @param oInMsgBody 消息体。
-     * @param data 数据指针，基本网络IO时为空，有专用数据时使用，比如redis的reply。
-     */
-    virtual E_CMD_STATUS Callback(
-                    const tagMsgShell& stMsgShell,
-                    const MsgHead& oInMsgHead,
-                    const MsgBody& oInMsgBody,
-                    void* data = NULL);
-
-    /**
-     * @brief 步骤超时回调
-     */
-    virtual E_CMD_STATUS Timeout();
-#endif
-
-
 public:
     /**
      * @brief 设置步骤最近刷新时间
@@ -321,16 +284,6 @@ protected:
      * @return 是否发送成功
      */
     bool SendToWithMod(const std::string& strNodeType, unsigned int uiModFactor, const MsgHead& oMsgHead, const MsgBody& oMsgBody);
-
-    /**
-     * @brief 执行下一步
-     * @param pNextStep 下一个步骤
-     * @return 执行结果
-     */
-    //采用协程模式，两接口将废弃 
-    //bool NextStep(Step* pNextStep, int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
-    //bool NextStep(int iErrno = 0, const std::string& strErrMsg = "", const std::string& strErrClientShow = "");
-
 public:
     /**
      * @brief 获取当前Step的序列号
@@ -391,23 +344,6 @@ public:
      * @param strIdentify 连接标识符
      */
     void DelNodeIdentify(const std::string& strNodeType, const std::string& strIdentify);
-
-    /*
-     * @brief 添加Redis节点配置
-     * @note 添加Redis节点配置函数由管理Redis节点配置的Cmd类实例调用，添加、删除节点均通过指定的Cmd类来完成。
-     * @param strNodeType Redis节点类型
-     * @param strHost 节点IP
-     * @param iPort 节点端口
-    void AddRedisNodeConf(const std::string strNodeType, const std::string strHost, int iPort);
-
-
-     * @brief 删除Redis节点配置
-     * @note 删除Redis节点配置函数由管理Redis节点配置的Cmd类实例调用，添加、删除节点均通过指定的Cmd类来完成。
-     * @param strNodeType Redis节点类型
-     * @param strHost 节点IP
-     * @param iPort 节点端口
-    void DelRedisNodeConf(const std::string strNodeType, const std::string strHost, int iPort);
-     */
 
     /**
      * @brief 添加指定标识的redis context地址

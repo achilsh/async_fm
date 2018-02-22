@@ -228,6 +228,9 @@ bool Coroutiner::CreateCo()
     this->m_uiYieldCheckPoint = 0;
     this->m_pcoLogger = NULL;
     
+    this->m_iErrNo = 0;
+    this->m_sErrMsg.clear();
+
     return true;
 }
 
@@ -320,7 +323,7 @@ void Coroutiner::GloblCorFunc(uint32_t low32, uint32_t hi32)
     }
 
     pCo->CorFunc();
-    pCo->AfterFuncWork(); //由此处来释放协程自身的资源
+    pCo->AfterFuncWork(); //由此处来释放协程自身的资源,由step内部接口来释放
     pMgr->DeleteCo(iCoid);
 }
 

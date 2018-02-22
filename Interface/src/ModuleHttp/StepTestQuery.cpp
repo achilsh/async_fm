@@ -122,7 +122,7 @@ void StepTestQuery::CorFunc()
         OssReply* redisRet = NULL; 
         if (false == ExecuteRedisCmd(redisRet))
         {
-            LOG4_ERROR("excuate redis cmd fail, err: %s",GetRedisCmdErrMsg().c_str()); 
+            LOG4_ERROR("excuate redis cmd fail, err: %s", GetErrMsg().c_str()); 
             return ;
         }
         if (redisRet == NULL) 

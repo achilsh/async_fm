@@ -215,6 +215,17 @@ namespace LibCoroutine
       Coroutiner();
       virtual ~Coroutiner();
 
+      /**
+       * @brief: GloblCorFunc 
+       * 是协程实例的工作函数，该函数的生命周期贯穿该协程，
+       * 类似于线程的工作函数, 主要的逻辑包括：
+       * 1. 协程中业务逻辑
+       * 2. 协程业务资源的回收
+       * 3. 协程管理器对当前协程自身的管理
+       *
+       * @param low32
+       * @param hi32
+       */
       static void GloblCorFunc(uint32_t low32, uint32_t hi32);
       virtual void CorFunc() = 0;
 
@@ -248,9 +259,23 @@ namespace LibCoroutine
           m_RunId = iId;
       }
 
-      std::string GetErrMsg() 
+      const std::string& GetErrMsg() const
       {
           return m_sErrMsg;
+      }
+      const int32_t& GetErrNo() const
+      {
+          return m_iErrNo;
+      }
+
+      void SetErrMsg(const std::string& sErrMsg)
+      {
+          ClearErrMsg();
+          m_sErrMsg = sErrMsg;
+      }
+      void SetErrNo(int32_t iErrNo)
+      {
+          m_iErrNo = iErrNo;
       }
 
       void SetYieldCheckPoint(uint32_t uiPoint)
@@ -308,6 +333,7 @@ namespace LibCoroutine
       char            *m_pStack;  // 协程栈
       int64_t         m_RunId;  //
       std::string     m_sErrMsg;
+      int32_t         m_iErrNo; //
       uint32_t        m_uiYieldCheckPoint;
       log4cplus::Logger* m_pcoLogger;
       CoroutinerMgr   *m_pCoMgr;
