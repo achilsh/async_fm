@@ -131,6 +131,8 @@ bool ModuleHttp::AnyMessage(
 
         return false;
     }
+
+    LOG4_TRACE("test main run after co yield");
     return true;
 }
 

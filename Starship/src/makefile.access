@@ -1,0 +1,94 @@
+DEFINE_SERVER = -DNODE_TYPE_ACCESS
+CCACHE_B=../../l3oss/bin/ccache
+CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
+CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
+CFLAGS = $(DEFINE_SERVER) -g -O0 #-Wall
+CPPFLAGS =  -D_GNU_SOURCE=1 -D_REENTRANT -fPIC -DNODE_BEAT=10.0  -std=c++11
+#CXXFLAG = -g -O2 -Wall -fdiagnostics-show-caret -Wextra -pedantic -Wstrict-aliasing -Wstrict-overflow -Woverloaded-virtual -Wold-style-cast -Wc++0x-compat -Wc++11-compat -Wundef -Wshadow -Wformat -Wsuggest-attribute=format -Wsuggest-attribute=noreturn -Wno-variadic-macros -fvisibility=hidden
+CXXFLAG = -O0 -Wall -ggdb -m64 -Wl,--export-dynamic -std=c++11 # -lrt -std=c++11 -pthread  #-static-libgcc -static-libstdc++
+
+
+
+ifeq ($(unit_test),y)
+CPPFLAGS += -DUNIT_TEST
+endif
+
+ARCH:=$(shell uname -m)
+
+ARCH32:=i686
+ARCH64:=x86_64
+
+ifeq ($(ARCH),$(ARCH64))
+SYSTEM_LIB_PATH:=/usr/lib64
+else
+SYSTEM_LIB_PATH:=/usr/lib
+endif
+LIB3RD_PATH = ../../l3oss
+LOSS_PATH = ../../loss
+
+STARSHIP_PATH = ..
+
+VPATH = $(STARSHIP_PATH)/src
+SUB_DIRS := $(foreach dir, $(VPATH), $(shell find $(dir) -maxdepth 5 -type d))
+DIRS := $(SUB_DIRS)
+
+
+INC := $(INC) \
+       -I $(LIB3RD_PATH)/include \
+       -I $(LOSS_PATH)/src \
+       -I $(LOSS_PATH)/src/LibComm/include \
+       -I $(STARSHIP_PATH)/src 
+
+
+LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
+           -L$(LOSS_PATH)/lib -lloss \
+           -L$(LIB3RD_PATH)/lib -lmysqlclient_r \
+           -lthrift \
+           -lhiredis \
+           -ljsoncpp \
+           -lqlibc \
+           -lcryptopp \
+           -lprotobuf \
+           -llog4cplus \
+           -lev \
+           -ljemalloc \
+           -L$(SYSTEM_LIB_PATH) -lpthread \
+           -lz -ldl -lrt
+
+SUB_INCLUDE = cmd step session labor protocol ctimer
+COMM_PATH = $(STARSHIP_PATH)/src/cmd \
+            $(STARSHIP_PATH)/src/step \
+            $(STARSHIP_PATH)/src/session \
+            $(STARSHIP_PATH)/src/labor \
+            $(STARSHIP_PATH)/src/protocol \
+            $(STARSHIP_PATH)/src/ctimer
+CPP_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.cpp))
+CC_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.cc))
+C_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
+COMM_CPP_SRCS = $(foreach dir, $(COMM_PATH), $(wildcard $(dir)/*.cpp))
+COMM_CC_SRCS = $(foreach dir, $(COMM_PATH), $(wildcard $(dir)/*.cc))
+COMM_C_SRCS = $(foreach dir, $(COMM_PATH), $(wildcard $(dir)/*.c))
+OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS))
+COMM_OBJS = $(patsubst %.cpp,%.o,$(COMM_CPP_SRCS)) $(patsubst %.c,%.o,$(COMM_C_SRCS)) $(patsubst %.cc,%.o,$(COMM_CC_SRCS))
+
+TARGET = InterfaceServer 
+
+all: $(TARGET)
+
+InterfaceServer: $(OBJS)
+	$(CXX) $(CXXFLAG) $(DEFINE_SERVER) $(UNITTEST) -o $@ $(OBJS) $(LDFLAGS) $(INC)
+	cp -f $@ $(STARSHIP_PATH)/bin/
+	cp -f $@ $(STARSHIP_PATH)/bin/AccessServer
+	cp -f $@ $(STARSHIP_PATH)/bin/MethodServer
+
+%.o:%.cpp
+	$(CXX) $(INC) $(CPPFLAGS) $(CFLAGS) $(DEFINE_SERVER) $(UNITTEST) -c -o $@ $< $(LDFLAGS)
+%.o:%.cc
+	$(CXX) $(INC) $(CPPFLAGS) $(UNITTEST) -c -o $@ $< $(LDFLAGS)
+%.o:%.c
+	$(CC) $(INC) $(CFLAGS) $(UNITTEST) -c -o $@ $< $(LDFLAGS)
+clean:
+	rm -f $(OBJS)
+	rm -f $(TARGET)
+	rm -f $(STARSHIP_PATH)/bin/InterfaceServer 
+	rm -f $(STARSHIP_PATH)/bin/AccessServer 

@@ -80,7 +80,6 @@ void StepTestQuery::CorFunc()
             LOG4_ALARM_REPORT("send to next fail");
 
             sData = "send data to TestLogic failed";
-            LOG4_ALARM_REPORT("serialize fail");
             SendAck(sData);
             return ;
         }
@@ -123,11 +122,15 @@ void StepTestQuery::CorFunc()
         if (false == ExecuteRedisCmd(redisRet))
         {
             LOG4_ERROR("excuate redis cmd fail, err: %s", GetErrMsg().c_str()); 
+            sData = GetErrMsg();
+            SendAck(sData);
             return ;
         }
         if (redisRet == NULL) 
         {
             LOG4_ERROR("redis ret is null");
+            sData = "redis ret is null";
+            SendAck(sData);
             return ;
         }
 

@@ -208,8 +208,8 @@ struct tagRedisAttr
         {
             if (*step_iter != NULL)
             {
-                delete (*step_iter);
-                //*step_iter = NULL;
+                //delete (*step_iter);
+                *step_iter = NULL;
             }
         }
         listWaitData.clear();
