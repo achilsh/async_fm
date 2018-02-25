@@ -47,7 +47,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -lthrift \
            -L$(LIB3RD_PATH)/lib -llog4cplus \
-           -L$(LIB3RD_PATH)/lib -ljemalloc \
+           -L$(LIB3RD_PATH)/lib -ltcmalloc_minimal \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -L$(SYSTEM_LIB_PATH) -ldl -lrt
 

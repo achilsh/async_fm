@@ -43,6 +43,7 @@ INC := $(INC) \
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/lib -lloss -L$(LIB3RD_PATH)/lib \
+           -ltcmalloc_minimal \
            -llog4cplus \
            -lqlibc \
            -ljwsmtp \

@@ -7,7 +7,7 @@ fi
 ## url: https://github.com/brendangregg/FlameGraph
 ## 使用参考：http://www.udpwork.com/item/15962.html
 ##
-perf record -g -p $2 -o perf.data & 
+perf record -g -p $2 -o on_perf.data & 
 
 PID=`ps aux | grep "perf record" | grep -v grep | awk '{print $2}' ` 
 
@@ -21,6 +21,6 @@ sleep 1
 
 PL_TOOL_DIR=/home/achilsh/tools/FlameGraph/
 
-perf script -i perf.data &> perf.unfold 
-${PL_TOOL_DIR}/stackcollapse-perf.pl   perf.unfold &> perf.folded 
-${PL_TOOL_DIR}/flamegraph.pl   perf.folded &> child_perf.svg
+perf script -i on_perf.data &> on_perf.unfold 
+${PL_TOOL_DIR}/stackcollapse-perf.pl   on_perf.unfold &> on_perf.folded 
+${PL_TOOL_DIR}/flamegraph.pl   on_perf.folded &> on_child_perf.svg

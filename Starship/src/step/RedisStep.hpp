@@ -67,7 +67,11 @@ class OssReply
     }
   }
 
-  ~OssReply(){}
+  ~OssReply()
+  {
+      std::vector<OssReply>  tmpV;
+      std::swap(tmpV, elements_);
+  }
 
   void Print() const {
     if (Type() == NIL) {

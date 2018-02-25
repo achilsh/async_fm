@@ -51,7 +51,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -lprotobuf \
            -llog4cplus \
            -lev \
-           -ljemalloc \
+           -ltcmalloc_minimal \
            -L$(SYSTEM_LIB_PATH) -lpthread \
            -lz -ldl -lrt
 

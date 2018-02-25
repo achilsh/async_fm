@@ -62,7 +62,6 @@ void StepTestQuery::CorFunc()
         LOG4_ALARM_REPORT("not get node type for cmd: %u", 101);
 
         sData = "get node type fail by cm";
-        LOG4_ALARM_REPORT("serialize fail");
         SendAck(sData);
         return ;
     }
@@ -85,6 +84,7 @@ void StepTestQuery::CorFunc()
         }
         LOG4_TRACE("coroutine send rpc req times: %d", iTestRepeatTimes);
 
+#if 1 
         //http coroutine post test
         if (m_iPostTime > 0)
         {
@@ -139,7 +139,7 @@ void StepTestQuery::CorFunc()
         {
             LOG4_TRACE("set ret: %ld", redisRet->Integer());
         }
-
+#endif
         //redis coroutine read test 
     }
 

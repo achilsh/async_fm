@@ -45,6 +45,7 @@ INC := $(INC) \
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
            -lqlibc \
+           -ltcmalloc_minimal \
            -llog4cplus \
            -levent \
            -lev \

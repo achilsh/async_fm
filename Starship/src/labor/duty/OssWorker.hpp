@@ -221,7 +221,7 @@ class StatiConnnectingStep
                           int32_t iFd, uint32_t iSeq);
     private:
      //key is: "fd:seq", value is: frequence of same step.
-     std::map<std::string, std::map<Step*,int32_t> > m_mpSendingConnStep; 
+     std::unordered_map<std::string, std::unordered_map<Step*,int32_t> > m_mpSendingConnStep; 
 };
 
 
@@ -630,13 +630,14 @@ private:
     struct ev_loop* m_loop;
     CmdConnectWorker* m_pCmdConnect;
     
-    std::map<loss::E_CODEC_TYPE, StarshipCodec*> m_mapCodec;   ///< 编解码器
-    typedef std::map<loss::E_CODEC_TYPE, StarshipCodec*>::iterator  IterTypeCodec;
+    //std::unordered_map<loss::E_CODEC_TYPE, StarshipCodec*> m_mapCodec;   ///< 编解码器
+    std::unordered_map<int32_t, StarshipCodec*> m_mapCodec;   ///< 编解码器
+    typedef std::unordered_map<int32_t, StarshipCodec*>::iterator  IterTypeCodec;
 
     std::unordered_map<int, tagConnectionAttr*> m_mapFdAttr;   ///< 连接的文件描述符属性
     typedef std::unordered_map<int, tagConnectionAttr*>::iterator    TypeItConnAttr;
 
-    std::map<int, uint32> m_mapInnerFd;              ///< 服务端之间连接的文件描述符（用于区分连接是服务内部还是外部客户端接入）
+    std::unordered_map<int, uint32> m_mapInnerFd;              ///< 服务端之间连接的文件描述符（用于区分连接是服务内部还是外部客户端接入）
     std::map<uint32, int> m_mapSeq2WorkerIndex;      ///< 序列号对应的Worker进程编号（用于connect成功后，向对端Manager发送希望连接的Worker进程编号）
 
     std::unordered_map<int32, Cmd*> m_mapCmd;                  ///< 预加载逻辑处理命令（一般为系统级命令）
@@ -656,7 +657,8 @@ private:
     std::map<std::string, std::map<std::string, Session*> > m_mapCallbackSession;
 
     /* 节点连接相关信息 */
-    std::map<std::string, tagMsgShell> m_mapMsgShell;            // key为Identify
+    //std::map<std::string, tagMsgShell> m_mapMsgShell;            // key为Identify
+    std::unordered_map<std::string, tagMsgShell> m_mapMsgShell;            // key为Identify
     std::map<std::string, std::string> m_mapIdentifyNodeType;    // key为Identify，value为node_type
     T_MAP_NODE_TYPE_IDENTIFY m_mapNodeIdentify;
     std::unordered_map<std::string,std::set<SerNodeInfo*> > m_NodeType_NodeInfo; //key is Nodetype, val:
@@ -665,11 +667,11 @@ private:
     std::unordered_map<std::string, std::set<SerNodeInfo*> > m_AppendNodeTypeNodeInfo; //
     /* redis节点信息 */
     // std::map<std::string, std::set<std::string> > m_mapRedisNodeConf;        ///< redis节点配置，key为node_type，value为192.168.16.22:9988形式的IP+端口
-    typedef std::map<std::string, const redisAsyncContext*>  TypeMpRedisIdContext;
-    std::map<std::string, const redisAsyncContext*> m_mapRedisContext;       ///< redis连接，key为identify(192.168.16.22:9988形式的IP+端口)
+    typedef std::unordered_map<std::string, const redisAsyncContext*>  TypeMpRedisIdContext;
+    TypeMpRedisIdContext  m_mapRedisContext;       ///< redis连接，key为identify(192.168.16.22:9988形式的IP+端口)
     
-    typedef std::map<const redisAsyncContext*, std::string> TypeMpRedisContextId;
-    std::map<const redisAsyncContext*, std::string> m_mapContextIdentify;    ///< redis标识，与m_mapRedisContext的key和value刚好对调
+    typedef std::unordered_map<const redisAsyncContext*, std::string> TypeMpRedisContextId;
+    TypeMpRedisContextId  m_mapContextIdentify;    ///< redis标识，与m_mapRedisContext的key和value刚好对调
     
     std::unordered_map<Step*, tagMsgShell> m_mpSendingStepConnFd; //step和已经建立连接的关系
     StatiConnnectingStep m_mpStatiConnStep; //已经建立连接和step间关系

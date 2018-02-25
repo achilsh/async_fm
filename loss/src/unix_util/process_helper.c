@@ -374,6 +374,7 @@ int send_fd_with_attr(int sock_fd, int send_fd, void* addr, int addr_len, int se
     vec[0].iov_len = addr_len;
     vec[1].iov_base = &send_fd_attr;
     vec[1].iov_len = sizeof(send_fd_attr);
+    //passing file descriptor to another process
     ret = sendmsg(sock_fd, &msg, 0);
     int iErrno = errno;
     return(iErrno);

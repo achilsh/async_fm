@@ -1,0 +1,529 @@
+{
+	"info": {
+		"name": "srv conf w_r op",
+		"_postman_id": "eec81970-3565-b915-277f-4d4a500d7ff4",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://192.168.1.100:35000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"HttpInterface\",\n  \"HttpInterface\": [{\"ip\":\"192.168.1.106\",\"port\":25000}]\n           \n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": "srv name write op"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.100:35000/cnfsrv/query",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\":\"test_1\"\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.100:35000/cnfsrv/query",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"100"
+					],
+					"port": "35000",
+					"path": [
+						"cnfsrv",
+						"query"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.100:35000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 25000, \"srvname\": \"HttpInterface\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/InterfaceServer.json\",\n  \"cnf_content\": {\n  \n    \"node_type\":\"HttpInterface\",\n        \"access_host\":\"192.168.1.106\",\n        \"access_port\":25000,\n        \"access_codec\":3,\n        \"inner_host\":\"192.168.1.106\",\n        \"inner_port\":25001,\n        \"process_num\":6,\n        \"center\":[\n        {\"host\":\"192.168.18.80\",\"port\":\"15000\"}],\n        \"server_name\":\"Interface_huws\",\n        \"worker_capacity\":10000,\n        \"config_path\":\"conf/\",\n        \"log_path\":\"log/\",\n        \"max_log_file_num\":5,\n        \"max_log_file_size\":40480000,\n        \"permission\":{\n            \"addr_permit\":{\"stat_interval\":600.0, \"permit_num\":10000000},\n            \"uin_permit\":{\"stat_interval\":60.0, \"permit_num\":60}\n        },\n        \"io_timeout\":300.0,\n        \"step_timeout\":3.2,\n        \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n        \"log_level\":40000,\n        \"refresh_interval\":1,\n        \"restart_worker\": 2,\n        \"so\":[\n            ],\n        \"module\":[\n        {\"url_path\":\"/im/hello\",\"so_path\":\"plugins/Interface/ModuleHttp.so\",\"entrance_symbol\":\"create\", \"load\":true, \"version\":9}]\n  }\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:35000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/plain"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"TestLogic\",\n  \"TestLogic\": [{\"ip\":\"192.168.1.106\",\"port\":36000}]\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:25000/im/hello",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"Name\":\"ff\"}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:25000/im/hello",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "25000",
+					"path": [
+						"im",
+						"hello"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"TestLogic\",\n  \"TestLogic\": [{\"ip\":\"192.168.1.106\",\"port\":36000},{\"ip\":\"192.168.1.106\",\"port\":36001}]\n              \n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 15000, \"srvname\": \"AccessServer\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/AccessServer.json\",\n  \"cnf_content\": {\n  \n    \"node_type\":\"AccessServer\",\n        \"access_host\":\"192.168.1.106\",\n        \"access_port\":15000,\n        \"access_codec\":2,\n        \"inner_host\":\"192.168.1.106\",\n        \"inner_port\":15001,\n        \"center\":[\n        {\"host\":\"192.168.18.80\",\"port\":\"15000\"}],\n        \"server_name\":\"Access_huws\",\n        \"worker_capacity\":10000,\n        \"config_path\":\"conf/\",\n        \"log_path\":\"log/\",\n        \"max_log_file_num\":5,\n        \"max_log_file_size\":40480000,\n\n        \"permission\":{\n            \"addr_permit\":{\"stat_interval\":600.0, \"permit_num\":10000000},\n            \"uin_permit\":{\"stat_interval\":60.0, \"permit_num\":60}\n        },\n        \"io_timeout\":300.0,\n        \"step_timeout\":3.2,\n        \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n        \"log_level\":0,\n        \"refresh_interval\":1,\n        \"restart_worker\": 0,\n        \"so\":[\n        \t{\"cmd\":501, \"so_path\":\"plugins/Access/CmdFrontToBackend.so\", \"entrance_symbol\":\"create\", \"load\":true, \"version\":7}\n            ]\n  }\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"AccessServer\",\n  \"AccessServer\": [{\"ip\":\"192.168.1.106\",\"port\":15001}]\n              \n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"AlarmAgent\",\n  \"AlarmAgent\": [\n  {\"ip\":\"192.168.1.106\",\"port\":46000}\n              ]\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 46000, \"srvname\": \"AlarmAgent\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/AlarmAgent.json\",\n  \"cnf_content\": {\n    \"node_type\":\"AlarmAgent\",\n    \"inner_host\":\"192.168.1.106\",\n    \"inner_port\":46000,\n    \"server_name\":\"AlarmAgent_huws\",\n    \"worker_capacity\":1000000,\n    \"config_path\":\"conf/\",\n    \"log_path\":\"log/\",\n    \"max_log_file_num\":3,\n    \"max_log_file_size\":20480000,\n    \"io_timeout\":300.0,\n    \"step_timeout\":1.5,\n    \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n    \"log_level\":0,\n    \"refresh_interval\":1,\n    \"restart_worker\": 0,\n    \"custom\": {\"db_ip\":\"192.168.1.106\", \"db_port\":3655, \"db_user\":\"root\",\"db_passwd\": \"123\", \"db_name\":\"test\",\"db_tbname\":\"alarm_tb_\"},\n    \"so\":[\n        {\"cmd\":39,  \"so_path\":\"plugins/AlarmAgent/CmdAlarmReport.so\", \"entrance_symbol\":\"create\", \"load\":true, \"version\":1}\n    ]\n}\n  \t\n  }"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"white_list\",\n  \"white_list\": \"TestLogic\",\n\t\"TestLogic\": [{\"ip\":\"192.168.1.106\",\"port\":36001,\"id\":[]}] }"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": "百名单远程增加接口"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/query",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"white_list\",\n  \"white_list\":\"TestLogic\"\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/query",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"query"
+					]
+				},
+				"description": "white list 远程查询接口"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": " {\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 36001, \"srvname\": \"TestLogic\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/LogicServer_ex.json\",\n  \"cnf_content\": {\n    \"node_type\":\"TestLogic\",\n    \"inner_host\":\"192.168.1.106\",\n    \"inner_port\":36001,\n    \"server_name\":\"Logic_huws_ex\",\n    \"worker_capacity\":1000000,\n    \"config_path\":\"conf/\",\n    \"log_path\":\"log/\",\n    \"max_log_file_num\":5,\n    \"max_log_file_size\":20480000,\n    \"io_timeout\":300.0,\n    \"step_timeout\":1.5,\n    \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n    \"log_level\":40000,\n    \"refresh_interval\":1,\n    \"restart_worker\": 7,\n    \"so\":[\n        {\"cmd\":101,  \"so_path\":\"plugins/Logic/CmdHelloWorld.so\", \"entrance_symbol\":\"create\", \"load\":true, \"version\":9}\n    ]\n}\n  \t\n  }"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 36000, \"srvname\": \"TestLogic\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/LogicServer.json\",\n  \"cnf_content\": {\n    \"node_type\":\"TestLogic\",\n    \"inner_host\":\"192.168.1.106\",\n    \"inner_port\":36000,\n    \"server_name\":\"Logic_huws\",\n    \"worker_capacity\":1000000,\n    \"config_path\":\"conf/\",\n    \"log_path\":\"log/\",\n    \"max_log_file_num\":5,\n    \"max_log_file_size\":20480000,\n    \"io_timeout\":300.0,\n    \"step_timeout\":1.5,\n    \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n    \"log_level\":40000,\n    \"refresh_interval\":1,\n    \"restart_worker\":6,\n    \"so\":[\n        {\"cmd\":101,  \"so_path\":\"plugins/Logic/CmdHelloWorld.so\", \"entrance_symbol\":\"create\", \"load\":true, \"version\":2}\n    ]\n}\n  \t\n  }"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": "logic_1 配置文件"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"srv_name\",\n  \"srv_name\": \"MethodAccess\",\n  \"MethodAccess\": [{\"ip\":\"192.168.1.106\",\"port\":24000}]\n           \n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": "method access server module"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.106:65000/cnfsrv/modify",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conf_type\":\"host_conf\",\n  \"host_conf\": {\"ip\":\"192.168.1.106\",\"port\": 24000, \"srvname\": \"MethodAccess\"},\n  \"cnf_path\": \"/home/achilsh/hzy/run/conf_test/MethodAccess.json\",\n  \"cnf_content\": {\n  \n    \"node_type\":\"MethodAccess\",\n        \"access_host\":\"192.168.1.106\",\n        \"access_port\":24000,\n        \"access_codec\":5,\n        \"process_num\":1,\n        \"inner_host\":\"192.168.1.106\",\n        \"inner_port\":24001,\n        \"center\":[\n        {\"host\":\"192.168.18.80\",\"port\":\"15000\"}],\n        \"server_name\":\"MethodAccess_huws\",\n        \"worker_capacity\":10000,\n        \"config_path\":\"conf/\",\n        \"log_path\":\"log/\",\n        \"max_log_file_num\":5,\n        \"max_log_file_size\":40480000,\n\n        \"permission\":{\n            \"addr_permit\":{\"stat_interval\":600.0, \"permit_num\":10000000},\n            \"uin_permit\":{\"stat_interval\":60.0, \"permit_num\":60}\n        },\n        \"io_timeout\":300.0,\n        \"step_timeout\":3.2,\n        \"log_levels\":{\"FATAL\":50000, \"ERROR\":40000, \"WARN\":30000, \"INFO\":20000, \"DEBUG\":10000, \"TRACE\":0},\n        \"log_level\":40000,\n        \"refresh_interval\":1,\n        \"restart_worker\": 8,\n        \"so\":[\n            ],\n        \"method\":[\n        {\"method_name\":\"pingping\",\"so_path\":\"plugins/MethodAccess/MethodThrift.so\",\"entrance_symbol\":\"create\", \"load\":true, \"version\":1}]\n  }\n}"
+				},
+				"url": {
+					"raw": "http://192.168.1.106:65000/cnfsrv/modify",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"106"
+					],
+					"port": "65000",
+					"path": [
+						"cnfsrv",
+						"modify"
+					]
+				},
+				"description": "method access server conf"
+			},
+			"response": []
+		}
+	]
+}

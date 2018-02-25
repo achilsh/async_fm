@@ -29,20 +29,6 @@ public:
     StepIoTimeout(const tagMsgShell& stMsgShell, struct ev_timer* pWatcher, const std::string& sCoName);
     virtual ~StepIoTimeout();
 
-#if 0
-    virtual E_CMD_STATUS Emit(
-                    int iErrno = 0,
-                    const std::string& strErrMsg = "",
-                    const std::string& strErrShow = "");
-    virtual E_CMD_STATUS Callback(
-                    const tagMsgShell& stMsgShell,
-                    const MsgHead& oInMsgHead,
-                    const MsgBody& oInMsgBody,
-                    void* data = NULL);
-    virtual E_CMD_STATUS Timeout();
-#endif
-
-
     //协程专用函数数 
     virtual void CorFunc(); 
 private:

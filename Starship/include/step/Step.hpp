@@ -250,7 +250,7 @@ protected:
      * @return 
      */
     bool SendTo(const tagMsgShell& stMsgShell, const MsgHead& oMsgHead, const MsgBody& oMsgBody,
-                oss::Step* pStep); //, MsgHead& rspMsgHead, MsgBody& rspMsgBody);
+                oss::Step* pStep);
     /**
      * @brief 发送数据
      * @note 指定连接标识符将数据发送。此函数先查找与strIdentify匹配的stMsgShell，如果找到就调用

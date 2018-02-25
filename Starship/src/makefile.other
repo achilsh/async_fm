@@ -44,6 +44,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/lib -lloss \
            -L$(LIB3RD_PATH)/lib -lmysqlclient_r \
            -lthrift \
+           -ltcmalloc_minimal \
            -ljsoncpp \
            -lqlibc \
            -lhiredis \

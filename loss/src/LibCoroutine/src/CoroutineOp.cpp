@@ -274,7 +274,7 @@ bool  Coroutiner::SaveStack(char *pTop)
         m_pStack = new char[m_Cap];
     }
     m_Size = pTop - &dummy;
-    memcpy(m_pStack, &dummy, m_Size);
+    ::memcpy(m_pStack, &dummy, m_Size);
     return true;
 }
 

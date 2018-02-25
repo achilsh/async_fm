@@ -34,7 +34,7 @@ E_CMD_STATUS TestTimer::TimerDoWork() {
 ModuleHttp::ModuleHttp(): pStepTQry(NULL),pTimer(NULL)
 {
     //…Ë÷√http post req times;
-    m_iPostTimes = 4;
+    m_iPostTimes = 1;
 }
 
 ModuleHttp::~ModuleHttp()
