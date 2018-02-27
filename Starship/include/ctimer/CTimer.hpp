@@ -44,7 +44,8 @@ class CTimer {
      return m_TmOutVal;
    }
   
-   void SetLogger(log4cplus::Logger* pLogger) {
+   void SetLogger(log4cplus::Logger* pLogger) 
+   {
      m_pLogger = pLogger;
    }
 
@@ -66,11 +67,13 @@ class CTimer {
      return m_IsStarted; 
    }
 
-   void SetTimeoutWatcher(ev_timer* pWatcher) {
+   void SetTimeoutWatcher(ev_timer* pWatcher) 
+   {
      m_pTimeoutWatcher = pWatcher;
    }
 
-   log4cplus::Logger GetLogger() {
+   log4cplus::Logger& GetLogger() 
+   {
      return *m_pLogger;
    }
   private:

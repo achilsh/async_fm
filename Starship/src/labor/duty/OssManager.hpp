@@ -238,7 +238,7 @@ protected:
         return(m_ulSequence++);
     }
 
-    log4cplus::Logger GetLogger()
+    log4cplus::Logger& GetLogger()
     {
         return(m_oLogger);
     }

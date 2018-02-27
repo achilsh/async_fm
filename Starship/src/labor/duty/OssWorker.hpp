@@ -309,7 +309,7 @@ public:     // Cmd类和Step类只需关注这些方法
         return(m_ulSequence);
     }
 
-    virtual log4cplus::Logger GetLogger()
+    virtual log4cplus::Logger& GetLogger()
     {
         return(m_oLogger);
     }

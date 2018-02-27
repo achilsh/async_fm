@@ -78,7 +78,7 @@ protected:
         m_strClassName = strClassName;
     }
 
-    log4cplus::Logger GetLogger()
+    log4cplus::Logger& GetLogger()
     {
         return (*m_pLogger);
     }

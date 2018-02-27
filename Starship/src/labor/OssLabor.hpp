@@ -238,9 +238,9 @@ public:     // Worker相关设置（由Cmd类或Step类调用这些方法完成�
      * @brief 获取日志实例
      * @return 日志实例
      */
-    virtual log4cplus::Logger GetLogger()
+    virtual log4cplus::Logger& GetLogger()
     {
-        log4cplus::Logger oLogger;
+        static log4cplus::Logger oLogger;
         return (oLogger);
     }
 

@@ -51,7 +51,7 @@ protected:
      */
     bool Pretreat(Step* pStep);
 
-    log4cplus::Logger GetLogger()
+    log4cplus::Logger& GetLogger()
     {
         return (*m_pLogger);
     }

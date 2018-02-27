@@ -1848,19 +1848,19 @@ bool OssWorker::Init(loss::CJsonObject& oJsonConf)
     //ParseDownStreamNodeInfo(oJsonConf["down_stream"]);
 
     StarshipCodec* pCodec = new ProtoCodec(loss::CODEC_PROTOBUF);
-    pCodec->SetLogger(m_oLogger);
+    pCodec->SetLogger(&m_oLogger);
     m_mapCodec.insert(std::pair<loss::E_CODEC_TYPE, StarshipCodec*>(loss::CODEC_PROTOBUF, pCodec));
 
     pCodec = new HttpCodec(loss::CODEC_HTTP);
-    pCodec->SetLogger(m_oLogger);
+    pCodec->SetLogger(&m_oLogger);
     m_mapCodec.insert(std::pair<loss::E_CODEC_TYPE, StarshipCodec*>(loss::CODEC_HTTP, pCodec));
 
     pCodec = new ClientMsgCodec(loss::CODEC_PRIVATE);
-    pCodec->SetLogger(m_oLogger);
+    pCodec->SetLogger(&m_oLogger);
     m_mapCodec.insert(std::pair<loss::E_CODEC_TYPE, StarshipCodec*>(loss::CODEC_PRIVATE, pCodec));
 
     pCodec = new ThriftCodec(loss::CODEC_THRIFT);
-    pCodec->SetLogger(m_oLogger);
+    pCodec->SetLogger(&m_oLogger);
     m_mapCodec.insert(std::pair<loss::E_CODEC_TYPE, StarshipCodec*>(loss::CODEC_THRIFT, pCodec));
 
     m_pCmdConnect = new CmdConnectWorker();

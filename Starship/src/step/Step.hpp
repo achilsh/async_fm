@@ -170,7 +170,7 @@ protected:
      * @note 派生类写日志时调用
      * @return 日志类实例
      */
-    log4cplus::Logger GetLogger()
+    log4cplus::Logger& GetLogger()
     {
         return (*m_pLogger);
     }

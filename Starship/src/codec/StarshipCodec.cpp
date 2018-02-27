@@ -20,7 +20,7 @@ namespace oss
 {
 
 StarshipCodec::StarshipCodec(loss::E_CODEC_TYPE eCodecType, const std::string& strKey)
-    : loss::CStreamCodec(eCodecType), m_strKey(strKey)//, m_oAes(strKey)
+    : loss::CStreamCodec(eCodecType), m_oLogger(NULL), m_strKey(strKey)//, m_oAes(strKey)
 {
 }
 

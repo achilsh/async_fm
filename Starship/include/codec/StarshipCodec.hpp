@@ -67,9 +67,9 @@ public:
 
 
 protected:
-    log4cplus::Logger GetLogger()
+    log4cplus::Logger& GetLogger()
     {
-        return m_oLogger;
+        return (*m_oLogger);
     }
 
     const std::string& GetKey() const
@@ -87,13 +87,13 @@ protected:
     bool AesDecrypt(const std::string& strSrc, std::string& strDest);
 
 public:
-    void SetLogger(log4cplus::Logger logger)
+    void SetLogger(log4cplus::Logger* logger)
     {
         m_oLogger = logger;
     }
 
 private:
-    log4cplus::Logger m_oLogger;
+    log4cplus::Logger* m_oLogger;
     std::string m_strKey;       // 密钥
 //    loss::Aes m_oAes;
 };

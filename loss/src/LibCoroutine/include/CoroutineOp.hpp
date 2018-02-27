@@ -140,7 +140,7 @@ namespace LibCoroutine
       {
           return m_pLogger;
       }
-      log4cplus::Logger GetLogger()
+      log4cplus::Logger& GetLogger()
       {
           return (*m_pLogger);
       }
@@ -245,7 +245,7 @@ namespace LibCoroutine
       {
           return m_pcoLogger;
       }
-      log4cplus::Logger GetLogger()
+      log4cplus::Logger& GetLogger()
       {
           return (*m_pcoLogger);
       }
