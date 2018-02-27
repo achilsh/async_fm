@@ -19,7 +19,7 @@ base_frameworks
 
 Q & A
 ------------
-- **`问题1 ？`**
+- **`bug 提交指引`**
 
-    ???
+   ![bug](./images/bug_提交图.jpg) 
 
