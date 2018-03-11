@@ -8,14 +8,22 @@
  * Modify history:
  ******************************************************************************/
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
-#include "hiredis/async.h"
-#include "hiredis/adapters/libev.h"
+
+#ifdef REDIS_CLUSTER
+    #include "hiredis_cluster/async.h"
+    #include "hiredis_cluster/adapters/libev.h"
+#else 
+    #include "hiredis/async.h"
+    #include "hiredis/adapters/libev.h"
+#endif
+
 #include "unix_util/process_helper.h"
 #include "unix_util/proctitle_helper.h"
+
 #ifdef __cplusplus
-}
+    }
 #endif
 
 #include "util/StreamCodec.hpp"
@@ -193,6 +201,7 @@ void OssWorker::TimerTmOutCallback(struct ev_loop* loop, struct ev_timer* watche
     }
 }
 
+#ifndef REDIS_CLUSTER 
 void OssWorker::RedisConnectCallback(const redisAsyncContext *c, int status)
 {
     if (c->data != NULL)
@@ -219,6 +228,7 @@ void OssWorker::RedisCmdCallback(redisAsyncContext *c, void *reply, void *privda
         pWorker->RedisCmdResult(c, reply, privdata);
     }
 }
+#endif
 
 OssWorker::OssWorker(const std::string& strWorkPath, int iControlFd, int iDataFd, 
                      int iWorkerIndex, loss::CJsonObject& oJsonConf, loss::CJsonObject& oJsonConfSrvName, bool isMonitor )
@@ -1082,6 +1092,7 @@ bool OssWorker::SessionTimeout(Session* pSession, struct ev_timer* watcher)
     }
 }
 
+#ifndef REDIS_CLUSTER 
 bool OssWorker::RedisConnect(const redisAsyncContext *c, int status)
 {
     LOG4_TRACE("%s()", __FUNCTION__);
@@ -1282,6 +1293,7 @@ bool OssWorker::RedisCmdResult(redisAsyncContext *c, void *reply, void *privdata
     }
     return(true);
 }
+#endif
 
 bool OssWorker::Pretreat(Cmd* pCmd)
 {
@@ -1500,6 +1512,7 @@ void OssWorker::DeleteCallback(Session* pSession)
     }
 }
 
+#ifndef REDIS_CLUSTER 
 bool OssWorker::RegisterCallback(const redisAsyncContext* pRedisContext, RedisStep* pRedisStep)
 {
     LOG4_TRACE("%s()", __FUNCTION__);
@@ -1562,6 +1575,7 @@ bool OssWorker::RegisterCallback(const redisAsyncContext* pRedisContext, RedisSt
         }
     }
 }
+#endif
 
 Session* OssWorker::GetSession(uint32 uiSessionId, const std::string& strSessionClass)
 {
@@ -2298,66 +2312,67 @@ bool OssWorker::RegisterCallback(const std::string& strHost, int iPort, RedisSte
     }
 }
 
-/*
-   bool OssWorker::RegisterCallback(const std::string& strRedisNodeType, RedisStep* pRedisStep)
-   {
+/****
+bool OssWorker::RegisterCallback(const std::string& strRedisNodeType, RedisStep* pRedisStep)
+{
    std::map<std::string, std::set<std::string> >::iterator conf_iter = m_mapRedisNodeConf.find(strRedisNodeType);
    if (conf_iter == m_mapRedisNodeConf.end())
    {
-   LOG4_ERROR("error: no redis node type \"%s\"!", strRedisNodeType.c_str());
-   return(false);
+       LOG4_ERROR("error: no redis node type \"%s\"!", strRedisNodeType.c_str());
+       return(false);
    }
    else
    {
-// TODO 从配置中通过hash算法查找到对应redis的标识（hash算法暂未实现）
-std::set<std::string>::iterator identify_iter = conf_iter->second.begin();
+        // TODO 从配置中通过hash算法查找到对应redis的标识（hash算法暂未实现）
+        std::set<std::string>::iterator identify_iter = conf_iter->second.begin();
 
-std::map<std::string, const redisAsyncContext*>::iterator ctx_iter = m_mapRedisContext.find(*identify_iter);
-if (ctx_iter != m_mapRedisContext.end())
-{
-LOG4_TRACE("redis context %s", (*identify_iter).c_str());
-return(RegisterCallback(ctx_iter->second, pRedisStep));
-}
-else
-{
-int iPosIpPortSeparator = (*identify_iter).find(':');
-std::string strHost = (*identify_iter).substr(0, iPosIpPortSeparator);
-int iPort = atoi((*identify_iter).substr(iPosIpPortSeparator + 1, std::string::npos).c_str());
-LOG4_TRACE("GetLabor()->AutoRedisCmd(%s, %d)", strHost.c_str(), iPort);
-return(AutoRedisCmd(strHost, iPort, pRedisStep));
-}
-}
+        std::map<std::string, const redisAsyncContext*>::iterator ctx_iter = m_mapRedisContext.find(*identify_iter);
+        if (ctx_iter != m_mapRedisContext.end())
+        {
+            LOG4_TRACE("redis context %s", (*identify_iter).c_str());
+            return(RegisterCallback(ctx_iter->second, pRedisStep));
+        }
+        else
+        {
+            int iPosIpPortSeparator = (*identify_iter).find(':');
+            std::string strHost = (*identify_iter).substr(0, iPosIpPortSeparator);
+            int iPort = atoi((*identify_iter).substr(iPosIpPortSeparator + 1, std::string::npos).c_str());
+            LOG4_TRACE("GetLabor()->AutoRedisCmd(%s, %d)", strHost.c_str(), iPort);
+            return(AutoRedisCmd(strHost, iPort, pRedisStep));
+        }
+    }
 }
 
 void OssWorker::AddRedisNodeConf(const std::string strNodeType, const std::string strHost, int iPort)
 {
-char szIdentify[32] = {0};
-snprintf(szIdentify, 32, "%s:%d", strHost.c_str(), iPort);
-std::map<std::string, std::set<std::string> >::iterator node_iter = m_mapRedisNodeConf.find(strNodeType);
-if (node_iter == m_mapRedisNodeConf.end())
-{
-std::set<std::string> setIdentify;
-setIdentify.insert(szIdentify);
-m_mapRedisNodeConf.insert(std::pair<std::string, std::set<std::string> >(strNodeType, setIdentify));
-}
-else
-{
-node_iter->second.insert(szIdentify);
-}
+    char szIdentify[32] = {0};
+    snprintf(szIdentify, 32, "%s:%d", strHost.c_str(), iPort);
+    std::map<std::string, std::set<std::string> >::iterator node_iter = m_mapRedisNodeConf.find(strNodeType);
+    if (node_iter == m_mapRedisNodeConf.end())
+    {
+        std::set<std::string> setIdentify;
+        setIdentify.insert(szIdentify);
+        m_mapRedisNodeConf.insert(std::pair<std::string, std::set<std::string> >(strNodeType, setIdentify));
+    }
+    else
+    {
+        node_iter->second.insert(szIdentify);
+    }
 }
 
 void OssWorker::DelRedisNodeConf(const std::string strNodeType, const std::string strHost, int iPort)
 {
-char szIdentify[32] = {0};
-snprintf(szIdentify, 32, "%s:%d", strHost.c_str(), iPort);
-std::map<std::string, std::set<std::string> >::iterator node_iter = m_mapRedisNodeConf.find(strNodeType);
-if (node_iter != m_mapRedisNodeConf.end())
-{
-node_iter->second.erase(node_iter->second.find(szIdentify));
+    char szIdentify[32] = {0};
+    snprintf(szIdentify, 32, "%s:%d", strHost.c_str(), iPort);
+    std::map<std::string, std::set<std::string> >::iterator node_iter = m_mapRedisNodeConf.find(strNodeType);
+    if (node_iter != m_mapRedisNodeConf.end())
+    {
+        node_iter->second.erase(node_iter->second.find(szIdentify));
+    }
 }
-}
-*/
+*****/
 
+#ifndef REDIS_CLUSTER 
 bool OssWorker::AddRedisContextAddr(const std::string& strHost, int iPort, redisAsyncContext* ctx)
 {
     LOG4_TRACE("%s(%s, %d, 0x%X)", __FUNCTION__, strHost.c_str(), iPort, ctx);
@@ -2397,6 +2412,7 @@ void OssWorker::DelRedisContextAddr(const redisAsyncContext* ctx)
         m_mapContextIdentify.erase(identify_iter);
     }
 }
+#endif
 
 //该接口使用于连接建立完成后第一个发送数据动作
 bool OssWorker::SendTo(const tagMsgShell& stMsgShell)
@@ -3855,13 +3871,9 @@ bool OssWorker::AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* p
     pRedisAttr->listWaitData.push_back(pRedisStep);
     
     m_mapRedisAttr.insert(std::pair<redisAsyncContext*, tagRedisAttr*>(c, pRedisAttr));
-//    LOG4_TRACE("redisLibevAttach(0x%X, 0x%X)", m_loop, c);
     redisLibevAttach(m_loop, c);
-//    LOG4_TRACE("redisAsyncSetConnectCallback(0x%X, 0x%X)", c, RedisConnectCallback);
     redisAsyncSetConnectCallback(c, RedisConnectCallback);
-//    LOG4_TRACE("redisAsyncSetDisconnectCallback(0x%X, 0x%X)", c, RedisDisconnectCallback);
     redisAsyncSetDisconnectCallback(c, RedisDisconnectCallback);
-//    LOG4_TRACE("RedisStep::AddRedisContextAddr(%s, %d, 0x%X)", strHost.c_str(), iPort, c);
     AddRedisContextAddr(strHost, iPort, c);
     return(true);
 }
@@ -6845,3 +6857,5 @@ void OssWorker::WakeYieldedStepsOnException(int iFd, uint32 ulSeq, const std::st
 
 /////////////////
 } /* namespace oss */
+
+#include "OssWorker_cluster.cpp"

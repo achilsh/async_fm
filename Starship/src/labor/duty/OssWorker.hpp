@@ -27,7 +27,12 @@
 #include "log4cplus/logger.h"
 #include "log4cplus/fileappender.h"
 #include "log4cplus/loggingmacros.h"
-#include "hiredis/hiredis.h"
+
+#ifdef REDIS_CLUSTER 
+    #include "hiredis_cluster/hircluster.h"  
+#else 
+    #include "hiredis/hiredis.h"
+#endif 
 
 #include "Attribution.hpp"
 #include "protocol/msg.pb.h"
@@ -246,9 +251,16 @@ public:
     static void PeriodicTaskCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);  // 周期任务回调，用于替换IdleCallback
     static void StepTimeoutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
     static void SessionTimeoutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
+#ifdef REDIS_CLUSTER 
+    static void RedisConnectCallback(const redisClusterAsyncContext *c, int status);
+    static void RedisDisconnectCallback(const redisClusterAsyncContext *c, int status);
+    static void RedisCmdCallback(redisClusterAsyncContext*c, void *reply, void *privdata);
+#else
     static void RedisConnectCallback(const redisAsyncContext *c, int status);
     static void RedisDisconnectCallback(const redisAsyncContext *c, int status);
     static void RedisCmdCallback(redisAsyncContext *c, void *reply, void *privdata);
+#endif
+
     static void DelInvalidNodeCB(struct ev_loop* loop, struct ev_timer* watcher, int revents);
     static void TimerTmOutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
     static void RestartTimeOutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
@@ -266,9 +278,16 @@ public:
     bool IoTimeout(struct ev_timer* watcher, bool bCheckBeat = true);
     bool StepTimeout(Step* pStep, struct ev_timer* watcher);
     bool SessionTimeout(Session* pSession, struct ev_timer* watcher);
+
+#ifdef REDIS_CLUSTER 
+    bool RedisConnect(const redisClusterAsyncContext *c, int status);
+    bool RedisDisconnect(const redisClusterAsyncContext *c, int status);
+    bool RedisCmdResult(redisClusterAsyncContext*c, void *reply, void *privdata);
+#else 
     bool RedisConnect(const redisAsyncContext *c, int status);
     bool RedisDisconnect(const redisAsyncContext *c, int status);
     bool RedisCmdResult(redisAsyncContext *c, void *reply, void *privdata);
+#endif
 
     bool TimerTimeOut(CTimer* pTimer, struct ev_timer* watcher);
     virtual bool RegisterCallback(CTimer* pTimer);
@@ -372,7 +391,12 @@ public:     // Cmd类和Step类只需关注这些方法
     virtual bool RegisterCallback(Session* pSession);
    
     virtual void DeleteCallback(Session* pSession);
+
+#ifdef REDIS_CLUSTER 
+    virtual bool RegisterCallback(const redisClusterAsyncContext* pRedisContext, RedisStep* pRedisStep);
+#else 
     virtual bool RegisterCallback(const redisAsyncContext* pRedisContext, RedisStep* pRedisStep);
+#endif
    
     virtual Session* GetSession(uint32 uiSessionId, const std::string& strSessionClass = "oss::Session");
     virtual Session* GetSession(const std::string& strSessionId, const std::string& strSessionClass = "oss::Session");
@@ -392,12 +416,17 @@ public:     // Worker相关设置（由专用Cmd类调用这些方法完成Worke
     virtual bool RegisterCallback(const std::string& strHost, int iPort, RedisStep* pRedisStep);
 
     /*  redis 节点管理相关操作从框架中移除，交由DataProxy的SessionRedisNode来管理，框架只做到redis的连接管理
-    virtual bool RegisterCallback(const std::string& strRedisNodeType, RedisStep* pRedisStep);
-    virtual void AddRedisNodeConf(const std::string& strNodeType, const std::string strHost, int iPort);
-    virtual void DelRedisNodeConf(const std::string& strNodeType, const std::string strHost, int iPort);
+        virtual bool RegisterCallback(const std::string& strRedisNodeType, RedisStep* pRedisStep);
+        virtual void AddRedisNodeConf(const std::string& strNodeType, const std::string strHost, int iPort);
+        virtual void DelRedisNodeConf(const std::string& strNodeType, const std::string strHost, int iPort);
     */
+#ifdef REDIS_CLUSTER 
+    virtual bool AddRedisContextAddr(const std::string& strHost, int iPort, redisClusterAsyncContext* ctx);
+    virtual void DelRedisContextAddr(const redisClusterAsyncContext* ctx);
+#else 
     virtual bool AddRedisContextAddr(const std::string& strHost, int iPort, redisAsyncContext* ctx);
     virtual void DelRedisContextAddr(const redisAsyncContext* ctx);
+#endif
 
     virtual bool UpDateNodeInfo(const std::string& strNodeType,const std::string& strNodeInfo);
     bool ParseDownStreamNodeInfo(loss::CJsonObject& jsonDownStream);
@@ -461,8 +490,11 @@ public:     // 发送数据或从Worker获取数据
 
     virtual bool AutoSend(const std::string& strHost, int iPort, const std::string& strUrlPath, 
                           const HttpMsg& oHttpMsg, HttpStep* pHttpStep = NULL);
-
+#ifdef  REDIS_CLUSTER
     virtual bool AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* pRedisStep);
+#else 
+    virtual bool AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* pRedisStep);
+#endif
     virtual bool AutoConnect(const std::string& strIdentify);
     virtual void SetNodeId(uint32 uiNodeId) {m_uiNodeId = uiNodeId;}
     virtual void AddInnerFd(const tagMsgShell& stMsgShell);
@@ -653,7 +685,12 @@ private:
     std::map<int32, std::list<uint32> > m_mapHttpAttr;       ///< TODO 以类似处理redis回调的方式来处理http回调
     typedef std::map<int32, std::list<uint32> > TypeHttpConn; ///key: connect fd
 
+#ifdef REDIS_CLUSTER 
+    std::map<redisClusterAsyncContex*, tagRedisAttr*> m_mapRedisAttr;    ///< Redis连接属性
+#else 
     std::map<redisAsyncContext*, tagRedisAttr*> m_mapRedisAttr;    ///< Redis连接属性
+#endif
+
     std::map<std::string, std::map<std::string, Session*> > m_mapCallbackSession;
 
     /* 节点连接相关信息 */
@@ -667,10 +704,21 @@ private:
     std::unordered_map<std::string, std::set<SerNodeInfo*> > m_AppendNodeTypeNodeInfo; //
     /* redis节点信息 */
     // std::map<std::string, std::set<std::string> > m_mapRedisNodeConf;        ///< redis节点配置，key为node_type，value为192.168.16.22:9988形式的IP+端口
+
+#ifdef REDIS_CLUSTER 
+    typedef std::unordered_map<std::string, const redisClusterAsyncContext*>  TypeMpRedisIdContext;
+#else
     typedef std::unordered_map<std::string, const redisAsyncContext*>  TypeMpRedisIdContext;
+#endif
+
     TypeMpRedisIdContext  m_mapRedisContext;       ///< redis连接，key为identify(192.168.16.22:9988形式的IP+端口)
-    
+   
+#ifdef REDIS_CLUSTER 
+    typedef std::unordered_map<const redisClusterAsyncContext*, std::string> TypeMpRedisContextId;
+#else
     typedef std::unordered_map<const redisAsyncContext*, std::string> TypeMpRedisContextId;
+#endif
+
     TypeMpRedisContextId  m_mapContextIdentify;    ///< redis标识，与m_mapRedisContext的key和value刚好对调
     
     std::unordered_map<Step*, tagMsgShell> m_mpSendingStepConnFd; //step和已经建立连接的关系

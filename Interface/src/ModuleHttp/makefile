@@ -3,6 +3,11 @@ CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" ||
 CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
 CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -std=c++11
 
+LIB_REDIS=hiredis
+ifeq ($(redis_cluster),y)
+LIB_REDIS=hiredis_cluster
+endif
+
 ARCH:=$(shell uname -m)
 
 ARCH32:=i686
@@ -43,7 +48,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(PROTO_PATH)/lib -lim_proto \
            -L$(STARSHIP_PATH)/lib -lstarship \
            -L$(LOSS_PATH)/lib -lloss \
-           -L$(LIB3RD_PATH)/lib -lhiredis \
+           -L$(LIB3RD_PATH)/lib -l$(LIB_REDIS) \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
            -L$(LIB3RD_PATH)/lib -lthrift \
            -L$(LIB3RD_PATH)/lib -llog4cplus \

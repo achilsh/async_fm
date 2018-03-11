@@ -8,6 +8,12 @@ CXXFLAG = -O0 -Wall -ggdb -m64 -Wl,--export-dynamic # -lrt -std=c++11 -pthread  
 
 DEFINE_SERVER =
 
+#增加redis cluster的访问支持
+LIB_REDIS=hiredis
+ifeq ($(redis_cluster),y)
+CPPFLAGS += -DREDIS_CLUSTER
+LIB_REDIS=hiredis_cluster
+endif
 
 ifeq ($(unit_test),y)
 CPPFLAGS += -DUNIT_TEST
@@ -47,7 +53,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -ltcmalloc_minimal \
            -ljsoncpp \
            -lqlibc \
-           -lhiredis \
+           -l$(LIB_REDIS) \
            -lcryptopp \
            -lprotobuf \
            -llog4cplus \

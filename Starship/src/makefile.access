@@ -7,7 +7,12 @@ CPPFLAGS =  -D_GNU_SOURCE=1 -D_REENTRANT -fPIC -DNODE_BEAT=10.0  -std=c++11
 #CXXFLAG = -g -O2 -Wall -fdiagnostics-show-caret -Wextra -pedantic -Wstrict-aliasing -Wstrict-overflow -Woverloaded-virtual -Wold-style-cast -Wc++0x-compat -Wc++11-compat -Wundef -Wshadow -Wformat -Wsuggest-attribute=format -Wsuggest-attribute=noreturn -Wno-variadic-macros -fvisibility=hidden
 CXXFLAG = -O0 -Wall -ggdb -m64 -Wl,--export-dynamic -std=c++11 # -lrt -std=c++11 -pthread  #-static-libgcc -static-libstdc++
 
-
+#增加redis cluster的访问支持
+LIB_REDIS=hiredis
+ifeq ($(redis_cluster),y)
+CPPFLAGS += -DREDIS_CLUSTER
+LIB_REDIS=hiredis_cluster
+endif
 
 ifeq ($(unit_test),y)
 CPPFLAGS += -DUNIT_TEST
@@ -44,7 +49,7 @@ LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LOSS_PATH)/lib -lloss \
            -L$(LIB3RD_PATH)/lib -lmysqlclient_r \
            -lthrift \
-           -lhiredis \
+           -l$(LIB_REDIS) \
            -ljsoncpp \
            -lqlibc \
            -lcryptopp \
