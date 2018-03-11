@@ -16,7 +16,7 @@ base_frameworks
 - [optim_client_thrift_ver] - 优化thrift协议接入的编解码方式,增加perf cpu,生成火焰图工具,丰富火焰图获取方式.
 - [coroutine_ver] - 修改框架，内部服务支持协程模式：http，thrift, 自定义协议接入流程协程化，异步redis 接口协程改造
 （再也不用写那些反人类思维的start()/callback()业务代码了,业务完全可以同步写，底层异步收发）
-- [store_svr_ver] - 增加统一存储API，方便业务使用，底层存储包括redis+mysql
+- [store_svr_ver] - 增加统一存储API，方便业务使用，底层存储包括redis_cluster + mysql(主从: Altas 实现读写分离+分表)
 
 Q & A
 ------------
