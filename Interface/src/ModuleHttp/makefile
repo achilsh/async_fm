@@ -6,6 +6,7 @@ CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -std=c++11
 LIB_REDIS=hiredis
 ifeq ($(redis_cluster),y)
 LIB_REDIS=hiredis_cluster
+CXXFLAG += -DREDIS_CLUSTER
 endif
 
 ARCH:=$(shell uname -m)
@@ -98,5 +99,3 @@ Module%.so:Module%.o $(PB_OBJS) $(CMD_DEP_OBJS)
 clean:
 	rm -f $(PB_OBJS) $(CMD_DEP_OBJS)
 	rm -f $(TARGET)
-        
-        
