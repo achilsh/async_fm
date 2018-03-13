@@ -287,3 +287,4 @@ Starship/lib/libstarship.so
  loss/tests/redislib_test/RedisClient
  loss/tests/shm_test/ShmTest
  loss/tests/tasklib_test/TaskTest
+ ./tags

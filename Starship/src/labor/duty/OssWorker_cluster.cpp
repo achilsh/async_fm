@@ -49,11 +49,11 @@ namespace oss
 {
 #ifdef REDIS_CLUSTER 
 
-void OssWorker::RedisConnectCallback(const redisClusterAsyncContext *c, int status)
+void OssWorker::RedisConnectCallback(const redisAsyncContext *c, int status)
 {
     if (c->data != NULL)
     {
-        OssWorker* pWorker = (OssWorker*)c->data;
+        OssWorker* pWorker = (OssWorker*)c->node->data;
         pWorker->RedisConnect(c, status);
     }
 }
@@ -413,6 +413,7 @@ bool OssWorker::AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* p
     redisClusterAsyncSetConnectCallback(c, RedisConnectCallback);
     redisClusterAsyncSetDisconnectCallback(c, RedisDisconnectCallback);
     AddRedisContextAddr(strHost, iPort, c);
+    
     return(true);
 }
 

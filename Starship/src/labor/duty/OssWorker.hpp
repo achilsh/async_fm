@@ -252,7 +252,7 @@ public:
     static void StepTimeoutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
     static void SessionTimeoutCallback(struct ev_loop* loop, struct ev_timer* watcher, int revents);
 #ifdef REDIS_CLUSTER 
-    static void RedisConnectCallback(const redisClusterAsyncContext *c, int status);
+    static void RedisConnectCallback(const redisAsyncContext*c, int status);
     static void RedisDisconnectCallback(const redisClusterAsyncContext *c, int status);
     static void RedisCmdCallback(redisClusterAsyncContext*c, void *reply, void *privdata);
 #else

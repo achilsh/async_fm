@@ -3844,6 +3844,7 @@ bool OssWorker::AutoSend(const std::string& strHost, int iPort,
     }
 }
 
+#ifndef  REDIS_CLUSTER
 bool OssWorker::AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* pRedisStep)
 {
     LOG4_TRACE("%s() redisAsyncConnect(%s, %d)", __FUNCTION__, strHost.c_str(), iPort);
@@ -3877,6 +3878,7 @@ bool OssWorker::AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* p
     AddRedisContextAddr(strHost, iPort, c);
     return(true);
 }
+#endif
 
 bool OssWorker::AutoConnect(const std::string& strIdentify)
 {
@@ -6110,7 +6112,11 @@ void OssWorker::DoRestartWorker(struct ev_timer* watcher)
         }
         LOG4_DEBUG("all http response received");
         
-        std::map<redisAsyncContext*, tagRedisAttr*>::iterator itRedis;
+#ifdef REDIS_CLUSTER 
+        std::map<redisClusterAsyncContext*, tagRedisAttr*>::iterator itRedis;
+#else 
+        std::map<redisAsyncContext*, tagRedisAttr*>::iterator itRedis;    
+#endif
         for (itRedis = m_mapRedisAttr.begin(); itRedis != m_mapRedisAttr.end(); ++itRedis) 
         {
             if (itRedis->second) 
