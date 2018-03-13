@@ -1,6 +1,50 @@
 #ifndef __ossworker_cluster_cpp__
 #define __ossworker_cluster_cpp__
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+#ifdef REDIS_CLUSTER
+    #include "hiredis_cluster/async.h"
+    #include "hiredis_cluster/adapters/libev.h"
+#else 
+    #include "hiredis/async.h"
+    #include "hiredis/adapters/libev.h"
+#endif
+
+#include "unix_util/process_helper.h"
+#include "unix_util/proctitle_helper.h"
+
+#ifdef __cplusplus
+    }
+#endif
+
+#include "util/StreamCodec.hpp"
+#include "OssWorker.hpp"
+#include "codec/ProtoCodec.hpp"
+#include "codec/ClientMsgCodec.hpp"
+#include "codec/HttpCodec.hpp"
+#include "step/Step.hpp"
+#include "step/RedisStep.hpp"
+#include "step/HttpStep.hpp"
+#include "session/Session.hpp"
+#include "ctimer/CTimer.hpp"
+#include "cmd/Cmd.hpp"
+#include "cmd/Module.hpp"
+#include "cmd/Method.hpp"
+#include "cmd/sys_cmd/CmdConnectWorker.hpp"
+#include "cmd/sys_cmd/CmdToldWorker.hpp"
+#include "cmd/sys_cmd/CmdUpdateNodeId.hpp"
+#include "cmd/sys_cmd/CmdNodeNotice.hpp"
+#include "cmd/sys_cmd/CmdBeat.hpp"
+#include "step/sys_step/StepIoTimeout.hpp"
+#include "step/sys_step/StepSendAlarm.hpp"
+#include "util/StringTools.hpp"
+#include "json/json.h"
+#include "lib_string.h"
+#include <iostream>
+
 namespace oss
 {
 #ifdef REDIS_CLUSTER 
@@ -338,10 +382,10 @@ void OssWorker::DelRedisContextAddr(const redisClusterAsyncContext* ctx)
 bool OssWorker::AutoRedisCmd(const std::string& strHost, int iPort, RedisStep* pRedisStep)
 {
     LOG4_TRACE("%s() redisAsyncConnect(%s, %d)", __FUNCTION__, strHost.c_str(), iPort);
-    std::ostreamstring os;
+    std::stringstream os;
     os << strHost << ":" << iPort;
 
-    redisClusterAsyncContext *c = redisClusterAsyncConnect(os.str(), HIRCLUSTER_FLAG_NULL);
+    redisClusterAsyncContext *c = redisClusterAsyncConnect(os.str().c_str(), HIRCLUSTER_FLAG_NULL);
     if (c->err)
     {
         /* Let *c leak for now... */

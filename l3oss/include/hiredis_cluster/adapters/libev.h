@@ -148,7 +148,7 @@ static int redisLibevAttach(EV_P_ redisAsyncContext *ac) {
 }
 
 /**< 增加对cluster 的支持 */
-static int redisLibevAttach_cluster(EV_P_   redisAsyncContext *ac) 
+static int redisLibevAttach_cluster(redisAsyncContext *ac, struct ev_loop *loop) 
 {
 #if EV_MULTIPLICITY
     return redisLibevAttach(loop, ac);
@@ -156,6 +156,7 @@ static int redisLibevAttach_cluster(EV_P_   redisAsyncContext *ac)
     return REDIS_ERR;
 }
 
+typedef int (*FUNCAsyContext)(redisAsyncContext*, void*);
 static int redisClusterLibevAttach(EV_P_   redisClusterAsyncContext *acc)
 {
 #if EV_MULTIPLICITY
@@ -164,7 +165,7 @@ static int redisClusterLibevAttach(EV_P_   redisClusterAsyncContext *acc)
         return REDIS_ERR;
     }
     acc->adapter = loop;
-    acc->attach_fn = redisLibevAttach_cluster;
+    acc->attach_fn = (FUNCAsyContext)redisLibevAttach_cluster;
 
     return REDIS_OK;
 #endif

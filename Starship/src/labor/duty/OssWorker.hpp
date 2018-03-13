@@ -686,7 +686,7 @@ private:
     typedef std::map<int32, std::list<uint32> > TypeHttpConn; ///key: connect fd
 
 #ifdef REDIS_CLUSTER 
-    std::map<redisClusterAsyncContex*, tagRedisAttr*> m_mapRedisAttr;    ///< Redis连接属性
+    std::map<redisClusterAsyncContext*, tagRedisAttr*> m_mapRedisAttr;    ///< Redis连接属性
 #else 
     std::map<redisAsyncContext*, tagRedisAttr*> m_mapRedisAttr;    ///< Redis连接属性
 #endif
