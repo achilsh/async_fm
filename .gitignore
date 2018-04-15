@@ -279,12 +279,12 @@ loss/tests/singleton_test/SingletonTest
 loss/tests/thrift_serialize_test/ThriftTest
 loss/tests/unix_util_test/SetSockOptTest
 Starship/lib/libstarship.so
- Starship/bin/MethodServer
- l3oss/bin/hiredis-cluster/
- loss/tests/coroutine_test/CoTest
- loss/tests/mysqldb_test/SqlTest
- loss/tests/pushemail_test/PushEmailTest
- loss/tests/redislib_test/RedisClient
- loss/tests/shm_test/ShmTest
- loss/tests/tasklib_test/TaskTest
- ./tags
+Starship/bin/MethodServer
+l3oss/bin/hiredis-cluster/
+loss/tests/coroutine_test/CoTest
+loss/tests/mysqldb_test/SqlTest
+loss/tests/pushemail_test/PushEmailTest
+loss/tests/redislib_test/RedisClient
+loss/tests/shm_test/ShmTest
+loss/tests/tasklib_test/TaskTest
+./tags
