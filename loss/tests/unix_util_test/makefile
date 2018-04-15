@@ -29,6 +29,7 @@ INC := $(INC) \
        -I $(LIB3RD_PATH)/include/mysql \
        -I $(LIB3RD_PATH)/include/jemalloc \
        -I $(LOSS_PATH)/src/unix_util \
+       -I $(LOSS_PATH)/src/util \
        -I $(LOSS_PATH)/src  
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
@@ -51,8 +52,8 @@ C_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
 S_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.s))
 OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubst %.s,%.o,$(S_SRCS)) 
 
-TARGET: SetSockOptTest 
-SetSockOptTest: $(OBJS)
+TARGET= UnixUtilTest
+$(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAG) -o $@ $^ $(LDFLAGS)
 %.o:%.cpp
 	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
@@ -62,4 +63,4 @@ SetSockOptTest: $(OBJS)
 	$(CC) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)
 clean:
 	rm -f $(OBJS)
-	rm -f PushEmailTest
+	rm -f $(TARGET)
