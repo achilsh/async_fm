@@ -171,90 +171,119 @@ void InstallSignal()
 #endif
 }
 
-void daemonize(const char* cmd)
+int SetCoreMax( )
 {
-//    int i, fd0, fd1, fd2;
+    struct rlimit rlim_new;
+    struct rlimit rlim;
+    /*
+     *  First try raising to infinity; if that fails, try bringing
+     *  the soft limit to the hard.
+    */
+    if (getrlimit(RLIMIT_CORE, &rlim) == 0)
+    {
+        rlim_new.rlim_cur = rlim_new.rlim_max = RLIM_INFINITY;
+        if (setrlimit(RLIMIT_CORE, &rlim_new)!= 0) 
+        {
+            /* failed. try raising just to the old max */
+            rlim_new.rlim_cur = rlim_new.rlim_max = rlim.rlim_max;
+            (void)setrlimit(RLIMIT_CORE, &rlim_new);
+        }
+    }
+	/*
+	 * getrlimit again to see what we ended up with. Only fail if
+	 * the soft limit ends up 0, because then no core files will be
+	 * created at all.
+	 */
+	 if ((getrlimit(RLIMIT_CORE, &rlim) != 0) || rlim.rlim_cur == 0)
+     {
+        fprintf(stderr, "failed to ensure corefile creation\n");
+        return -1;
+     }
+     return 0;
+}
+
+
+/**
+ * @brief: daemonize 
+ *
+ * @param cmd
+ * @param nochdir, 是否需要将进程的路劲设置为 "/";  大于0 标示 不用把路径改变为"/"
+ * /          *if we want to ensure our ability to dump core, don't chdir to / *
+ * @param noclose, 是否关闭标准的输入，输出。 大于0 标示不关闭。小于0 需要把标注输入输出重新定向.
+ */
+void daemonize(const char* cmd, int nochdir, int noclose)
+{
+    struct sigaction sa;
     pid_t pid;
     struct rlimit rl;
-    struct sigaction sa;
-
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
     {
-//        m_pLog->WriteLog(ERROR, "%s: error %d can't get file limit: %s", cmd,
-//                errno, strerror_r(errno, m_szErrBuffer, loss::gc_uiMaxErrBufferLength));
-    }
-
-    // fork锛岀粓姝㈢埗杩涚▼
-    if((pid = fork()) < 0)
-    {
-//        m_pLog->WriteLog(ERROR, "%s error %d can't fork: %s", cmd,
-//                errno, strerror_r(errno, m_szErrBuffer, loss::gc_uiMaxErrBufferLength));
-    }
-    else if (pid != 0)
-    {
         exit(0);
     }
-
-    // 璁剧疆绗竴瀛愯繘绋�
-    setsid();
-
+    SetCoreMax(); //set dump core max
     sa.sa_handler = SIG_IGN;
-    sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
     if (sigaction(SIGHUP, &sa, NULL) < 0)
     {
-//        m_pLog->WriteLog(ERROR, "%s error %d can't ignore SIGHUP: %s", cmd,
-//                errno, strerror_r(errno, m_szErrBuffer, loss::gc_uiMaxErrBufferLength));
+        fprintf(stderr, "Failed to ignore SIGHUP");
+        exit(EXIT_FAILURE);
     }
 
-    // fork锛岀粓姝㈢涓�瀛愯繘绋�
     if ((pid = fork()) < 0)
     {
-//        m_pLog->WriteLog(ERROR, "%s error %d can't fork: %s", cmd,
-//                errno, strerror_r(errno, m_szErrBuffer, loss::gc_uiMaxErrBufferLength));
+        fprintf(stderr,"fork() fail");
+        exit(EXIT_FAILURE);
     }
     else if (pid != 0)
     {
-        exit(0);
+        exit(EXIT_SUCCESS);
+    }
+    if (setsid() == -1)
+    {
+        exit(EXIT_FAILURE);
+    }
+    if (nochdir == 0) 
+    {
+        if (chdir("/") != 0)
+        {
+            perror("chdir");
+            exit(EXIT_FAILURE);
+        }
     }
 
+    int fd = 0;
+    if (noclose == 0 && (fd = open("/dev/null", O_RDWR, 0)) != -1)
+    {
+        if (dup2(fd, STDIN_FILENO) < 0) 
+        {
+            perror("dup2 stdin");
+            exit(EXIT_FAILURE);
+        }
+        if(dup2(fd, STDOUT_FILENO) < 0)
+        {
+            perror("dup2 stdout");
+            exit(EXIT_FAILURE);
+        }
+        if (dup2(fd, STDERR_FILENO) < 0)
+        {
+            perror("dump2 stderr");
+            exit(EXIT_FAILURE);
+        }
+        if (fd > STDERR_FILENO)
+        {
+            if (close(fd) < 0)
+            {
+                perror("close");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
     InstallSignal();
-
-//    // 灏嗗伐浣滅洰褰曡缃负鈥�/鈥�
-//    if (chdir("/") < 0)
-//    {
-//        m_pLog->WriteLog(ERROR, "%s error %d can't change directory to /: %s",
-//                errno, strerror_r(errno, m_szErrBuffer, loss::gc_uiMaxErrBufferLength));
-//    }
-
-    // 娓呴櫎鏂囦欢鎺╃爜
-    umask(0);
-
-//    // 鍏抽棴鎵�鏈夋枃浠跺彞鏌�
-//    for (i=0; i<MAXFD; i++)
-//    {
-//    	close(i);
-//    }
-
     if (rl.rlim_max == RLIM_INFINITY)
     {
         rl.rlim_max = 1024;
     }
-    /*
-    for (i = 0; i < rl.rlim_max; i++)
-        close(i);
-
-    fd0 = open("/dev/null", O_RDWR);
-    fd1 = dup(0);
-    fd2 = dup(0);
-
-    openlog(cmd, LOG_CONS, LOG_DAEMON);
-    if (fd0 != 0 || fd1 != 1 || fd2 != 2)
-    {
-        syslog(LOG_ERR, "unexpected file descriptors %d %d %d", fd0, fd1, fd2);
-        exit(1);
-    }
-    */
 }
 
 int x_sock_set_block(int sock, int on)

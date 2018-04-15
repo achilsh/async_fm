@@ -51,7 +51,7 @@ namespace  BASE_TASK {
     }
     //
     ngx_setproctitle(m_oCurrentConf("server_name").c_str());
-    daemonize(m_oCurrentConf("server_name").c_str());
+    daemonize(m_oCurrentConf("server_name").c_str(), 1, 0);
     //
     char sBuf[256] = {0};
     snprintf(sBuf,sizeof(sBuf),"/tmp/%s.lock", getproctitle());

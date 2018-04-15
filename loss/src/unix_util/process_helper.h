@@ -32,7 +32,7 @@ extern "C" {
 //int recv_fd(int fd, char *buffer, size_t size);
 //int daemonize();
 void InstallSignal();
-void daemonize(const char* cmd);
+void daemonize(const char* cmd, int nochdir = 1, int noclose = 0);
 int x_sock_set_block(int sock, int on);
 int send_fd(int sock_fd, int send_fd) ;
 int recv_fd(const int sock_fd);
