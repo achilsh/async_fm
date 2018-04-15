@@ -94,6 +94,18 @@ class SettigSocketOpt {
      std::string m_ErrMsg;
 };
 
+/////增加对字节序的判断&long long 类型低字节序向高字节序的转换
+class Comm 
+{
+ public:
+  static uint64_t ntohll(uint64_t val);
+  static uint64_t htonll(uint64_t val);
+  static uint64_t toswap(uint64_t in);
+  static bool LittleEnd;
+  static bool IsLittleEnd();
+};
+
+
 }
 
 #endif

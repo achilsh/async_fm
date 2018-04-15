@@ -70,5 +70,52 @@ bool SettigSocketOpt::SetOpt() {
     return bRet;
 }
 
+//////////////////////////////
+bool Comm::IsLittleEnd() 
+{
+    uint16_t uiTestVal = 0x1234;
+    char *p = (char*)&uiTestVal;
+    if ((p[0] == 0x34) && (p[1] == 0x12))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+bool Comm::LittleEnd = Comm::IsLittleEnd();
+
+uint64_t Comm::ntohll(uint64_t val) 
+{
+    return Comm::toswap(val);
+}
+
+uint64_t Comm::htonll(uint64_t val)
+{
+    return Comm::toswap(val);
+}
+
+uint64_t Comm::toswap(uint64_t in)
+{
+    if (LittleEnd == true)
+    {
+        /* Little endian, flip the bytes around until someone makes a
+           faster/better  way to do this. */
+        int64_t rv = 0;
+        int8_t i = 0;
+        for (;  i <8; i++)
+        {
+            rv = (rv <<8) | (in & 0xff);
+            in >>= 8;
+        }
+        return rv;
+    }
+    else 
+    {
+        return in; /*  big-endian machines don't need byte swapping **/
+    }
+}
+
 ////
 }

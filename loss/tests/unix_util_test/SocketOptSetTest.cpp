@@ -98,6 +98,15 @@ int Test::main(int argc, char**argv) {
         std::cout << "save pid file succ " << std::endl;
     }
     ///sleep(100);
+    
+    uint64_t uLL_host = 0x1234;
+    uint64_t uLL_net = Comm::htonll(uLL_host);
+    std::cout << "host val: " << std::hex << uLL_host << std::endl;
+    std::cout << "net val: " << std::hex << uLL_net << std::endl;
+    //
+    uint64_t uLL_hnh = Comm::ntohll(uLL_net);
+    std::cout << "host->net->host val: " << std::hex << uLL_hnh << std::endl;
+    std::cout << "is little end: " << std::dec << Comm::LittleEnd  << std::endl;
     return 0; 
 }
 
