@@ -416,7 +416,7 @@ bool OssManager::FdTransfer(int iFd)
     int iKeepCount = 3;
     SetSocketFdOpt(iAcceptFd, iKeepCount, TCP_KEEPCNT);
 
-    int iTcpNoDelay = 1;
+    int iTcpNoDelay = 1; //关闭Nagle算法
     SetSocketFdOpt(iAcceptFd, iTcpNoDelay, TCP_NODELAY);
 
     std::unordered_map<in_addr_t, uint32>::iterator iter = m_mapClientConnFrequency.find(stClientAddr.sin_addr.s_addr);
