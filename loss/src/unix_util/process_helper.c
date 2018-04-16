@@ -215,11 +215,6 @@ void daemonize(const char* cmd, int nochdir, int noclose)
 {
     struct sigaction sa;
     pid_t pid;
-    struct rlimit rl;
-    if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
-    {
-        exit(0);
-    }
     SetCoreMax(); //set dump core max
     sa.sa_handler = SIG_IGN;
     sa.sa_flags = 0;
@@ -280,10 +275,6 @@ void daemonize(const char* cmd, int nochdir, int noclose)
         }
     }
     InstallSignal();
-    if (rl.rlim_max == RLIM_INFINITY)
-    {
-        rl.rlim_max = 1024;
-    }
 }
 
 int x_sock_set_block(int sock, int on)
