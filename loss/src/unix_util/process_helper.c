@@ -215,6 +215,23 @@ void daemonize(const char* cmd, int nochdir, int noclose)
 {
     struct sigaction sa;
     pid_t pid;
+    if ((pid = fork()) < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid != 0)
+    {
+        exit(0);
+    } 
+    //在孤儿进程的基础上再去创建守护进程.
+    //防止通过一次fork()实现守护进程过程中 产生僵尸进程(子进程提前退出，但父进程有没有
+    //wait()子进程退出状态，导致子进程成为僵尸进程), 采用孤儿进程来创建守护进程，
+    //即使在子进程比孤儿进程早退出，最后孤儿进程退出后,init进程(1号进程)也会回收子进程退出资源。
+    //
+    if (setsid() == -1)
+    {
+        exit(EXIT_FAILURE);
+    }
     SetCoreMax(); //set dump core max
     sa.sa_handler = SIG_IGN;
     sa.sa_flags = 0;
@@ -233,10 +250,6 @@ void daemonize(const char* cmd, int nochdir, int noclose)
     else if (pid != 0)
     {
         exit(EXIT_SUCCESS);
-    }
-    if (setsid() == -1)
-    {
-        exit(EXIT_FAILURE);
     }
     if (nochdir == 0) 
     {

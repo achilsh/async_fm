@@ -287,4 +287,6 @@ loss/tests/pushemail_test/PushEmailTest
 loss/tests/redislib_test/RedisClient
 loss/tests/shm_test/ShmTest
 loss/tests/tasklib_test/TaskTest
+loss/lib/libloss.so
+l3oss/lib/libloss.so
 ./tags
