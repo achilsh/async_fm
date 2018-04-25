@@ -1,8 +1,11 @@
 #include "SocketOptSet.hpp"
 //
+#include "num2str.h"
+
 #include "str2num.h"
 #include "PidFile.h"
 #include <unistd.h>
+#include <string.h>
 
 using namespace loss;
 
@@ -35,8 +38,36 @@ void PrintSrcDst(bool ret, const char* src, T* pdst)
         std::cout << "happend err " << std::endl;
 }
 
+void Num2str()
+{
+    uint32_t x = UINT32_MAX;  //UINT32_MIN ; UINT32_MAX
+    char buf[10];
+    char *ptr = itoa_u32(x,buf );
+    std::cout << ptr <<", " << buf << std::endl;
+    
+    int32_t xx  = INT32_MAX; //INT32_MAX ; INT32_MIN
+    ptr = itoa_32(xx, buf);
+    std::string sBuf(buf);
+    std::cout << ptr <<", " << sBuf << std::endl;
+
+    int64_t i64x  = INT64_MAX; //INT64_MIN
+    char i64buf[30];
+    ptr = itoa_64(i64x, i64buf);
+    sBuf.assign(i64buf, strlen(i64buf)+1);
+    std::cout << ptr <<", " << sBuf << std::endl;
+    
+    uint64_t ui64x  =  UINT64_MAX; // 
+    char ui64buf[40];
+    ptr = itoa_u64(ui64x, ui64buf);
+    sBuf.assign(ui64buf, strlen(ui64buf)+1);
+    std::cout << ptr <<", " << sBuf << std::endl;
+}
+
 
 int Test::main(int argc, char**argv) {
+    std::cout << "========= Num2String test begin =========================" <<std::endl;
+    Num2str();
+    std::cout << "========= Num2String test end   =========================" <<std::endl;
     int fd = 5600;
     m_Test.AddNameOpt(SO_KEEPALIVE);
     m_Test.AddFdOpt(SO_KEEPALIVE,fd);
