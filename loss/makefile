@@ -24,6 +24,7 @@ SUB_DIRS := $(foreach dir, $(VPATH), $(shell find $(dir) -maxdepth 5 -type d))
 DIRS := $(SUB_DIRS)
 
 INC := $(INC) \
+       -I $(LOSS_PATH)/src/RedisClientPools/include \
        -I /usr/include \
        -I $(LIB3RD_PATH)/include \
        -I $(LIB3RD_PATH)/include/libevent \
@@ -40,7 +41,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src/thrift_util \
        -I $(LOSS_PATH)/src/LibCoroutine/include \
-       -I $(LOSS_PATH)/src  
+       -I $(LOSS_PATH)/src
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
            -L$(LIB3RD_PATH)/lib -lprotobuf \
@@ -67,6 +68,8 @@ OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS)) $(patsu
 
 all:  Ls  Ts
 TESTSPATH = $(shell find $(LOSS_PATH) -name 'test*' -type d)
+
+.PHONY : Ls Ts
 Ts:
 	@for dir in $(TESTSPATH); do echo "making in $$dir"; ( cd $$dir && make -f makefile -e CC='$(CXX)' CFLAG='$(CFLAG)'); done  
 
