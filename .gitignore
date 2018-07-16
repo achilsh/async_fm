@@ -1,3 +1,5 @@
 **/*.o
 **/*.so
 ./tags
+loss/tests/*
+loss/lib/*
