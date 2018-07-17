@@ -1,9 +1,10 @@
 #include "feed_redis_pool.h"
-//#include "glog/logging.h"
-//#include "utility.h"
+#include <string.h>
+#include <memory>
 #include <sstream>
+#include <stdio.h>
+#include <unistd.h>
 
-namespace forbag {
 FS_RedisConnPool::FS_RedisConnPool(int32_t _max_conn_nums, int32_t _max_idle_tm,
                                    const std::string& _host,
                                    unsigned _port, unsigned _db_index):
@@ -19,15 +20,18 @@ FS_RedisConnPool::~FS_RedisConnPool() {
 redisContext* FS_RedisConnPool::Grub() {
   redisContext* rc = NULL;
   {
-    std::unique_lock<std::mutex> lock(conn_in_use_mutex_, std::adopt_lock);
+    std::unique_lock<std::mutex> lock(conn_in_use_mutex_);
     while(conn_in_use_nums_ > conn_max_nums_) {
-     // LOG(WARNING) << "conn num is on, max_conn_nums: " << conn_in_use_nums_ 
-      //    << ", now wait to other phtread release free redis conn";
-      conn_in_use_mutx_cond_.wait(lock);
+        fprintf(stderr, "conn num is on max_conn_nums: %d, now wait to other phtread release free redis conn\n",
+                conn_in_use_nums_);
+        // LOG(WARNING) << "conn num is on, max_conn_nums: " << conn_in_use_nums_ 
+        //    << ", now wait to other phtread release free redis conn";
+        conn_in_use_mutx_cond_.wait(lock);
     }
     rc = RedisConnPool::Grub();
     if (rc != NULL) {
       ++conn_in_use_nums_;
+      fprintf(stdout,"get free redis conn, now used index: %d\n", conn_in_use_nums_ );
       //VLOG(100) << "get free redis conn, now used index: " << conn_in_use_nums_;
     }
   }
@@ -35,22 +39,25 @@ redisContext* FS_RedisConnPool::Grub() {
 }
 
 void FS_RedisConnPool::ReleaseConn(const redisContext* _rc, bool _is_bad) {
-  std::unique_lock<std::mutex> lock(conn_in_use_mutex_, std::adopt_lock);
+  std::unique_lock<std::mutex> lock(conn_in_use_mutex_);
   RedisConnPool::ReleaseConn(_rc);
   
   if(_is_bad) {
     RedisConnPool::RemoveConn(_rc);
   }
   --conn_in_use_nums_;
+  fprintf(stdout, "release redis conn, now redis conn nums: %d\n", conn_in_use_nums_);
+
   //VLOG(100) << "release redis conn, now redis conn nums: " << conn_in_use_nums_;
   conn_in_use_mutx_cond_.notify_one();
 }
 
 void FS_RedisConnPool::ReleaseConn(const redisContext* _rc) {
-  std::unique_lock<std::mutex> lock(conn_in_use_mutex_, std::adopt_lock);
+  std::unique_lock<std::mutex> lock(conn_in_use_mutex_);
   RedisConnPool::ReleaseConn(_rc);
   
   --conn_in_use_nums_;
+  fprintf(stdout, "release redis conn, now redis conn nums: %d,Line: %d", conn_in_use_nums_, __LINE__);
   //VLOG(100) << "release redis conn, now redis conn nums: " << conn_in_use_nums_;
   conn_in_use_mutx_cond_.notify_one();
 }
@@ -154,6 +161,7 @@ bool FS_RedisInterface::CheckReplySucc(redisReply* _preply, redisContext* _rc,
   }
   if (_preply->type == REDIS_REPLY_ERROR) {
    // LOG(ERROR) << "cmd: " << _cmd << " err, err msg: " << _preply->str;
+    fprintf(stderr, "cmd: %s, err msg: %s", _cmd.c_str(), _preply->str);
     ReleaseConn(_rc, false);
     FreeReplyObj(_preply);
     return false;
@@ -576,8 +584,9 @@ bool FS_RedisInterface::HMGet(const std::string& _key,
   argv[1] = cmd_key_str->c_str();
   arglen[1] = cmd_key_str->size();
   size_t i = 2;
-  std::vector<std::shared_ptr<std::string> vFields;
-  for (auto it = _val.begin(); it != _val.end(); ++it, ++i) {
+  std::vector<std::shared_ptr<std::string> > vFields;
+  for (auto it = _val.begin(); it != _val.end(); ++it, ++i) 
+  {
     std::shared_ptr<std::string> field = std::make_shared<std::string>(it->first);
     argv[i] = field->c_str();
     arglen[i] = it->first.size();
@@ -792,7 +801,7 @@ bool FS_RedisInterface::HDel(const std::string& _key,
   argv[1] = cmd_key_str->c_str();
   arglen[1] = cmd_key_str->size();
   size_t i = 2;
-  std::vector<std::shared<std::string> > vFields;
+  std::vector<std::shared_ptr<std::string> > vFields;
   for (auto it = _fields.begin(); it != _fields.end(); ++it, ++i) {
     std::shared_ptr<std::string> field = std::make_shared<std::string>(*it);
     argv[i] = it->c_str();
@@ -821,4 +830,3 @@ void FS_RedisInterface::CmdToString(const std::string& _cmd_str) {
   //VLOG(100) << "redis cmd: " << _cmd_str;
 }
 //
-}

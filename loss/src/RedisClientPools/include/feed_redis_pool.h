@@ -1,5 +1,5 @@
-#ifndef REDIS_POOL_H 
-#define REDIS_POOL_H 
+#ifndef _REDIS_POOL_H_ 
+#define _REDIS_POOL_H_
 
 #include "feed_redis_conn_pool.h"
 #include <condition_variable>
@@ -8,7 +8,8 @@
 #include <vector>
 
 
-class FS_RedisConnPool: public RedisConnPool {
+class FS_RedisConnPool: public RedisConnPool 
+{
  public:
   FS_RedisConnPool(int32_t _max_conn_nums, int32_t _max_idle_tm, 
                    const std::string& _host,
@@ -36,7 +37,8 @@ class FS_RedisConnPool: public RedisConnPool {
 };
 
 //
-class FS_RedisInterface: public FS_RedisConnPool {
+class FS_RedisInterface: public FS_RedisConnPool 
+{
  public:
   FS_RedisInterface(int32_t _max_conn_nums, int32_t _max_idle_tm, 
                     const std::string& _host,

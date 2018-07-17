@@ -2,7 +2,7 @@ CCACHE_B=../l3oss/bin/ccache
 CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
 CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
 CFLAG = -Wall -Wno-format -g -O2 -fPIC 
-CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -std=c++11 -DREDIS_DEBUG #-DDEBUG_TEST
+CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -std=c++11 -DREDIS_DEBUG #-DDEBUG_TEST
 
 ARCH:=$(shell uname -m)
 
@@ -24,7 +24,6 @@ SUB_DIRS := $(foreach dir, $(VPATH), $(shell find $(dir) -maxdepth 5 -type d))
 DIRS := $(SUB_DIRS)
 
 INC := $(INC) \
-       -I $(LOSS_PATH)/src/RedisClientPools/include \
        -I /usr/include \
        -I $(LIB3RD_PATH)/include \
        -I $(LIB3RD_PATH)/include/libevent \
@@ -41,6 +40,7 @@ INC := $(INC) \
        -I $(LOSS_PATH)/src/Shm/include \
        -I $(LOSS_PATH)/src/thrift_util \
        -I $(LOSS_PATH)/src/LibCoroutine/include \
+       -I $(LOSS_PATH)/src/RedisClientPools/include \
        -I $(LOSS_PATH)/src
 
 LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
@@ -82,6 +82,8 @@ Ls: $(OBJS)
 
 
 
+%.o:%.cc
+	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< 
 %.o:%.cpp
 	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< 
 %.o:%.c

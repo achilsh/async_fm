@@ -50,4 +50,5 @@ class RedisConnPool
     PoolT  redis_pool_;
     std::mutex redis_mutex_;
 };
+
 #endif

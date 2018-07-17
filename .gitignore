@@ -1,5 +1,6 @@
 **/*.o
 **/*.so
 ./tags
-loss/tests/*
+loss/tests/*/*.o
 loss/lib/*
+l3oss/lib/libloss.so
