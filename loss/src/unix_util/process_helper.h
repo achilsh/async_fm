@@ -20,7 +20,10 @@
 #include <syslog.h>
 #include <signal.h>
 #include <sys/resource.h>
-
+#include <unistd.h>
+#include <sys/time.h>
+#include <errno.h>
+#include <string.h>
 #define BUF_SIZE 1024
 
 #ifdef __cplusplus
@@ -33,6 +36,7 @@ extern "C" {
 //int daemonize();
 void InstallSignal();
 void daemonize(const char* cmd, int nochdir = 1, int noclose = 0);
+int  SetOpenFileNums(const int iMaxOpenFilesNums = 65535);
 int x_sock_set_block(int sock, int on);
 int send_fd(int sock_fd, int send_fd) ;
 int recv_fd(const int sock_fd);

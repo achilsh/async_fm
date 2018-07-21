@@ -467,3 +467,27 @@ int readable_timeo(int fd, int sec)
 
     return select(fd+1, &rset, NULL, NULL, &tv);
 }
+
+int SetOpenFileNums(const int iMaxOpenFilesNums)
+{
+    if (iMaxOpenFilesNums <= 3)
+    {
+        return -1;
+    }
+
+    struct rlimit rlim;
+    int iret = getrlimit(RLIMIT_NOFILE, &rlim);
+    if (iret != 0)
+    {
+        return (errno);
+    }
+
+    rlim.rlim_cur = iMaxOpenFilesNums;
+    rlim.rlim_max = iMaxOpenFilesNums;
+    iret = setrlimit(RLIMIT_NOFILE, &rlim);
+    if (iret != 0)
+    {
+        return (errno);
+    }
+    return 0;
+}
