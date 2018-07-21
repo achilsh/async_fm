@@ -4,6 +4,13 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+//
+// std::unique_lock 和std::lock_guard 区别和联系
+// 相似点：通过创建变量实现自动加锁，对象虚构时自动解锁（包括异常抛出）
+// 不同点：前者可以在线程等待时释放锁，等待唤醒后自动加锁，相对更加灵活。
+// 后者就没有这样的能力，但是后者更加轻量些。
+//
+// 读写锁暂时c++11不直接支持,可以直接用boost或者用pthread
 
 FS_RedisConnPool::FS_RedisConnPool(int32_t _max_conn_nums, int32_t _max_idle_tm,
                                    const std::string& _host,
