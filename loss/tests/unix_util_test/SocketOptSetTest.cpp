@@ -6,8 +6,84 @@
 #include "PidFile.h"
 #include <unistd.h>
 #include <string.h>
+#include "LockQueue.h"
+#include <unistd.h>
+#include <thread>
+
 
 using namespace loss;
+
+struct QueueNode
+{
+    int x;
+    int y;
+    void SetX(int xx) 
+    {
+        x = xx;
+    }
+    void SetY(int yy)
+    {
+        y = yy;
+    }
+    void Print() 
+    {
+        std::cout << "x: " << x << ", y:" << y << std::endl;
+    }
+};
+
+class LockQeueTest
+{
+ public:
+  LockQeueTest() 
+  {
+
+  }
+  virtual ~LockQeueTest()
+  {
+
+  }
+  void funcProduce()
+  {
+      std::cout << "produce run, pid: " <<  std::this_thread::get_id()  << std::endl;
+      while(1)
+      {
+          for (int i = 0; i < 10; i++)
+          {
+              QueueNode node;
+              node.SetX(i);
+              node.SetY(i + 1000);
+              std::cout << "produce set x: " << i << ", y: " << i+ 1000 << std::endl;
+              m_NodeList.Put(node);
+              usleep(10000);
+          }
+      }
+  }
+  void funConsumer()
+  {
+      std::cout << "consumer run, pid: " <<  std::this_thread::get_id()  << std::endl;
+      while(1)
+      {
+          QueueNode node;
+          m_NodeList.Get(&node);
+          node.Print();
+          std::cout << "consumer run, pid: " <<  std::this_thread::get_id()  << std::endl;
+      }
+  }
+  void Run()
+  {
+      std::thread m_threadConsumer1st(&LockQeueTest::funConsumer, this);
+      std::thread m_threadConsumer2nd(&LockQeueTest::funConsumer, this);
+      sleep(2);
+      std::thread m_threadProducer(&LockQeueTest::funcProduce, this);
+
+      m_threadConsumer1st.join();
+      m_threadConsumer2nd.join();
+      m_threadProducer.join();
+  }
+
+ private:
+  LockQueue<QueueNode> m_NodeList;
+};
 
 class Test {
  public:
@@ -138,6 +214,11 @@ int Test::main(int argc, char**argv) {
     uint64_t uLL_hnh = Comm::ntohll(uLL_net);
     std::cout << "host->net->host val: " << std::hex << uLL_hnh << std::endl;
     std::cout << "is little end: " << std::dec << Comm::LittleEnd  << std::endl;
+
+
+    //
+    LockQeueTest testLockQueue;
+    testLockQueue.Run();
     return 0; 
 }
 
