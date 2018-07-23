@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAG = -Wall -Wno-format -g -O2 -fPIC
-CXXFLAG = -Wall -Wno-format -g -O2 -fPIC -std=c++11
+CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -std=c++11
 
 ARCH:=$(shell uname -m)
 

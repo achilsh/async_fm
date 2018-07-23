@@ -9,12 +9,15 @@
 #include "LockQueue.h"
 #include <unistd.h>
 #include <thread>
+#include "FreeLockQueue.h"
+
 
 
 using namespace loss;
 
 struct QueueNode
 {
+    QueueNode():x(0),y(0) {}
     int x;
     int y;
     void SetX(int xx) 
@@ -28,6 +31,12 @@ struct QueueNode
     void Print() 
     {
         std::cout << "x: " << x << ", y:" << y << std::endl;
+    }
+    std::string GetXY()
+    {
+        std::string xy;
+        xy.append("x: " + std::to_string(x) + ", y: " + std::to_string(y));
+        return  xy;
     }
 };
 
@@ -54,7 +63,7 @@ class LockQeueTest
               node.SetY(i + 1000);
               std::cout << "produce set x: " << i << ", y: " << i+ 1000 << std::endl;
               m_NodeList.Put(node);
-              usleep(10000);
+              //usleep(10000);
           }
       }
   }
@@ -65,16 +74,19 @@ class LockQeueTest
       {
           QueueNode node;
           m_NodeList.Get(&node);
-          node.Print();
-          std::cout << "consumer run, pid: " <<  std::this_thread::get_id()  << std::endl;
+          //node.Print();
+          std::cout << "consumer run, pid: " <<  std::this_thread::get_id()  
+              << ", " << node.GetXY() << std::endl;
       }
   }
   void Run()
   {
+      std::thread m_threadProducer(&LockQeueTest::funcProduce, this);
+      sleep(10);
+
       std::thread m_threadConsumer1st(&LockQeueTest::funConsumer, this);
       std::thread m_threadConsumer2nd(&LockQeueTest::funConsumer, this);
       sleep(2);
-      std::thread m_threadProducer(&LockQeueTest::funcProduce, this);
 
       m_threadConsumer1st.join();
       m_threadConsumer2nd.join();
@@ -83,6 +95,84 @@ class LockQeueTest
 
  private:
   LockQueue<QueueNode> m_NodeList;
+};
+
+class FreeLockQueTest
+{
+ public: 
+  FreeLockQueTest()
+  {
+  }
+  virtual ~FreeLockQueTest()
+  {
+  }
+  
+  void funCon()
+  {
+      std::cout << "consume run, pid: " <<  std::this_thread::get_id()  << std::endl;
+      while(1)
+      {
+          QueueNode node;
+          if (false == m_NodeList.DeQue(&node))
+          {
+              std::cout << "consume run fail, pid: " << std::this_thread::get_id()
+                  << ",mq size: " << m_NodeList.Size() <<  std::endl;;
+              sleep(2);
+              continue;
+          }
+
+          //node.Print();
+          std::cout << "consume run, pid: " <<  std::this_thread::get_id()  
+              << ", " << node.GetXY() << std::endl;
+          //usleep(500000);
+          usleep(40000);
+          //sleep(3);
+      }
+  }
+  void funcProd()
+  {
+      std::cout << "produce run, pid: " <<  std::this_thread::get_id()  << std::endl;
+      int i = 0;
+      while(1)
+      {
+          {
+              QueueNode node;
+              node.SetX(i);
+              node.SetY(i + 1000);
+              std::cout << "produce set x: " << i << ", y: " << i+ 1000 << std::endl;
+              if (false == m_NodeList.EnQue(node))
+              {
+                  std::cout << "que is full, size: " << m_NodeList.Size() << std::endl;
+                  sleep(1);
+              }
+              else
+              {
+                  std::cout << "produce, mq size: " << m_NodeList.Size() << std::endl;
+                  //sleep(1);
+                  //usleep(10);
+                  usleep(10000);
+              }
+              i++;
+          }
+      }
+  }
+  
+  void Run()
+  {
+    //std::thread m_Prod2nd(&FreeLockQueTest::funcProd, this);
+    std::thread m_ConA(&FreeLockQueTest::funCon, this);
+    std::thread m_ConB(&FreeLockQueTest::funCon, this);
+    sleep(3);
+    std::thread m_Prod1st(&FreeLockQueTest::funcProd, this);
+    m_ConA.join();
+    m_ConB.join();
+    m_Prod1st.join();
+   // m_Prod2nd.join();
+  }
+
+
+ private:
+  FreeLockQue<QueueNode> m_NodeList;
 };
 
 class Test {
@@ -217,8 +307,11 @@ int Test::main(int argc, char**argv) {
 
 
     //
-    LockQeueTest testLockQueue;
-    testLockQueue.Run();
+    //LockQeueTest testLockQueue;
+    //testLockQueue.Run();
+    //
+    FreeLockQueTest testFreLockQue;
+    testFreLockQue.Run();
     return 0; 
 }
 
