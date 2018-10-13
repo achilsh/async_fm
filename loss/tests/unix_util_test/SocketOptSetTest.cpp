@@ -11,6 +11,9 @@
 #include <thread>
 #include "FreeLockQueue.h"
 
+#include "RWMutex.h"
+#include "Lock.h"
+
 
 
 using namespace loss;
@@ -182,6 +185,7 @@ class Test {
   int main(int argc, char**argv);
  private:
   SettigSocketOpt m_Test;
+  loss::RWMutex m_rwMutex;
 };
 
 int main(int argc, char** argv) {
@@ -306,6 +310,15 @@ int Test::main(int argc, char**argv) {
     std::cout << "is little end: " << std::dec << Comm::LittleEnd  << std::endl;
 
 
+    std::cout << "------- test rw lock --------" << std::endl;
+    {
+        ReadLock r(m_rwMutex);
+        std::cout << "===== rlock ========" << std::endl;
+    }
+    {
+       WriteLock w(m_rwMutex) ;
+       std::cout << "====== wlock =======" << std::endl;
+    }
     //
     //LockQeueTest testLockQueue;
     //testLockQueue.Run();
