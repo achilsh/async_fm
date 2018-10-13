@@ -1,8 +1,8 @@
 CCACHE_B=../l3oss/bin/ccache
 CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
 CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
-CFLAG = -Wall -Wno-format -g -O2 -fPIC 
-CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -Wno-deprecated-declarations  -std=c++11 -DREDIS_DEBUG #-DDEBUG_TEST
+CFLAG = -Wall -Wno-format -g -O2 -fPIC  -Wunused-local-typedefs
+CXXFLAG = -Wall -Wno-format -g -O0 -fPIC -Wno-deprecated-declarations -Wunused-local-typedefs -std=c++11 -DREDIS_DEBUG #-DDEBUG_TEST
 
 ARCH:=$(shell uname -m)
 
