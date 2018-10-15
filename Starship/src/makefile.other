@@ -1,6 +1,6 @@
 CCACHE_B=../../l3oss/bin/ccache
-CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc" || echo "gcc")
-CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++" || echo "g++")
+CC = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) gcc -fdiagnostics-color=auto" || echo "gcc -fdiagnostics-color=auto")
+CXX = $(shell command -v $(CCACHE_B) >/dev/null 2>&1 && echo "$(CCACHE_B) g++ -fdiagnostics-color=auto" || echo "g++ -fdiagnostics-color=auto")
 CFLAGS = -g -O0 #-Wall
 CPPFLAGS =  -D_GNU_SOURCE=1 -D_REENTRANT -fPIC -DNODE_BEAT=10.0  -std=c++11
 #CXXFLAG = -g -O2 -Wall -fdiagnostics-show-caret -Wextra -pedantic -Wstrict-aliasing -Wstrict-overflow -Woverloaded-virtual -Wold-style-cast -Wc++0x-compat -Wc++11-compat -Wundef -Wshadow -Wformat -Wsuggest-attribute=format -Wsuggest-attribute=noreturn -Wno-variadic-macros -fvisibility=hidden

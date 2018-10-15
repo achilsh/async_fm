@@ -1,5 +1,5 @@
 CCACHE_FILE=../../l3oss/bin/ccache
-CXX =$(shell command -v $(CCACHE_FILE) >/dev/null 2>&1 && echo "$(CCACHE_FILE) g++" || echo "g++") 
+CXX =$(shell command -v $(CCACHE_FILE) >/dev/null 2>&1 && echo "$(CCACHE_FILE) g++ -fdiagnostics-color=auto" || echo "g++ -fdiagnostics-color=auto") 
 ROOT = .
 STARTSHIP_MAKEFILES=$(shell find $(ROOT) -name 'makefile.*' -type f)
 
