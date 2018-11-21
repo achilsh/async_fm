@@ -14,7 +14,10 @@
 #include "RWMutex.h"
 #include "Lock.h"
 
-
+#include "Notification.h"
+#include "NotificationCenter.h"
+#include "Observer.h"
+#include "test_notify.h"
 
 using namespace loss;
 
@@ -235,6 +238,16 @@ void Num2str()
 
 
 int Test::main(int argc, char**argv) {
+    std::cout << "==================== notification ===================" << std::endl;
+
+    NotificationCenter  nc;
+    std::shared_ptr<TestObject>  tmpObj(new TestObject());
+    Observer<TestObject, TestNotification> ob(tmpObj, &TestObject::DoNotifyMsg);
+    nc.addObserver(ob);
+    //post notify 
+    nc.postNotification(std::make_shared<TestNotification>());
+    
+    std::cout << "has observer: " << nc.hasObserver(ob) << std::endl;
     std::cout << "========= Num2String test begin =========================" <<std::endl;
     Num2str();
     std::cout << "========= Num2String test end   =========================" <<std::endl;
