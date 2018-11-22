@@ -1,3 +1,17 @@
+/**
+ * @file: NotificationCenter.h
+ * @brief: 
+ *       NotificationCenter is a dispatcher for notiﬁcation objects.
+ *       NotiﬁcationCenter uses observer objects (subclasses of
+ *       AbstractObserver) to talk to its targets.
+ *       Targets can subscribe to notiﬁcations by registering themselves with a
+ *       NotiﬁcationCenter using the addObserver() member function.
+ * @author:  wusheng Hu
+ * @version: 
+ * @date: 2018-11-22
+ */
+
+
 #ifndef NotificationCenter_INCLUDED
 #define NotificationCenter_INCLUDED
 
