@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Notification.h"
-#include "NotificationQueue.h"
+#include "PriorityNotificationQueue.h"
 #include "mythread.h"
 #include <unistd.h>
 #include "comm_test_notificationqueue.h"
@@ -8,15 +8,14 @@
 using namespace loss;
 using namespace std;
 
-
-class MyWork: public  Runnable
+class PriMyWork: public  Runnable
 {
  public:
-  MyWork(const std::string& sName, NotificationQueue& nQueue)
+  PriMyWork(const std::string& sName, PriorityNotificationQueue& nQueue)
       :m_sName( sName ), m_nQueue(nQueue) 
   {
   }
-  virtual ~MyWork() {}
+  virtual ~PriMyWork() {}
 
   void Run() 
   {
@@ -43,16 +42,15 @@ class MyWork: public  Runnable
 
  private:
   std::string m_sName;
-  NotificationQueue& m_nQueue;
+  PriorityNotificationQueue& m_nQueue;
 };
 
-
 //////////////////////////////////////////////////////////////////////////
-void Test_Interface()
+void Test_Interface_PriorityQueue()
 {
-    NotificationQueue oneNotificationQueue;
-    std::shared_ptr<Runnable> w1( new  MyWork("w1", oneNotificationQueue) );
-    std::shared_ptr<Runnable> w2( new  MyWork("w2", oneNotificationQueue) );
+    PriorityNotificationQueue oneNotificationQueue;
+    std::shared_ptr<Runnable> w1( new  PriMyWork("w1", oneNotificationQueue) );
+    std::shared_ptr<Runnable> w2( new  PriMyWork("w2", oneNotificationQueue) );
 
     MyThread t1, t2;
 
@@ -63,7 +61,7 @@ void Test_Interface()
     std::cout << "begin to add notification to queue" << std::endl;
     for ( int i= 0; i < 500; i++ )
     {
-        oneNotificationQueue.EnqueueNotification( std::make_shared<MyNotification>(i) );
+        oneNotificationQueue.EnqueueNotification( 1, std::make_shared<MyNotification>(i) );
         usleep(2000);
     }
     while( !oneNotificationQueue.Empty() ) sleep(1);

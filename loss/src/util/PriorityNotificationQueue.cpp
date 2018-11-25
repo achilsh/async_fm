@@ -1,24 +1,24 @@
-#include "NotificationQueue.h"
+#include "PriorityNotificationQueue.h"
 #include <iostream>
 
-namespace loss 
+namespace loss
 {
 
-NotificationQueue::NotificationQueue()
-{
-}
-
-NotificationQueue::~NotificationQueue() 
+PriorityNotificationQueue::PriorityNotificationQueue()
 {
 }
 
-void NotificationQueue::EnqueueNotification( std::shared_ptr<Notification> ptrNf )
+PriorityNotificationQueue::~PriorityNotificationQueue()
+{
+}
+
+void PriorityNotificationQueue::EnqueueNotification( int priority, std::shared_ptr<Notification> ptrNf )
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     if (m_WaitQueue.empty())
     {
         std::cout << "add node " << std::endl;
-        m_qNotification.push_back(ptrNf);
+        m_qNotification.insert(std::multimap<int,std::shared_ptr<Notification>>::value_type( priority,ptrNf ));
         return ;
     }
     std::cout << "waiting consumer queue not empty, add node to queue" << std::endl;
@@ -29,33 +29,19 @@ void NotificationQueue::EnqueueNotification( std::shared_ptr<Notification> ptrNf
     pWi->m_WaitEvent.Set();
 }
 
-void NotificationQueue::EnqueueUrgentNotification( std::shared_ptr<Notification> ptrNf )
+std::shared_ptr<Notification> PriorityNotificationQueue::DequeueNotification()
 {
-    std::lock_guard<std::mutex> lock(m_Mtx);
-    if (m_WaitQueue.empty())
-    {
-        m_qNotification.push_front(ptrNf);
-        return ;
-    }
-    std::shared_ptr<WaitNode> pWi = m_WaitQueue.front();
-    m_WaitQueue.pop_front();
-    pWi->m_Node = ptrNf;
-    pWi->m_WaitEvent.Set();
-}
-
-std::shared_ptr<Notification> NotificationQueue::DequeueNotification()
-{
-    //std::lock_guard<std::mutex> lock(m_Mtx);
     std::shared_ptr<Notification> ptrNf(nullptr);
     if ( !m_qNotification.empty() )
     {
-         ptrNf = m_qNotification.front();
-        m_qNotification.pop_front();
+        std::multimap<int,std::shared_ptr<Notification>>::iterator it = m_qNotification.begin();
+         ptrNf = it->second;
+         m_qNotification.erase(it);
     }
     return ptrNf;
 }
 
-std::shared_ptr<Notification> NotificationQueue::WaitDequeueNotification()
+std::shared_ptr<Notification> PriorityNotificationQueue::WaitDequeueNotification()
 {
     std::shared_ptr<Notification> ptrNf;
     std::shared_ptr<WaitNode> ptrWnode;
@@ -73,7 +59,7 @@ std::shared_ptr<Notification> NotificationQueue::WaitDequeueNotification()
     return ptrNf;
 }
 
-std::shared_ptr<Notification> NotificationQueue::WaitDequeueNotification(long ts_ms)
+std::shared_ptr<Notification> PriorityNotificationQueue::WaitDequeueNotification(long ts_ms)
 {
     std::shared_ptr<Notification> ptrNf(nullptr);
     std::shared_ptr<WaitNode> ptrWnode(nullptr);
@@ -106,7 +92,7 @@ std::shared_ptr<Notification> NotificationQueue::WaitDequeueNotification(long ts
     return ptrNf;
 }
 
-void NotificationQueue::WakeUpAll() 
+void PriorityNotificationQueue::WakeUpAll() 
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     for( auto one: m_WaitQueue )
@@ -117,25 +103,25 @@ void NotificationQueue::WakeUpAll()
 
 }
 
-bool NotificationQueue::Empty() const
+bool PriorityNotificationQueue::Empty() const
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     return m_qNotification.empty();
 }
 
-int NotificationQueue::Size() const
+int PriorityNotificationQueue::Size() const
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     return static_cast<int>(m_qNotification.size());
 }
 
-void NotificationQueue::Clear() 
+void PriorityNotificationQueue::Clear() 
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     m_qNotification.clear();
 }
 
-bool NotificationQueue::HasIdleEndNodeThreads() const
+bool PriorityNotificationQueue::HasIdleEndNodeThreads() const
 {
     std::lock_guard<std::mutex> lock(m_Mtx);
     return !(m_WaitQueue.empty());

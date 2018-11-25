@@ -1,5 +1,5 @@
 /**
- * @file: NotificationQueue.h
+ * @file: PriorityNotificationQueue.h
  * @brief: 
  *      NotiﬁcationQueue can be used to send notiﬁcations asynchronously from
  *      one thread to another.
@@ -11,26 +11,30 @@
  */
 
 
-#ifndef _NOTIFICATIONQUEUE_H_
-#define _NOTIFICATIONQUEUE_H_
+#ifndef _PRIIORITY_NOTIFICATIONQUEUE_H_
+#define _PRIIORITY_NOTIFICATIONQUEUE_H_
 
 #include <mutex>
 #include <deque>
+#include <map>
 #include <memory>
 #include <condition_variable>
 #include "Notification.h"
 #include "Event.h"
 
+
 namespace loss
 {
 
-class NotificationQueue 
+
+/////////////////////////////////////////////////////
+
+class PriorityNotificationQueue 
 {
  public:
-  NotificationQueue();
-  virtual ~NotificationQueue();
-  void EnqueueNotification( std::shared_ptr<Notification> ptrNf );
-  void EnqueueUrgentNotification( std::shared_ptr<Notification> ptrNf );
+  PriorityNotificationQueue();
+  virtual ~PriorityNotificationQueue();
+  void EnqueueNotification( int priority, std::shared_ptr<Notification> ptrNf );
 
   std::shared_ptr<Notification> DequeueNotification();
   std::shared_ptr<Notification> WaitDequeueNotification();
@@ -55,7 +59,7 @@ class NotificationQueue
 
  private:
   mutable std::mutex m_Mtx;
-  std::deque<std::shared_ptr<Notification>>  m_qNotification;
+  std::multimap<int,std::shared_ptr<Notification>>  m_qNotification;
   std::deque<std::shared_ptr<WaitNode>> m_WaitQueue;
 };
 

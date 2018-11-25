@@ -20,6 +20,7 @@
 #include "test_notify.h"
 #include "mythread_test.h"
 #include "test_notificationqueue.h"
+#include "test_priority_notificationqueue.h"
 
 using namespace loss;
 
@@ -239,7 +240,11 @@ void Num2str()
 }
 
 
-int Test::main(int argc, char**argv) {
+int Test::main(int argc, char**argv) 
+{
+
+    std::cout << " ======== Priority NotificationQueue =========" << std::endl;
+    Test_Interface_PriorityQueue();
 
     std::cout << " ======== NotificationQueue =========" << std::endl;
     Test_Interface(); 
