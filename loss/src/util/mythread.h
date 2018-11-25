@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <iostream>
+
 using namespace std;
 
 namespace loss 
@@ -31,7 +32,7 @@ class MyThread
 
      void Join();
     private:
-    void func();
+     void func();
 
     private:
      std::shared_ptr<ThreadData> m_ThreadData;
