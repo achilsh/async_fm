@@ -19,6 +19,7 @@
 #include "Observer.h"
 #include "test_notify.h"
 #include "mythread_test.h"
+#include "test_notificationqueue.h"
 
 using namespace loss;
 
@@ -239,6 +240,9 @@ void Num2str()
 
 
 int Test::main(int argc, char**argv) {
+
+    std::cout << " ======== NotificationQueue =========" << std::endl;
+    Test_Interface(); 
 
     std::cout << " =========== mythread test =========" << std::endl;
     thread_test();
