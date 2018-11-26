@@ -37,6 +37,7 @@ class MyThread
      bool Start(Callable target, void *pData = nullptr);
 
      void Join();
+     bool IsRunning();
     private:
      void func();
 

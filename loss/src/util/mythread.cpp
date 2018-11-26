@@ -29,7 +29,23 @@ bool MyThread::Start(Callable target, void *pData)
 void MyThread::func()
 {
     m_ThreadData->m_ThreadId == std::this_thread::get_id();
-    m_ThreadData->m_Runable->Run();
+    if ( m_ThreadData->m_Runable )
+    {
+        m_ThreadData->m_Runable->Run();
+    }
+    m_ThreadData->m_Runable = nullptr;
+}
+
+bool MyThread::IsRunning()
+{
+    if (m_ThreadData)
+    {
+        if ( m_ThreadData->m_Runable )
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void MyThread::Join()
