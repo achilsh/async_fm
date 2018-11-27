@@ -22,6 +22,7 @@
 #include "test_notificationqueue.h"
 #include "test_priority_notificationqueue.h"
 #include "test_ThreadTarget.h"
+#include "test_tp.h"
 
 using namespace loss;
 
@@ -243,6 +244,8 @@ void Num2str()
 
 int Test::main(int argc, char**argv) 
 {
+    std::cout << " ==========thread pool ======" << std::endl;
+    test_thread_pool();
 
     std::cout << " ======== Priority NotificationQueue =========" << std::endl;
     Test_Interface_PriorityQueue();
