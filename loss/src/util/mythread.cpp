@@ -68,9 +68,32 @@ void CallableHolder::Run()
     m_Callable(m_pData);
 }
 
-
+///////////////////////////////////////////////////////
+ThreadTarget::ThreadTarget(CallBack method) :m_method(method)
+{
 }
 
+ThreadTarget::ThreadTarget(const ThreadTarget& te):m_method(te.m_method)
+{
+}
+
+ThreadTarget::~ThreadTarget()
+{
+}
+
+ThreadTarget& ThreadTarget::operator = (const ThreadTarget& te)
+{
+    m_method = te.m_method;
+    return *this;
+}
+
+void ThreadTarget::Run()
+{
+    m_method();
+}
+
+
+}
 ////////////////////////////////////////////////////////
 #if 0
 
