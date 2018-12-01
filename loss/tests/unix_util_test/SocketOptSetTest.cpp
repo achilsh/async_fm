@@ -23,6 +23,7 @@
 #include "test_priority_notificationqueue.h"
 #include "test_ThreadTarget.h"
 #include "test_tp.h"
+#include "test_thread_timer.h"
 
 using namespace loss;
 
@@ -244,6 +245,9 @@ void Num2str()
 
 int Test::main(int argc, char**argv) 
 {
+    std::cout << "========== thread timer ======" << std::endl;
+    test_thread_timer();
+    
     std::cout << " ==========thread pool ======" << std::endl;
     test_thread_pool();
 
