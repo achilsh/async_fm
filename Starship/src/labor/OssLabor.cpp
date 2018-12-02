@@ -104,7 +104,7 @@ bool CoroutineLaborMgr::ResumeOneCo(Step* pCo, int64_t iCoId)
     }
 
     //yeild cur coroutine, then iCoId can use cpu
-    m_pCoLibMgr->YieldCurrentCo();
+    m_pCoLibMgr->YieldCurrentCo(); //(没有任何携程在运行的)，调用该接口失败，因为当前的运行协程running_id = -1
     return m_pCoLibMgr->ResumeCo(iCoId);
 }
 

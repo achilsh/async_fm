@@ -126,7 +126,7 @@ bool CoroutinerMgr::YieldCurrentCo()
     
     LOG4_TRACE("co id: %ld, node: %p, begin yeild point: %u", 
                iRunId, it->second, m_stcCoYieldPoint);
-    ::swapcontext(it->second->GetCoCtx(), &m_Main);
+    ::swapcontext(it->second->GetCoCtx(), &m_Main); //保存当前上下文到first参数指向的数据结构，并激活second参数指向的上下文
     return true;
 }
 
@@ -280,10 +280,10 @@ bool  Coroutiner::SaveStack(char *pTop)
 
 bool Coroutiner::ResumeCoReadyToRunning(CoroutinerMgr* pMgr)
 {
-    ::getcontext(&m_Ctx);
-    m_Ctx.uc_stack.ss_sp   = pMgr->GetStack();
+    ::getcontext(&m_Ctx); //用当前活跃的上下文来初始化m_ctx变量，就是用m_ctx来获取(保存)当前活跃的上下文
+    m_Ctx.uc_stack.ss_sp   = pMgr->GetStack();  //要被恢复上下文的栈.
     m_Ctx.uc_stack.ss_size = CoroutinerMgr::STACK_SIZE;
-    m_Ctx.uc_link          = pMgr->GetMainCtx();
+    m_Ctx.uc_link          = pMgr->GetMainCtx(); // 在m_Ctx当前上下文结束时，要被恢复的上下文
     m_Status               = COROUTINE_RUNNING;
 
     uintptr_t ptr          = (uintptr_t)pMgr;
@@ -292,9 +292,10 @@ bool Coroutiner::ResumeCoReadyToRunning(CoroutinerMgr* pMgr)
     makecontext( &m_Ctx, 
                 (void (*)(void)) Coroutiner::GloblCorFunc, 2,
                  (uint32_t)ptr, (uint32_t)(ptr>>32)
-               );
+               ); //修改m_ctx指向的上下文
 
-    swapcontext(pMgr->GetMainCtx(), &m_Ctx); 
+    ::swapcontext(pMgr->GetMainCtx(), &m_Ctx); //保存当前上下文到first参数指向的数据结构，并激活second参数指向的上下文,之后程序执行会跳转到
+    										 //m_ctx上下文绑定的func上：Coroutiner::GloblCorFunc()
     return true;
 }
 
@@ -305,7 +306,7 @@ bool Coroutiner::ResumeCoSuspendToRunning(CoroutinerMgr* pMgr)
     
     m_Status = COROUTINE_RUNNING;
    
-    ::swapcontext(pMgr->GetMainCtx(), &m_Ctx);
+    ::swapcontext(pMgr->GetMainCtx(), &m_Ctx); //保存当前上下文到first参数指向的数据结构，并激活second参数指向的上下文
     return true;
 }
 
@@ -325,6 +326,7 @@ void Coroutiner::GloblCorFunc(uint32_t low32, uint32_t hi32)
     pCo->CorFunc();
     pCo->AfterFuncWork(); //由此处来释放协程自身的资源,由step内部接口来释放
     pMgr->DeleteCo(iCoid);
+    // 此时需要将上下文切换到已完成任务协助程上一次切换的地方
 }
 
 bool Coroutiner::YieldCurCoInCo() 
