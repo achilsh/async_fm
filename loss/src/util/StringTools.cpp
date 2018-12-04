@@ -9,7 +9,7 @@ bool StringTools::Split(const std::string& sSrc, const std::string& sDelim,
   size_t index= sSrc.find_first_of(sDelim, last);
   while (index != std::string::npos) {
     vsDst.push_back(sSrc.substr(last, index-last));
-    last = index + 1;
+    last = index + sDelim.size();
     index = sSrc.find_first_of(sDelim, last);
   }
   if (index - last > 0) {
