@@ -88,10 +88,50 @@
 extern "C" {
 #endif
 
+/**
+* @brief: Base64encode_len 
+*        计算将要进行编码的字符串在编码后的长度.
+*
+* @param len: 编码字符串长度,不包括字符串结束符长度.
+*      
+*
+* @return: 成功 -> 编码后的实际长度, 不包括字符串结束符长度.
+*          失败 -> <= 0
+*/
 int Base64encode_len(int len);
+
+/**
+ * @brief: Base64encode, 将字符串进行base64
+ *
+ * @param coded_dst: 编码完后的字符串
+ * @param plain_src: 编码前的字符串
+ * @param len_plain_src: 编码前的字符串长度, 不包括字符串结束符
+ *
+ * @return 成功 -> 编码后字符串长度,不包括字符串结束符
+ *         失败 -> <= 0
+ */
 int Base64encode(char * coded_dst, const char *plain_src,int len_plain_src);
 
+
+/**
+ * @brief: Base64decode_len 计算decode后的字符长度
+ *
+ * @param coded_src: 待decode的字符串
+ *
+ * @return:  成功 -> 返回 decode后的字符长度,不包括字符串结束符在内的长度
+ *           失败 -> 返回 <=0 
+ */
 int Base64decode_len(const char * coded_src);
+
+/**
+ * @brief: Base64decode 
+ *
+ * @param plain_dst: decode后的字符串
+ * @param coded_src: decode前的字符串
+ *
+ * @return: 成功 -> 返回decode 字符长度, 不包括字符串结束符在内
+ *          失败 -> 返回 <= 0
+ */
 int Base64decode(char * plain_dst, const char *coded_src);
 
 #ifdef __cplusplus
