@@ -15,7 +15,7 @@ base_frameworks
 - [unordered_map_verclient] - 用unordered_map 优化系统部分 map 
 - [optim_client_thrift_ver] - 优化thrift协议接入的编解码方式,增加perf cpu,生成火焰图工具,丰富火焰图获取方式.
 - [coroutine_ver] - 修改框架，内部服务支持协程模式：http，thrift, 自定义协议接入流程协程化，异步redis 接口协程改造
-（再也不用写那些反人类思维的start()/callback()业务代码了,业务完全可以同步写，底层异步收发）
+（再也不用写那些的start()/callback() hell 业务代码了,业务完全可以同步写，底层异步收发）
 
 TODO:
 ------------
