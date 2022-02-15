@@ -24,3 +24,5 @@ PL_TOOL_DIR=/home/achilsh/tools/FlameGraph/
 perf script -i on_perf.data &> on_perf.unfold 
 ${PL_TOOL_DIR}/stackcollapse-perf.pl   on_perf.unfold &> on_perf.folded 
 ${PL_TOOL_DIR}/flamegraph.pl   on_perf.folded &> on_child_perf.svg
+
+# then open on_child_perf.svg with brower
